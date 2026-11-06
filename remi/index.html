@@ -997,6 +997,7 @@
   /* Change UI switch: small, fixed bottom left, above the page and any open modal */
   .proto-fab { position: fixed; left: 12px; bottom: 12px; z-index: 1000; width: max-content; padding: 8px; border-radius: 10px; background: #fff; color: #0b0f1f; box-shadow: 0 6px 18px rgba(11, 14, 30, 0.16), 0 0 0 1px rgba(11, 14, 30, 0.05); font-family: Inter, system-ui, sans-serif; }
   .proto-fab[hidden], .proto-opt[hidden] { display: none; }
+  #proto-fab { display: none !important; } /* client demo: no Artefacts panel */
   .proto-fab-title { font-size: 11px; font-weight: 700; line-height: 14px; }
   /* Collapsible: Hide details / Show details on the far right of the title row; collapsed, only that row shows */
   .proto-fab-title { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -2963,7 +2964,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Atlas Rebrand</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Northwind</span>
+            <span class="pj-client" role="cell">Brightwater Foods</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#4a8fe8"></span>Campaigns</span>
             <span role="cell"><span class="pj-owner" style="background:#fbe3c4;color:#7a4a0a">PS</span></span>
             <span class="pj-date" role="cell">Mon, 5 Oct</span>
@@ -2973,7 +2974,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Billing Portal Revamp</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Globex</span>
+            <span class="pj-client" role="cell">Kestrel Finance</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#7ccf68"></span>Billing</span>
             <span role="cell"><span class="pj-owner is-empty"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -2983,7 +2984,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Customer Onboarding Flow</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Initech</span>
+            <span class="pj-client" role="cell">Fairline Software</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#e5484d"></span>SaaS</span>
             <span role="cell"><span class="pj-owner" style="background:#fbd0e6;color:#9d1c5c">EJ</span></span>
             <span class="pj-date" role="cell">Thu, 1 Oct</span>
@@ -2993,7 +2994,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Data Warehouse Migration</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Umbrella Retail</span>
+            <span class="pj-client" role="cell">Marlowe Retail</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#4a8fe8"></span>Engineering</span>
             <span role="cell"><span class="pj-owner is-empty"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3001,9 +3002,9 @@
             <span role="cell"></span>
           </div>
           <div class="pj-tr" role="row">
-            <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>002 Existing budget - fixed fee</span></span>
+            <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Warehouse Analytics Dashboard</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Northwind</span>
+            <span class="pj-client" role="cell">Brightwater Foods</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#4a8fe8"></span>Engineering</span>
             <span role="cell"><span class="pj-owner" style="background:#e3dcfb;color:#4b3aa8">WM</span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3013,7 +3014,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Helpdesk Automation</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Initech</span>
+            <span class="pj-client" role="cell">Fairline Software</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#e5484d"></span>SaaS</span>
             <span role="cell"><span class="pj-owner" style="background:#a5eef6;color:#0f5b66">HH</span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3023,7 +3024,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Holiday Gift Guide</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Umbrella Retail</span>
+            <span class="pj-client" role="cell">Marlowe Retail</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#7c4dff"></span>Retail</span>
             <span role="cell"><span class="pj-owner" style="background:#f7c9b2;color:#7a2e12">JJ</span></span>
             <span class="pj-date" role="cell">Mon, 2 Nov</span>
@@ -3053,7 +3054,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Mobile App Refresh</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Globex</span>
+            <span class="pj-client" role="cell">Kestrel Finance</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#b44fe0"></span>Mobile</span>
             <span role="cell"><span class="pj-owner is-empty"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3073,7 +3074,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Pricing Page Experiments</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Globex</span>
+            <span class="pj-client" role="cell">Kestrel Finance</span>
             <span class="pj-category" role="cell"><span class="pj-dash">-</span></span>
             <span role="cell"><span class="pj-owner is-empty"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3083,7 +3084,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Q4 Brand Campaign</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Northwind</span>
+            <span class="pj-client" role="cell">Brightwater Foods</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#4a8fe8"></span>Campaigns</span>
             <span role="cell"><span class="pj-owner" style="background:#9fe0c0;color:#185c3c">KD</span></span>
             <span class="pj-date" role="cell">Mon, 12 Oct</span>
@@ -3093,7 +3094,7 @@
           <div class="pj-tr" role="row">
             <span class="pj-name" role="cell"><svg class="i pj-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg><span>Store Locator Rebuild</span></span>
             <span role="cell"><span class="pj-type">Confirmed</span></span>
-            <span class="pj-client" role="cell">Umbrella Retail</span>
+            <span class="pj-client" role="cell">Marlowe Retail</span>
             <span class="pj-category" role="cell"><span class="pj-cat-dot" style="background:#7c4dff"></span>Retail</span>
             <span role="cell"><span class="pj-owner is-empty"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span></span>
             <span class="pj-date" role="cell"><span class="pj-dash">-</span></span>
@@ -3873,12 +3874,12 @@
     });
   }
 
-  // ══ 006 Northwind match centre app (the demo's happy path): its own data; the user pastes the plan into the chat.
+  // ══ Enterprise AI Rollout, from 006 (the demo's happy path): its own data; the user pastes the plan into the chat.
   //    Everything 006 shows reads from here; 001–005 never do. The 004 team, plus Olivia Grant (front-end, at the 80% limit),
   //    Brad Frost (front-end, free, kept off development by the planning instruction) and Ryan Giles (developer, no rates) ══
   const t6 = (id, name, phase, role, estimate, assignee = null) => ({ id, name, phase, role, estimate, assignee });
   const DEMO_006 = {
-    name: '006 Northwind match centre app',
+    name: 'Enterprise AI Rollout',
     fee: 35000, // the fixed fee in the pasted plan (C0: about 40% margin before the front-end work, 35–37% after)
     get budget() { return { type: 'Fixed fee', amount: this.fee - 5000, targetMargin: 40, repeat: 'Never', start: '2026-10-13' }; }, // the original quote; the pasted plan changes it
     get samplePlan() {
@@ -4032,6 +4033,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const NO_BUDGET_PROJECT = '003 No budget - create a budget';
   let projectChoice = null;
   try { projectChoice = sessionStorage.getItem('remiProject'); } catch { /* storage unavailable: the default project */ }
+  // Client demo: every project leads to the demo project (006 data) unless one of the old test scenarios is named
+  if (!['001 Multiple budgets - different start dates', '003 No budget - create a budget', '004 User has project planning info', '005 Project already has a resource plan'].includes(projectChoice)) projectChoice = DEMO_006.name;
   PROJECT.hasBudget = projectChoice !== NO_BUDGET_PROJECT;
   if (!PROJECT.hasBudget) PROJECT.name = NO_BUDGET_PROJECT;
   // Projects with several budgets: one where they start on different dates, one where they all start together
@@ -10002,22 +10005,19 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     place();
     overlay.querySelector('.spot-cta').focus();
   }
-  setTimeout(showSpotlight, 300);
+  // setTimeout(showSpotlight, 300); // client demo: no Introducing Remi spotlight
   // Resource-plan dialog
   const PROJECTS = {
     recent: [
-      ['001 Multiple budgets - different start dates'], ['002 Existing budget - fixed fee'], ['003 No budget - create a budget'], ['004 User has project planning info'], ['005 Project already has a resource plan', true], ['006 Northwind match centre app'],
-      ['Planning & Resource management', true], ['Lightspeed Design System'], ['Core Team'], ['AI Teammates', true],
-      ['Report issues'], ['Reported issues (All except desk)'], ['MagicalHats LTD', true],
-      ['Q3 Brand Campaign', true], ['Internal Tooling'], ['Client Portal Rebuild'], ['Mobile App Refresh'],
+      ['Enterprise AI Rollout'], ['Customer Onboarding Flow', true], ['Data Warehouse Migration'], ['Billing Portal Revamp'],
+      ['Helpdesk Automation', true], ['Mobile App Refresh'], ['Store Locator Rebuild'], ['Pricing Page Experiments'],
+      ['Q4 Brand Campaign', true], ['Internal Tooling'], ['Lumen Design System'], ['Partner Webinar Series'], ['Year-end Reporting'],
     ],
     all: [
-      ['001 Multiple budgets - different start dates'], ['002 Existing budget - fixed fee'], ['003 No budget - create a budget'], ['004 User has project planning info'], ['005 Project already has a resource plan', true], ['006 Northwind match centre app'],
-      ['Acme Rebrand', true], ['AI Teammates', true], ['Annual Report 2026'], ['Client Portal Rebuild'],
-      ['Core Team'], ['Holiday Gift Guide'], ['HR Policy Refresh'], ['Internal Tooling'],
-      ['Lightspeed Design System'], ['MagicalHats LTD', true], ['Mobile App Refresh'], ['Northwind Onboarding', true],
-      ['Partner Webinar Series'], ['Planning & Resource management', true], ['Q3 Brand Campaign', true], ['Report issues'],
-      ['Reported issues (All except desk)'],
+      ['Enterprise AI Rollout'], ['Atlas Rebrand', true], ['Billing Portal Revamp'], ['Customer Onboarding Flow', true],
+      ['Data Warehouse Migration'], ['Helpdesk Automation', true], ['Holiday Gift Guide'], ['Internal Tooling'],
+      ['Lumen Design System'], ['Mobile App Refresh'], ['Partner Webinar Series'], ['Pricing Page Experiments'],
+      ['Q4 Brand Campaign', true], ['Store Locator Rebuild'], ['Warehouse Analytics Dashboard'], ['Year-end Reporting'],
     ],
   };
   const FOLDER_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2H10l2 2h6.5a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>';
@@ -10294,7 +10294,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function fillDashboard() {
     projectView.querySelector('.pd-name').textContent = dashboardProject;
     projectView.querySelector('.pd-crumb-name').textContent = dashboardProject;
-    projectView.querySelector('.pd-client-name').textContent = 'Northwind';
+    projectView.querySelector('.pd-client-name').textContent = 'Halcyon Logistics';
   }
   function openDashboard(name) {
     dashboardProject = name;
@@ -10309,10 +10309,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const template = [...table.querySelectorAll('.pj-tr[role="row"]')].find((row) => row.querySelector('.pj-name span'));
     for (const row of table.querySelectorAll('.pj-tr[role="row"]')) if (JOURNEY_PROJECTS.includes(row.querySelector('.pj-name span')?.textContent)) row.remove();
     const firstRow = [...table.querySelectorAll('.pj-tr[role="row"]')].find((row) => row.querySelector('.pj-name span'));
-    for (const name of JOURNEY_PROJECTS) {
+    for (const name of [HAPPY_PROJECT]) { // client demo: only the demo project
       const row = template.cloneNode(true);
       row.querySelector('.pj-name span').textContent = name;
-      row.querySelector('.pj-client').textContent = 'Northwind';
+      row.querySelector('.pj-client').textContent = 'Halcyon Logistics';
+      row.querySelector('.pj-category').lastChild.textContent = 'Engineering';
       row.classList.add('is-openable');
       row.tabIndex = 0;
       row.setAttribute('aria-label', `Open ${name}`);

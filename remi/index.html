@@ -21,7 +21,7 @@
     --salmon: #ffb3ba;
     --salmon-edge: #f38c97;
     --grad: linear-gradient(90deg, #f0457f 0%, #b44fe0 55%, #7c4dff 100%);
-    /* TSIA tokens used by the top nav and left rail */
+    /* TSIA tokens used by the top nav, the left rail and the Ask AI drawer */
     --palette-indigo-15: #ebefff;
     --palette-indigo-40: #4461d7;
     --palette-green-40: #4ecd97;
@@ -43,6 +43,49 @@
     --nav-sidebar-icon: #8f96b3;
     --nav-sidebar-icon-hover: var(--color-text-default);
     --nav-sidebar-icon-active: var(--palette-indigo-40);
+    --palette-indigo-10: #f2f4fc;
+    --palette-indigo-20: #d8e0ff;
+    --palette-indigo-30: #8f9fe7;
+    --palette-blue-10: #edf6fe;
+    --palette-blue-40: #4da2f8;
+    --palette-purple-10: #f3effe;
+    --palette-purple-40: #895ef7;
+    --palette-purple-50: #7450d2;
+    --palette-purple-60: #6848bd;
+    --palette-green-10: #edfaf5;
+    --palette-green-20: #d2fde8;
+    --palette-green-70: #235c45;
+    --palette-yellow-10: #fff9ec;
+    --palette-orange-40: #ff7641;
+    --palette-orange-50: #e56a3a;
+    --palette-pink-10: #ffeff9;
+    --palette-pink-45: #ff22b1;
+    --palette-teal-10: #edfbfc;
+    --palette-teal-40: #4cd5e3;
+    --palette-neutral-10: #f5f7fa;
+    --palette-neutral-25: #e1e4ee;
+    --palette-neutral-30: #c5cae0;
+    --palette-neutral-40: #8f96b3;
+    --palette-neutral-45: #858a9d;
+    --palette-neutral-50: #64697d;
+    --color-action-primary-default: var(--palette-indigo-40);
+    --color-text-subtle: var(--palette-neutral-50);
+    --color-text-disabled: var(--palette-neutral-40);
+    --color-text-placeholder: var(--palette-neutral-45);
+    --color-text-primary: var(--palette-indigo-40);
+    --color-background-default: var(--palette-white);
+    --color-background-hover: var(--palette-neutral-10);
+    --color-surface-default: var(--palette-neutral-10);
+    --color-surface-emphasis-default: var(--palette-indigo-10);
+    --color-surface-emphasis-hover: var(--palette-indigo-15);
+    --color-border-separator: var(--palette-neutral-25);
+    --color-border-default: var(--palette-neutral-30);
+    --color-border-ai: linear-gradient(219deg, #ff7641 7.2%, #c21083 30.19%, #4da2f8 102.97%);
+    --color-surface-ai-default: linear-gradient(74deg, #edf6fe -37.69%, #fff 36.98%, #fff 70.68%, #ffeff9 126.06%);
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --border-rounded-sm: 4px;
+    --border-rounded-lg: 12px;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -1865,21 +1908,678 @@
   /* Creating a resource plan: Remi's face stands in for the icon wherever it starts */
   :is(.job-icon, .job-card-icon).is-remi { border: 0; border-radius: 50%; background: #e2daff; overflow: hidden; }
   .remi-face-tile { width: 100%; height: 100%; display: block; }
-  .ask-ai-chip .ask-ai-chip-face { width: 20px; height: 20px; margin: -2px 0; border-radius: 50%; background: #e2daff; flex: none; }
-  /* ── Ask AI panel (right) with Remi's project plan ── */
-  /* Open, it takes its own 500px on the right and the page shrinks beside it rather than sitting under it */
-  body.ask-ai-open { padding-right: 500px; }
-  .ask-ai-panel { position: fixed; z-index: 40; top: 0; right: 0; bottom: 0; width: 500px; max-width: 100vw; display: flex; flex-direction: column; background: #fff; border-radius: 0; border-left: 1px solid #edeff5; font-family: Inter, system-ui, sans-serif; color: #0b0f1f; }
-  .ask-ai-panel[hidden] { display: none; }
-  .ask-ai-head { flex: none; height: 64px; padding: 0 16px 0 20px; display: flex; align-items: center; border-bottom: 1px solid #edeff5; }
-  .ask-ai-title { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
-  .ask-ai-title svg { width: 20px; height: 20px; }
-  .ask-ai-tools { margin-left: auto; display: flex; gap: 4px; }
-  .ask-ai-tool { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: #0b0f1f; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-  .ask-ai-tool .i { width: 18px; height: 18px; }
-  .ask-ai-close:hover, .ask-ai-new:hover { background: #f3f4f7; }
-  .ask-ai-close:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-  .ask-ai-thread { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; line-height: 24px; }
+  /* ── Ask AI drawer: copied from tsia/ (docs/nav-audit.md, plan 7b). It slides over the page; nothing is pushed ── */
+  :is(.ai-drawer, .skills-menu) * { margin: 0; padding: 0; box-sizing: border-box; }
+  :is(.ai-drawer, .skills-menu) { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; line-height: 1.5; color: var(--color-text-default); }
+  :is(.ai-drawer, .skills-menu) button { font-family: inherit; }
+  /* Chat messages (base) */
+  .chat-msg { display: flex; align-items: flex-end; gap: 8px; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-msg-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .chat-msg-bubble {
+    max-width: 82%; padding: 8px 12px; border-radius: 14px;
+    font-size: 13px; line-height: 1.55; word-break: break-word;
+  }
+  .chat-msg-bubble strong { font-weight: 600; }
+  .chat-msg.user .chat-msg-bubble {
+    background: var(--palette-indigo-40); color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg.teammate .chat-msg-bubble {
+    background: var(--color-background-subtle); color: var(--color-text-default);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-bottom-left-radius: 4px;
+  }
+  /* Skill icons */
+  .skill-card-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--color-surface-ai-default);
+  }
+  .skill-card-icon svg { width: 17px; height: 17px; }
+  .skill-card-icon.time     { background: var(--palette-indigo-10); color: var(--palette-indigo-40); }
+  .skill-card-icon.reporting{ background: var(--palette-teal-10, #e6f7f5); color: var(--palette-teal-40, #14a89b); }
+  .skill-card-icon.delivery { background: var(--palette-yellow-10); color: var(--palette-orange-50); }
+  .skill-card-icon.people   { background: var(--palette-purple-10, #f3effd); color: var(--palette-purple-40, #7c53d6); }
+  .skill-card-icon.finance  { background: var(--palette-green-10, #e9f7ee); color: var(--palette-green-50, #2e9c58); }
+  .skill-card-icon.knowledge{ background: var(--palette-blue-10, #eaf1fe); color: var(--palette-blue-40, #3b7ff0); }
+  .skill-card-icon.custom   { background: var(--palette-pink-10, #ffeff9); color: var(--palette-pink-45, #ff22b1); }
+  /* Skills quick menu */
+  .skills-menu {
+    display: none; position: fixed; z-index: 650;
+    width: 300px; background: var(--palette-white);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-lg);
+    box-shadow: 0 8px 28px rgba(11,15,31,0.16);
+    padding: var(--spacing-2);
+  }
+  .skills-menu.open { display: block; }
+  .skills-menu-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--color-text-subtlest); padding: var(--spacing-2) var(--spacing-2) var(--spacing-1);
+  }
+  .skills-menu-list { display: flex; flex-direction: column; }
+  .skills-menu-item {
+    display: flex; align-items: center; gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-2); border-radius: var(--border-rounded-md);
+    cursor: pointer; text-align: left; border: none; background: none; width: 100%;
+    transition: background 0.1s;
+  }
+  .skills-menu-item:hover { background: var(--color-background-hover); }
+  .skills-menu-item .skills-menu-ico {
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .skills-menu-item .skills-menu-ico svg { width: 15px; height: 15px; }
+  .skills-menu-name { font-size: 13px; font-weight: 500; color: var(--color-text-default); }
+  .skills-menu-footer {
+    display: flex; flex-direction: column; gap: 2px;
+    margin-top: var(--spacing-1); padding-top: var(--spacing-2);
+    border-top: var(--border-width-1) solid var(--color-border-separator);
+  }
+  .skills-menu-action {
+    display: flex; align-items: center; gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-2); border-radius: var(--border-rounded-md);
+    border: none; background: none; cursor: pointer; width: 100%; text-align: left;
+    font-size: 13px; font-weight: 500; color: var(--color-text-primary);
+    transition: background 0.1s;
+  }
+  .skills-menu-action:hover { background: var(--color-surface-emphasis-default, var(--palette-indigo-10)); }
+  .skills-menu-action svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .skills-menu-empty { font-size: 12px; color: var(--color-text-subtle); padding: var(--spacing-2) var(--spacing-2) var(--spacing-3); line-height: 1.45; }
+  /* History item icon */
+  .hist-chat-icon {
+    flex-shrink: 0; color: var(--color-icon-subtle, var(--palette-neutral-40));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hist-chat-icon svg { width: 18px; height: 18px; }
+  /* Follow-up chips */
+  /* Suggested actions sit just under the agent's latest reply, lined up with its text */
+  .agent-chips { margin: var(--spacing-3) 0 0 40px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--spacing-2); }
+  .ai-followups .agent-chips { margin: var(--spacing-2) 0 var(--spacing-3); }
+  .remi-chip {
+    display: inline-flex; align-items: center; gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-full);
+    background: var(--palette-white); cursor: pointer;
+    font-size: 13px; color: var(--color-text-default); text-align: left;
+  }
+  .remi-chip:hover { border-color: var(--palette-indigo-30); background: var(--color-background-hover); }
+  .remi-chip svg { width: 14px; height: 14px; color: var(--palette-purple-40); flex-shrink: 0; }
+  /* Skill chips in the composer */
+  /* ── Skill chips in a composer (ported from the Skills prototype) ── */
+  .composer-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+  .composer-chips:empty { display: none; }
+  .composer-skill-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 24px; padding: 0 4px 0 8px; border-radius: var(--border-rounded-full);
+    border: 1px solid transparent;
+    background: linear-gradient(var(--color-surface-emphasis-default), var(--color-surface-emphasis-default)) padding-box, var(--color-border-ai) border-box;
+    font-size: 12px; font-weight: 600; color: var(--color-text-primary);
+  }
+  .composer-skill-chip > svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .composer-skill-chip .cs-x {
+    width: 16px; height: 16px; border: none; background: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center; color: var(--color-text-subtle); border-radius: 50%;
+  }
+  .composer-skill-chip .cs-x svg { width: 11px; height: 11px; }
+  .composer-skill-chip .cs-x:hover { background: rgba(11,15,31,0.08); color: var(--color-text-default); }
+  /* Drawer */
+  .ai-drawer-overlay {
+    position: fixed; inset: 0;
+    background: transparent;
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  /* Non-modal drawer: no dimming and the page behind stays interactive */
+  .ai-drawer-overlay.open { opacity: 1; pointer-events: none; }
+
+  .ai-drawer {
+    position: fixed; top: 40px; right: 0; bottom: 0; /* under the 40px top bar */
+    width: 420px;
+    background: var(--palette-white);
+    box-shadow: none;
+    z-index: 101;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ai-drawer.open { transform: translateX(0); box-shadow: -4px 0 32px rgba(11,15,31,0.12); }
+
+  /* Drawer header */
+  .ai-drawer-header {
+    padding: var(--spacing-4) var(--spacing-5);
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+    display: flex; align-items: center; gap: var(--spacing-3);
+    flex-shrink: 0;
+    background: linear-gradient(74deg, #edf6fe -37.69%, #fff 36.98%, #fff 70.68%, #ffeff9 126.06%);
+  }
+  .ai-drawer-header-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ai-drawer-header-icon svg { width: 20px; height: 20px; }
+  .ai-drawer-header-text { flex: 1; min-width: 0; }
+  .ai-drawer-header-title {
+    font-size: 15px; font-weight: 700; color: var(--color-text-default);
+  }
+  .ai-drawer-header-sub {
+    font-size: 12px; color: var(--color-text-subtle); font-weight: 400;
+  }
+  /* Project context banner (shown when Ask AI launched from a project) */
+  /* Inline "Add as recurring job" CTA inside an AI message bubble */
+  .chat-job-cta {
+    display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+    padding: 7px 14px; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: var(--color-text-default); border-radius: var(--border-rounded-full);
+    background: linear-gradient(var(--palette-white), var(--palette-white)) padding-box,
+                var(--color-border-ai) border-box;
+    border: 1.5px solid transparent;
+  }
+  .chat-job-cta:hover {
+    background: linear-gradient(var(--palette-indigo-10), var(--palette-indigo-10)) padding-box,
+                var(--color-border-ai) border-box;
+  }
+  .chat-job-cta svg { width: 15px; height: 15px; }
+
+  /* Full update rendered inline in an Ask Teamwork chat bubble */
+  .chat-msg-bubble.update-full { max-width: 100% !important; }
+  .chat-msg-bubble.update-full .msg-intro { margin: 0 0 8px; font-weight: 500; }
+  .chat-msg-bubble.update-full .ai-content { font-size: 13px; line-height: 1.6; }
+  .chat-msg-bubble.update-full .ai-content h2 { font-size: 14px; margin: 14px 0 6px; }
+
+  /* Context banner is no longer shown — the drawer stays unscoped, with
+     contextual suggestions surfaced at the bottom instead. */
+  .ai-drawer-context { display: none !important; }
+  .ai-drawer-context {
+    align-items: center; gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-5);
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+    background: var(--color-surface-emphasis-default, var(--palette-indigo-10));
+    flex-shrink: 0;
+  }
+  .ai-drawer-context-icon {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-md);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--palette-white); color: var(--color-text-primary);
+    border: var(--border-width-1) solid var(--palette-indigo-20);
+  }
+  .ai-drawer-context-icon svg { width: 15px; height: 15px; }
+  .ai-drawer-context-text { flex: 1; min-width: 0; }
+  .ai-drawer-context-label { font-size: 13px; color: var(--color-text-default); }
+  .ai-drawer-context-label strong { font-weight: 600; color: var(--color-text-primary); }
+  .ai-drawer-context-sub { font-size: 11px; color: var(--color-text-subtle); margin-top: 1px; }
+  .ai-drawer-context-all {
+    flex-shrink: 0; white-space: nowrap;
+    height: 28px; padding: 0 var(--spacing-3);
+    border: var(--border-width-1) solid var(--palette-indigo-30);
+    border-radius: var(--border-rounded-full);
+    background: var(--palette-white); color: var(--color-text-primary);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .ai-drawer-context-all:hover { background: var(--palette-indigo-10); border-color: var(--palette-indigo-40); }
+  .ai-drawer-close {
+    width: 28px; height: 28px;
+    border: none; background: transparent;
+    border-radius: var(--border-rounded-md);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--color-text-subtle);
+    transition: background 0.12s;
+  }
+  .ai-drawer-close:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .ai-drawer-close svg { width: 16px; height: 16px; }
+
+  /* Drawer header button tooltips */
+  .ai-drawer-history-btn[data-tooltip],
+  .ai-drawer-close[data-tooltip] {
+    position: relative;
+  }
+  .ai-drawer-history-btn[data-tooltip]::after,
+  .ai-drawer-close[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+    z-index: 9999;
+  }
+  .ai-drawer-history-btn[data-tooltip]:hover::after,
+  .ai-drawer-close[data-tooltip]:hover::after {
+    opacity: 1;
+  }
+
+  /* Chat messages area */
+  .ai-drawer-messages {
+    flex: 1; overflow-y: auto;
+    padding: var(--spacing-5);
+    display: flex; flex-direction: column; gap: var(--spacing-4);
+  }
+
+  /* Intro / empty state — greeting + "For you" prompts */
+  .ai-drawer-intro {
+    text-align: left; padding: var(--spacing-2) 0;
+    margin: auto 0; /* vertically centre within the flex messages column */
+    display: flex; flex-direction: column; gap: var(--spacing-6);
+  }
+  .ai-drawer-greeting { display: flex; flex-direction: column; }
+  .ai-greet-hello { font-size: 20px; font-weight: 600; line-height: 28px; color: var(--palette-purple-60); }
+  .ai-greet-help  { font-size: 20px; font-weight: 700; line-height: 28px; color: var(--color-text-default); }
+
+  .ai-for-you { display: flex; flex-direction: column; gap: var(--spacing-3); }
+  .ai-for-you-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--color-text-subtle);
+  }
+  .ai-for-you-label svg { width: 13px; height: 13px; }
+  .ai-for-you-list { display: flex; flex-direction: column; align-items: flex-start; gap: var(--spacing-2); }
+  .ai-foryou-chip {
+    display: inline-flex; align-items: center; gap: var(--spacing-2);
+    max-width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-full);
+    background: var(--color-background-default);
+    font-size: 14px; font-weight: 400; color: var(--color-text-default);
+    cursor: pointer; text-align: left;
+    transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+  }
+  .ai-foryou-chip svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--color-icon-subtle, var(--palette-purple-50)); }
+  .ai-foryou-chip:hover {
+    border-color: transparent; background: var(--color-surface-ai-default);
+    box-shadow: 0 1px 4px rgba(11,14,30,0.06);
+  }
+
+  /* Message bubbles */
+  .chat-msg { display: flex; gap: var(--spacing-2); align-items: flex-start; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-msg-avatar {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-full);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+    overflow: hidden;
+  }
+  .chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .chat-msg.user .chat-msg-avatar {
+    background: var(--palette-purple-40); color: var(--palette-white);
+  }
+  .chat-msg.ai .chat-msg-avatar {
+    background: linear-gradient(135deg, var(--palette-orange-40), var(--palette-pink-45));
+    color: var(--palette-white);
+  }
+  /* Name label above teammate messages */
+  .chat-msg-sender { display: flex; flex-direction: column; gap: 3px; }
+  .chat-msg-name {
+    font-size: 11px; font-weight: 600; color: var(--color-text-subtle);
+    padding-left: 2px;
+  }
+  .chat-msg-bubble {
+    max-width: 300px; padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--border-rounded-lg);
+    font-size: 13px; line-height: 1.5; color: var(--color-text-default);
+  }
+  .chat-msg.user .chat-msg-bubble {
+    background: var(--color-surface-emphasis-default);
+    color: var(--palette-neutral-60);
+    border-radius: var(--border-rounded-lg) var(--border-rounded-sm) var(--border-rounded-lg) var(--border-rounded-lg);
+  }
+  /* ── Ask AI answers ───────────────────────────────────────────────
+     Plain full-width prose rather than a chat bubble: no avatar, no
+     border, no background. The answer is the content, not a message. */
+  .chat-msg.ai { display: block; }
+  .chat-msg.ai .chat-msg-sender { display: block; }
+  .chat-msg.ai .chat-msg-bubble {
+    max-width: none; width: 100%;
+    background: none; border: none; border-radius: 0; padding: 0;
+    font-size: 14px; line-height: 1.65; color: var(--color-text-default);
+  }
+  .chat-msg.ai .chat-msg-bubble > *:first-child { margin-top: 0; }
+  .chat-msg.ai .chat-msg-bubble > *:last-child  { margin-bottom: 0; }
+  .chat-msg.ai .chat-msg-bubble p { margin: 0 0 var(--spacing-3); }
+  .chat-msg.ai .chat-msg-bubble strong { font-weight: 650; color: var(--palette-neutral-60); }
+  .chat-msg.ai .chat-msg-bubble em { color: var(--color-text-subtle); font-style: normal; }
+  .chat-msg.ai .chat-msg-bubble h2,
+  .chat-msg.ai .chat-msg-bubble h3 {
+    font-size: 13px; font-weight: 700; color: var(--color-text-default);
+    margin: var(--spacing-5) 0 var(--spacing-2);
+  }
+  .chat-msg.ai .chat-msg-bubble ul,
+  .chat-msg.ai .chat-msg-bubble ol {
+    margin: 0 0 var(--spacing-3); padding-left: 0; list-style: none;
+  }
+  .chat-msg.ai .chat-msg-bubble ol { counter-reset: ai-ol; }
+  .chat-msg.ai .chat-msg-bubble li {
+    position: relative; padding-left: var(--spacing-4); margin-bottom: var(--spacing-2);
+  }
+  .chat-msg.ai .chat-msg-bubble li:last-child { margin-bottom: 0; }
+  /* Bullet as a small neutral dot, aligned to the first line of text */
+  .chat-msg.ai .chat-msg-bubble ul > li::before {
+    content: ''; position: absolute; left: 4px; top: 0.62em;
+    width: 4px; height: 4px; border-radius: var(--border-rounded-full);
+    background: var(--palette-neutral-30);
+  }
+  .chat-msg.ai .chat-msg-bubble ol > li::before {
+    counter-increment: ai-ol; content: counter(ai-ol) '.';
+    position: absolute; left: 0; top: 0;
+    font-size: 12px; font-weight: 600; color: var(--color-text-subtle);
+  }
+  .chat-msg.ai .chat-msg-bubble hr {
+    border: none; border-top: var(--border-width-1) solid var(--color-border-separator);
+    margin: var(--spacing-4) 0;
+  }
+  .chat-msg.ai .chat-msg-bubble table {
+    width: 100%; border-collapse: collapse; margin: 0 0 var(--spacing-3); font-size: 13px;
+  }
+  .chat-msg.ai .chat-msg-bubble th,
+  .chat-msg.ai .chat-msg-bubble td {
+    text-align: left; padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) 0;
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+  }
+  .chat-msg.ai .chat-msg-bubble th { font-size: 12px; font-weight: 600; color: var(--color-text-subtle); }
+  /* The typing dots still want their pill */
+  .chat-msg.ai .chat-msg-bubble.chat-thinking {
+    width: auto; display: inline-flex; padding: var(--spacing-2) var(--spacing-3);
+    background: var(--palette-white);
+    border: var(--border-width-1) solid var(--color-border-separator);
+    border-radius: var(--border-rounded-lg);
+  }
+
+  /* ── Chat History Panel ─────────────────────────────────────────── */
+  .ai-drawer { overflow: hidden; } /* needed so history panel slides inside */
+  .ai-drawer-history {
+    position: absolute; inset: 0;
+    background: var(--palette-white);
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
+  }
+  .ai-drawer-history.open { transform: translateX(0); }
+  .ai-drawer-history-header {
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+    display: flex; align-items: center; gap: var(--spacing-2);
+    flex-shrink: 0;
+    background: linear-gradient(74deg, #edf6fe -37.69%, #fff 36.98%, #fff 70.68%, #ffeff9 126.06%);
+  }
+  .ai-drawer-history-title {
+    flex: 1; font-size: 14px; font-weight: 700; color: var(--color-text-default);
+  }
+  .ai-drawer-history-btn {
+    width: 28px; height: 28px; border: none; background: transparent;
+    border-radius: var(--border-rounded-md);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--color-text-subtle);
+    transition: background 0.12s; flex-shrink: 0;
+  }
+  .ai-drawer-history-btn:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .ai-drawer-history-btn svg { width: 16px; height: 16px; }
+  .chat-hist-new-btn {
+    margin: var(--spacing-3) var(--spacing-4) 0;
+    padding: var(--spacing-2) var(--spacing-4);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-lg);
+    background: var(--palette-white); cursor: pointer;
+    font-size: 13px; font-weight: 500; color: var(--color-text-default);
+    display: flex; align-items: center; justify-content: center; gap: var(--spacing-2);
+    transition: background 0.12s, border-color 0.12s; font-family: inherit;
+    flex-shrink: 0;
+  }
+  .chat-hist-new-btn:hover { background: var(--color-background-hover); border-color: var(--color-border-hover); }
+  .chat-hist-list {
+    flex: 1; overflow-y: auto;
+    padding: var(--spacing-2) var(--spacing-2) var(--spacing-4);
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .chat-hist-section-label {
+    font-size: 11px; font-weight: 600; color: var(--color-text-disabled);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: var(--spacing-3) var(--spacing-3) var(--spacing-1);
+  }
+  .chat-hist-item {
+    display: flex; align-items: center; gap: var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--border-rounded-lg);
+    cursor: pointer; transition: background 0.12s;
+  }
+  .chat-hist-item:hover { background: var(--color-background-hover); }
+  .chat-hist-item.active { background: var(--color-surface-emphasis-default); }
+  .chat-hist-avatars {
+    display: flex; align-items: center; flex-shrink: 0; height: 24px; width: 24px;
+    position: relative;
+  }
+  .chat-hist-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--palette-white);
+    overflow: hidden; flex-shrink: 0; position: absolute;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chat-hist-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .chat-hist-avatar.ai-spark {
+    background: linear-gradient(135deg, #ff7641 0%, #c21083 50%, #4da2f8 100%);
+    font-size: 11px; font-weight: 700; color: white;
+    left: 0; top: 50%; transform: translateY(-50%);
+  }
+  .chat-hist-info { flex: 1; min-width: 0; }
+  .chat-hist-name {
+    font-size: 13px; font-weight: 600; color: var(--color-text-default);
+    margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chat-hist-preview {
+    font-size: 12px; color: var(--color-text-subtle);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chat-hist-ts { font-size: 12px; font-weight: 400; line-height: 16px; color: var(--color-text-subtle); margin-top: 2px; }
+  .chat-hist-item { align-items: flex-start; }
+  .chat-hist-item .hist-chat-icon { margin-top: 2px; }
+  .chat-hist-meta { text-align: right; flex-shrink: 0; }
+  .chat-hist-time { font-size: 11px; color: var(--color-text-disabled); }
+
+  /* Thinking / loading state */
+  .chat-thinking {
+    display: flex; gap: 4px; align-items: center;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+  .chat-thinking span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--palette-neutral-40);
+    animation: chatThink 1.2s infinite ease-in-out;
+  }
+  .chat-thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .chat-thinking span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes chatThink {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Job preview card inside chat */
+  .chat-job-preview {
+    background: var(--palette-white);
+    border: var(--border-width-1) solid var(--color-border-separator);
+    border-radius: var(--border-rounded-lg);
+    overflow: hidden;
+    max-width: 340px;
+  }
+  .chat-job-preview-header {
+    padding: var(--spacing-3) var(--spacing-4);
+    display: flex; align-items: center; gap: var(--spacing-2);
+    background: linear-gradient(74deg, #edf6fe -37.69%, #fff 60%, #ffeff9 126%);
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+  }
+  .chat-job-preview-icon {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-md);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--palette-purple-10), var(--palette-blue-10)) padding-box,
+                var(--color-border-ai) border-box;
+    border: var(--border-width-1) solid transparent;
+  }
+  .chat-job-preview-icon svg { width: 14px; height: 14px; }
+  .chat-job-preview-title {
+    font-size: 13px; font-weight: 600; color: var(--color-text-default);
+  }
+  .chat-job-preview-tag {
+    margin-left: auto;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: var(--border-rounded-full);
+    background: var(--palette-green-20); color: var(--palette-green-70);
+  }
+  .chat-job-preview-body {
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: 13px; color: var(--color-text-subtle); line-height: 1.55;
+  }
+  .chat-job-preview-body strong { color: var(--color-text-default); }
+  .chat-job-preview-footer {
+    padding: var(--spacing-2) var(--spacing-4) var(--spacing-3);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .chat-view-link {
+    font-size: 12px; font-weight: 600; color: var(--color-text-primary);
+    display: flex; align-items: center; gap: 4px;
+    cursor: pointer; background: none; border: none; font-family: inherit;
+    padding: 0; text-decoration: none;
+    transition: opacity 0.12s;
+  }
+  .chat-view-link:hover { opacity: 0.75; }
+  .chat-view-link svg { width: 12px; height: 12px; }
+  .chat-job-time { font-size: 11px; color: var(--color-text-disabled); }
+
+  /* Suggestion chips */
+  .ai-drawer-suggestions {
+    display: flex; flex-wrap: wrap; gap: var(--spacing-2);
+    padding: 0 var(--spacing-5) var(--spacing-3);
+    flex-shrink: 0;
+  }
+  .ai-suggestion-chip {
+    height: 30px; padding: 0 var(--spacing-3);
+    border-radius: var(--border-rounded-full);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    background: var(--color-surface-emphasis-default);
+    color: var(--color-text-primary);
+    border: var(--border-width-1) solid var(--palette-indigo-20);
+    transition: background 0.12s, border-color 0.12s; white-space: nowrap;
+  }
+  .ai-suggestion-chip { display: inline-flex; align-items: center; gap: 6px; }
+  .ai-suggestion-chip:hover { background: var(--color-surface-emphasis-hover); border-color: var(--palette-indigo-30); }
+  .chip-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Project-scoped suggestions ("FOR THIS PROJECT") */
+  .ai-drawer-suggestions.scoped { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: var(--spacing-2); }
+  .ai-proj-suggest-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--color-text-subtle);
+    margin-bottom: 2px;
+  }
+  .ai-proj-suggest-card {
+    display: flex; align-items: center; gap: var(--spacing-3);
+    width: 100%; text-align: left;
+    padding: var(--spacing-3) var(--spacing-3);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-lg);
+    background: var(--palette-white);
+    font-size: 13px; font-weight: 500; color: var(--color-text-default);
+    cursor: pointer; white-space: normal;
+    transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+  }
+  .ai-proj-suggest-card:hover {
+    border-color: var(--palette-indigo-30);
+    background: var(--palette-indigo-10);
+    box-shadow: 0 1px 4px rgba(68,97,215,0.08);
+  }
+  .ai-proj-suggest-card svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  /* Drawer input area */
+  .ai-drawer-input-area {
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+    border-top: var(--border-width-1) solid var(--color-border-separator);
+    flex-shrink: 0;
+    background: var(--palette-white);
+  }
+  .ai-drawer-input-wrap {
+    display: flex; flex-direction: column; gap: var(--spacing-2);
+    background: var(--color-surface-default);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-lg);
+    padding: var(--spacing-3);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .ai-drawer-input-wrap:focus-within {
+    border-color: var(--palette-indigo-40);
+    box-shadow: 0 0 0 3px var(--palette-indigo-15);
+  }
+  .ai-drawer-input {
+    width: 100%; resize: none; border: none; background: transparent;
+    font-size: 14px; font-family: inherit; line-height: 1.5;
+    color: var(--color-text-default); outline: none;
+    max-height: 120px; min-height: 22px;
+  }
+  .ai-drawer-input::placeholder { color: var(--color-text-placeholder); }
+
+  /* Composer toolbar (attach / dictate / Skills … send) */
+  .ai-drawer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-2); }
+  .ai-drawer-toolbar-left { display: flex; align-items: center; gap: var(--spacing-1); }
+  .ai-drawer-tool-btn {
+    width: 26px; height: 26px; border-radius: var(--border-rounded-md);
+    border: none; background: transparent; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--color-icon-subtle, var(--palette-neutral-40)); transition: background 0.12s, color 0.12s;
+  }
+  .ai-drawer-tool-btn svg { width: 16px; height: 16px; }
+  .ai-drawer-tool-btn:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .ai-drawer-skills-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 var(--spacing-2);
+    border: none; background: transparent; cursor: pointer;
+    font-size: 12px; font-weight: 500; color: var(--color-text-subtle);
+    border-radius: var(--border-rounded-md); transition: background 0.12s, color 0.12s;
+  }
+  .ai-drawer-skills-btn svg { width: 15px; height: 15px; color: var(--palette-purple-50); }
+  .ai-drawer-skills-btn:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .ai-drawer-send-btn {
+    width: 30px; height: 30px; border-radius: var(--border-rounded-md);
+    border: none; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; color: var(--color-action-primary-default); transition: background 0.15s, color 0.15s;
+  }
+  .ai-drawer-send-btn:disabled { color: var(--color-icon-disabled, var(--palette-neutral-30)); cursor: default; background: transparent; }
+  .ai-drawer-send-btn:not(:disabled):hover { background: var(--color-surface-emphasis-default, var(--palette-indigo-10)); }
+  .ai-drawer-send-btn svg { width: 17px; height: 17px; }
+
+  /* Feedback line under the composer */
+  .ai-drawer-feedback {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 12px; color: var(--color-text-subtle); margin-top: var(--spacing-2);
+  }
+  .ai-drawer-feedback-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: none; background: transparent; cursor: pointer; padding: 0;
+    font-size: 12px; font-weight: 600; color: var(--color-text-default);
+  }
+  .ai-drawer-feedback-link svg { width: 13px; height: 13px; color: var(--color-icon-subtle, var(--palette-neutral-40)); }
+  .ai-drawer-feedback-link:hover { text-decoration: underline; }
+
+  /* Expanded (wide) drawer state */
+  .ai-drawer.wide { width: min(760px, 92vw); }
+  /* Remi's Teammates chip leads with her face; Remi's plan and aftercare messages keep the old thread's type */
+  .ai-teammate-chip img { width: 20px; height: 20px; margin: -2px 0; border-radius: 50%; background: #e2daff; flex: none; }
+  .ai-drawer-messages > :is(.ask-ai-user, .ask-ai-reply, .ask-ai-thinking) { font-size: 14px; line-height: 24px; }
   .ask-ai-user { align-self: flex-end; max-width: 85%; padding: 8px 14px; border-radius: 18px; background: #eef1f8; }
   .ask-ai-thinking { display: flex; align-items: center; gap: 8px; color: #6848bd; }
   .ask-ai-thinking svg { width: 18px; height: 18px; animation: cv-spin 2.4s linear infinite; }
@@ -1893,11 +2593,6 @@
   .ask-ai-chip { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 14px; border: 1px solid #e1e4ea; border-radius: 20px; background: #fff; font: inherit; font-size: 14px; color: #0b0f1f; cursor: pointer; }
   .ask-ai-chip svg { width: 16px; height: 16px; fill: none; stroke: #8f96b3; stroke-width: 1.6; }
   .ask-ai-chip:hover { border-color: #c5cae0; }
-  .ask-ai-input { flex: none; margin: 0 20px 20px; padding: 14px 16px 10px; border: 1px solid #e1e4ea; border-radius: 12px; }
-  .ask-ai-input textarea { width: 100%; border: 0; outline: 0; resize: none; font: inherit; font-size: 14px; line-height: 22px; color: #0b0f1f; background: none; }
-  .ask-ai-input textarea::placeholder { color: #64697d; }
-  .ask-ai-input-foot { display: flex; gap: 14px; margin-top: 18px; color: #64697d; }
-  .ask-ai-input-foot .i { width: 18px; height: 18px; }
   /* Read-only snapshot of the agreed plan (View original plan) */
   .canvas.is-snapshot .cv-body { grid-template-columns: minmax(0, 1fr); } /* no chat: the plan takes the whole width */
   .canvas.is-snapshot .cv-rail { display: none; }
@@ -1910,8 +2605,6 @@
   .pl-snapshot-close { display: none; }
   .canvas.is-snapshot .cv-foot { justify-content: flex-end; }
   .canvas.is-snapshot .pl-snapshot-close { display: inline-flex; margin-left: auto; }
-  .ask-ai-send { margin-left: auto; color: #a3a9c4; cursor: pointer; }
-  .ask-ai-send:hover { color: #6848bd; }
   /* Aftercare: plan health cards, tables and the three card states (on track, needs attention, compared to the agreed plan) */
   .ask-ai-section .ask-ai-link { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 500; color: #6848bd; cursor: pointer; }
   .ask-ai-section .ask-ai-link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -1940,26 +2633,6 @@
   .ac-dim { color: #64697d; }
   .ac-late { color: #c21f3a; }
   .ask-ai-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
-  .ask-ai-promo { position: relative; display: flex; gap: 12px; margin-top: 4px; padding: 16px 40px 16px 16px; border: 1px solid #e2daff; border-radius: 12px; background: #fff; }
-  .ask-ai-promo-face { width: 48px; height: 48px; flex: none; border-radius: 50%; background: #e2daff; }
-  .ask-ai-promo-text b { display: block; font-size: 14px; font-weight: 600; line-height: 24px; }
-  .ask-ai-promo-text p { margin: 0; color: #0b0f1f; }
-  .ask-ai-promo-link { margin-top: 12px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: #4461d7; cursor: pointer; }
-  .ask-ai-promo-link:hover { text-decoration: underline; }
-  .ask-ai-promo-close { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: #64697d; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .ask-ai-promo-close svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-  .ask-ai-promo-close:hover { background: #f3f4f7; }
-  .ask-ai-home { display: flex; flex-direction: column; gap: 20px; padding-top: 48px; }
-  .ask-ai-hello { margin: 0 0 28px; font-size: 24px; font-weight: 600; line-height: 32px; }
-  .ask-ai-hello span { display: block; color: #6848bd; }
-  .ask-ai-group { display: flex; flex-direction: column; gap: 8px; }
-  .ask-ai-group-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; color: #64697d; }
-  .ask-ai-group-label svg { width: 16px; height: 16px; }
-  .ask-ai-group-label span { font-size: 13px; }
-  .ask-ai-home .ask-ai-chip { font-weight: 500; }
-  .ask-ai-help { flex: none; margin: -10px 0 12px; text-align: center; font-size: 12px; color: #64697d; }
-  .ask-ai-help span { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; color: #0b0f1f; }
-  .ask-ai-help .i { width: 13px; height: 13px; }
   .remi-view-plan { padding: 0 14px 0 12px; color: #6848bd; }
   .remi-plan-icon { width: 20px; height: 20px; flex: none; }
   .split {
@@ -2331,7 +3004,7 @@
       </button>
 
       <!-- Ask AI -->
-      <button type="button" class="ask-ai-btn" id="askAiBtn" aria-controls="ask-ai">
+      <button type="button" class="ask-ai-btn" id="askAiBtn" aria-controls="aiDrawer" aria-expanded="false">
         <!-- spark icon in white -->
         <svg viewBox="0 0 12 12" fill="white" xmlns="http://www.w3.org/2000/svg">
           <path d="M6 0.5 7.2 4.2 11 5.5 7.2 6.8 6 10.5 4.8 6.8 1 5.5 4.8 4.2Z"/>
@@ -3486,7 +4159,7 @@
         <span class="tb-item">Day<svg class="i i-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></span>
         <span class="pj-seg"><span class="pj-seg-btn is-on"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.6"/><path d="M5.5 19.5c1-3.3 3.5-5 6.5-5s5.5 1.7 6.5 5"/></svg></span><span class="pj-seg-btn"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3"/><path d="M3.5 18.5c.8-2.8 2.9-4.3 5.5-4.3s4.7 1.5 5.5 4.3M15 6.5a3 3 0 0 1 0 5.6M17 14.6c1.8.5 3 1.8 3.5 3.9"/></svg></span></span>
         <span class="tb-item"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2"/><rect x="7" y="14" width="10" height="6" rx="1"/></svg></span>
-        <button type="button" class="remi remi-view-plan" aria-controls="ask-ai"><svg class="remi-plan-icon" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="vrpGrad" x1="7.39" y1="17.91" x2="20.42" y2="4.16" gradientUnits="userSpaceOnUse"><stop stop-color="#4DA2F8"/><stop offset="0.68" stop-color="#FF22B1"/><stop offset="1" stop-color="#FF7641"/></linearGradient></defs><path d="M2.5 1.875C2.84518 1.875 3.125 2.15483 3.125 2.5V16.1667C3.125 16.4103 3.12549 16.5555 3.13428 16.6631C3.13964 16.7288 3.14673 16.7564 3.14903 16.7638C3.16863 16.801 3.19903 16.8314 3.23622 16.851C3.24362 16.8533 3.27122 16.8603 3.3369 16.8657C3.44451 16.8745 3.58967 16.875 3.83333 16.875H17.5C17.8452 16.875 18.125 17.1548 18.125 17.5C18.125 17.8452 17.8452 18.125 17.5 18.125H3.81148C3.59691 18.125 3.39984 18.125 3.23511 18.1116C3.0575 18.0971 2.86319 18.0638 2.67127 17.9661C2.39687 17.8262 2.17377 17.6032 2.03395 17.3287C1.93616 17.1368 1.90294 16.9425 1.88843 16.7649C1.87498 16.6002 1.87498 16.4031 1.875 16.1885V2.5C1.875 2.15483 2.15483 1.875 2.5 1.875ZM3.23407 16.8503L3.23531 16.8507L3.23407 16.8503ZM3.14978 16.7659L3.14932 16.7647L3.14978 16.7659ZM17.094 6.21058C17.3459 6.44658 17.3588 6.8421 17.1228 7.09399L13.857 10.5795C13.849 10.5881 13.8403 10.5975 13.831 10.6076C13.7416 10.7046 13.5943 10.8643 13.4006 10.9529C13.2358 11.0282 13.0543 11.0592 12.8739 11.043C12.6617 11.0239 12.4698 10.9223 12.3531 10.8606C12.341 10.8542 12.3297 10.8482 12.3193 10.8427L9.60475 9.43325C9.59483 9.42817 9.5855 9.42333 9.57675 9.41875C9.56992 9.426 9.56275 9.43367 9.55517 9.44175L6.28943 12.9273C6.05342 13.1792 5.6579 13.1921 5.40601 12.9561C5.15412 12.7201 5.14124 12.3246 5.37724 12.0727L8.643 8.58717C8.651 8.57858 8.65967 8.56917 8.669 8.55908C8.75842 8.46208 8.90567 8.30237 9.09942 8.21378C9.26417 8.13845 9.44575 8.10738 9.62608 8.12363C9.83833 8.14275 10.0303 8.24437 10.1469 8.30609C10.159 8.31251 10.1703 8.3185 10.1808 8.32393L12.8953 9.73342C12.9052 9.7385 12.9145 9.74333 12.9233 9.74792C12.9301 9.74067 12.9373 9.733 12.9448 9.72492L16.2106 6.23934C16.4466 5.98745 16.8421 5.97458 17.094 6.21058Z" fill-rule="evenodd" clip-rule="evenodd" fill="url(#vrpGrad)"/></svg>View resource plan</button>
+        <button type="button" class="remi remi-view-plan" aria-controls="aiDrawer"><svg class="remi-plan-icon" viewBox="0 0 20 20" aria-hidden="true"><defs><linearGradient id="vrpGrad" x1="7.39" y1="17.91" x2="20.42" y2="4.16" gradientUnits="userSpaceOnUse"><stop stop-color="#4DA2F8"/><stop offset="0.68" stop-color="#FF22B1"/><stop offset="1" stop-color="#FF7641"/></linearGradient></defs><path d="M2.5 1.875C2.84518 1.875 3.125 2.15483 3.125 2.5V16.1667C3.125 16.4103 3.12549 16.5555 3.13428 16.6631C3.13964 16.7288 3.14673 16.7564 3.14903 16.7638C3.16863 16.801 3.19903 16.8314 3.23622 16.851C3.24362 16.8533 3.27122 16.8603 3.3369 16.8657C3.44451 16.8745 3.58967 16.875 3.83333 16.875H17.5C17.8452 16.875 18.125 17.1548 18.125 17.5C18.125 17.8452 17.8452 18.125 17.5 18.125H3.81148C3.59691 18.125 3.39984 18.125 3.23511 18.1116C3.0575 18.0971 2.86319 18.0638 2.67127 17.9661C2.39687 17.8262 2.17377 17.6032 2.03395 17.3287C1.93616 17.1368 1.90294 16.9425 1.88843 16.7649C1.87498 16.6002 1.87498 16.4031 1.875 16.1885V2.5C1.875 2.15483 2.15483 1.875 2.5 1.875ZM3.23407 16.8503L3.23531 16.8507L3.23407 16.8503ZM3.14978 16.7659L3.14932 16.7647L3.14978 16.7659ZM17.094 6.21058C17.3459 6.44658 17.3588 6.8421 17.1228 7.09399L13.857 10.5795C13.849 10.5881 13.8403 10.5975 13.831 10.6076C13.7416 10.7046 13.5943 10.8643 13.4006 10.9529C13.2358 11.0282 13.0543 11.0592 12.8739 11.043C12.6617 11.0239 12.4698 10.9223 12.3531 10.8606C12.341 10.8542 12.3297 10.8482 12.3193 10.8427L9.60475 9.43325C9.59483 9.42817 9.5855 9.42333 9.57675 9.41875C9.56992 9.426 9.56275 9.43367 9.55517 9.44175L6.28943 12.9273C6.05342 13.1792 5.6579 13.1921 5.40601 12.9561C5.15412 12.7201 5.14124 12.3246 5.37724 12.0727L8.643 8.58717C8.651 8.57858 8.65967 8.56917 8.669 8.55908C8.75842 8.46208 8.90567 8.30237 9.09942 8.21378C9.26417 8.13845 9.44575 8.10738 9.62608 8.12363C9.83833 8.14275 10.0303 8.24437 10.1469 8.30609C10.159 8.31251 10.1703 8.3185 10.1808 8.32393L12.8953 9.73342C12.9052 9.7385 12.9145 9.74333 12.9233 9.74792C12.9301 9.74067 12.9373 9.733 12.9448 9.72492L16.2106 6.23934C16.4466 5.98745 16.8421 5.97458 17.094 6.21058Z" fill-rule="evenodd" clip-rule="evenodd" fill="url(#vrpGrad)"/></svg>View resource plan</button>
         <span class="kebab"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor;stroke:none" aria-hidden="true"><circle cx="12" cy="5.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18.5" r="1.6"/></svg></span>
       </div>
     </div>
@@ -3513,27 +4186,134 @@
 </div>
 
 <!-- Ask AI panel: "View resource plan" on the timeline opens it on the right and Remi surfaces the project's plan -->
-<aside class="ask-ai-panel" id="ask-ai" aria-label="Ask AI" hidden>
-  <header class="ask-ai-head">
-    <span class="ask-ai-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#sparkGrad)" d="M12 1.5l2.4 7.1 7.1 2.4-7.1 2.4L12 20.5l-2.4-7.1L2.5 11l7.1-2.4z"/></svg>Ask AI</span>
-    <span class="ask-ai-tools">
-      <button type="button" class="ask-ai-tool ask-ai-new" aria-label="New chat"><svg class="i" viewBox="0 0 24 24"><path d="M14 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19h11a1.5 1.5 0 0 0 1.5-1.5V10"/><path d="m10 14 .6-2.8L18 3.8l2.2 2.2-7.4 7.4z"/></svg></button>
-      <span class="ask-ai-tool" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9"/><path d="M4.5 4.5V9H9M12 8v4.5l3 1.5"/></svg></span>
-      <span class="ask-ai-tool" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></span>
-      <button type="button" class="ask-ai-tool ask-ai-close" aria-label="Close Ask AI"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    </span>
-  </header>
-  <div class="ask-ai-thread" aria-live="polite"></div>
-  <div class="ask-ai-input">
-    <textarea rows="2" placeholder="Ask me to find, create, or update anything in teamwork" aria-label="Ask AI"></textarea>
-    <div class="ask-ai-input-foot">
-      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></svg>
-      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
-      <svg class="i ask-ai-send" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-6.5z"/><path d="M12 13.5 20 4"/></svg>
+<!-- ── Ask AI drawer: copied from tsia/ (docs/nav-audit.md, plan 7b); wired up in the script ── -->
+<div class="ai-drawer-overlay" id="aiDrawerOverlay"></div>
+<div class="ai-drawer" id="aiDrawer" role="complementary" aria-label="Ask AI" inert>
+  <div class="ai-drawer-header">
+    <div class="ai-drawer-header-icon">
+      <svg class="ai-spark" viewBox="0 0 16 16"><use href="#aiSparkIcon"/></svg>
+    </div>
+    <div class="ai-drawer-header-text">
+      <div class="ai-drawer-header-title">Ask AI</div>
+    </div>
+    <button type="button" class="ai-drawer-history-btn" id="aiNewChatBtn" aria-label="New chat" data-tooltip="New chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>
+      </svg>
+    </button>
+    <button type="button" class="ai-drawer-history-btn" id="aiHistoryBtn" aria-label="Recent chats" data-tooltip="Recent chats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v5h5"/>
+        <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+        <path d="M12 7v5l4 2"/>
+      </svg>
+    </button>
+    <button type="button" class="ai-drawer-history-btn" id="aiExpandBtn" aria-label="Expand" data-tooltip="Expand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
+      </svg>
+    </button>
+    <button type="button" class="ai-drawer-close" id="aiCloseBtn" aria-label="Close Ask AI" data-tooltip="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- ── Chat History Panel (slides in over chat) ─── -->
+  <div class="ai-drawer-history" id="aiDrawerHistory">
+    <div class="ai-drawer-history-header">
+      <button type="button" class="ai-drawer-history-btn" id="aiHistoryBackBtn" title="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/><path d="m12 5-7 7 7 7"/>
+        </svg>
+      </button>
+      <div class="ai-drawer-history-title">Chat history</div>
+      <button type="button" class="ai-drawer-history-btn" id="aiHistoryNewBtn" title="New chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    </div>
+    <div class="chat-hist-list" id="chatHistList"></div>
+  </div>
+
+  <div class="ai-drawer-messages" id="aiDrawerMessages" aria-live="polite">
+    <div class="ai-drawer-intro" id="aiDrawerIntro">
+      <div class="ai-drawer-greeting">
+        <span class="ai-greet-hello" id="aiDrawerIntroTitle">Hello Dana,</span>
+        <span class="ai-greet-help" id="aiDrawerIntroText">How can I help you today?</span>
+      </div>
+      <div class="ai-for-you" id="aiDrawerTeammates">
+        <div class="ai-for-you-label">
+          <svg class="ai-spark" viewBox="0 0 16 16"><use href="#aiSparkIcon"/></svg>
+          Teammates
+        </div>
+        <div class="ai-for-you-list" id="aiDrawerTeammatesList"></div>
+      </div>
+      <div class="ai-for-you" id="aiDrawerForYou">
+        <div class="ai-for-you-label">
+          <svg class="ai-spark" viewBox="0 0 16 16"><use href="#aiSparkIcon"/></svg>
+          For you
+        </div>
+        <div class="ai-for-you-list">
+          <button type="button" class="ai-foryou-chip" data-prompt="Which projects are drifting on margin?"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Which projects are drifting on margin?</button>
+          <button type="button" class="ai-foryou-chip" data-prompt="How much unbilled time is sitting there?"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> How much unbilled time is sitting there?</button>
+          <button type="button" class="ai-foryou-chip" data-prompt="Show me budget burn before month-end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Show me budget burn before month-end</button>
+          <button type="button" class="ai-foryou-chip" data-prompt="Which clients are most profitable this quarter?"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Which clients are most profitable this quarter?</button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="ask-ai-help">Help improve Ask AI:<span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.7 0 8.5 3.1 8.5 7s-3.8 7-8.5 7c-1 0-2-.1-2.9-.4L4.5 20l1.2-3.6C4.3 15 3.5 13.1 3.5 11c0-3.9 3.8-7 8.5-7z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Send feedback</span></div>
-</aside>
+
+  <div class="ai-drawer-input-area">
+    <div class="ai-drawer-input-wrap">
+      <div class="composer-chips" id="chips-aiDrawerInput"></div>
+      <textarea class="ai-drawer-input" id="aiDrawerInput" placeholder="Ask me to find, create, or update anything in Teamwork.com…" rows="1" aria-label="Ask AI"></textarea>
+      <div class="ai-drawer-toolbar">
+        <div class="ai-drawer-toolbar-left">
+          <button type="button" class="ai-drawer-tool-btn" data-tooltip="Attach">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <button type="button" class="ai-drawer-tool-btn" data-tooltip="Dictate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button type="button" class="ai-drawer-skills-btn" id="drawerSkillsBtn" aria-haspopup="true" aria-expanded="false" aria-controls="drawerSkillsMenu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            AI Skills
+          </button>
+        </div>
+        <button type="button" class="ai-drawer-send-btn" id="aiSendBtn" aria-label="Send" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="ai-drawer-feedback">
+      Help improve Ask AI:
+      <button type="button" class="ai-drawer-feedback-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Send Feedback
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Skills quick menu (opened from the Ask AI composer) ─── -->
+<div class="skills-menu" id="drawerSkillsMenu">
+  <div class="skills-menu-label">AI Skills</div>
+  <div class="skills-menu-list" id="drawerSkillsMenuList"></div>
+  <div class="skills-menu-footer">
+    <button type="button" class="skills-menu-action">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      View AI skills gallery
+    </button>
+    <button type="button" class="skills-menu-action">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Create skill
+    </button>
+  </div>
+</div>
 
 <!-- Resource-plan dialog: opened from the "Create resource plan" job card -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -8539,7 +9319,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     resetAftercare();
     recordActivity({ job: 'Create resource plan', project: PROJECT.name, at: planCreatedAt.toISOString(), ms: FLOW_TIMING.toastDelay + FLOW_TIMING.planReadyDelay });
     try { sessionStorage.setItem('remiPlanCreated', JSON.stringify({ project: PROJECT.name, at: planCreatedAt.toISOString() })); } catch { /* storage unavailable */ }
-    if (!askAiShown) askAiThread.replaceChildren();
+    if (!askAiShown) renderAskAiTeammates(); // Ask AI now offers to view the plan
     setSuggestionsOpen(false);
     canvas.close();
     setDrawerOpen(false);
@@ -9470,8 +10250,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   }
   // ── Ask AI: the timeline's "View resource plan" opens it; Remi pulls up the plan she made and how it's tracking today ──
   // Today's figures are the plan with a little drift since it was created, so the "since original plan" lines have something to say
-  const askAi = document.getElementById('ask-ai');
-  const askAiThread = askAi.querySelector('.ask-ai-thread');
+  // ── Ask AI is TSIA's drawer (docs/nav-audit.md, plan 7b). Remi's plan and aftercare messages write into its message list,
+  //    after the intro (greeting, Teammates, For you), which stays in the list so a new chat can show it again ──
+  const askAiDrawer = document.getElementById('aiDrawer');
+  const askAiBtn = document.getElementById('askAiBtn');
+  const askAiThread = document.getElementById('aiDrawerMessages');
+  const askAiIntro = document.getElementById('aiDrawerIntro');
   let askAiShown = false;
   // Two ways in: the top bar's Ask AI opens the home screen of prompts; the timeline's View resource plan goes straight to the plan
   let planCreated = false; // set once Create plan has run: Ask AI then offers to view the plan rather than create one
@@ -9496,64 +10280,322 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     }
     startFlow();
   }
-  // Typed into Ask AI: a resource-plan request gets what Remi needs to know, and a way into Remi herself
-  const REMI_PROMO = `<div class="ask-ai-promo" role="note"><img class="ask-ai-promo-face" alt=""><div class="ask-ai-promo-text"><b>Resource a project</b><p>Use Remi to resource your project, matching the right people to the right work using availability, cost and budgets, with minimum clashes.</p><button type="button" class="ask-ai-promo-link">Create resource plan</button></div><button type="button" class="ask-ai-promo-close" aria-label="Dismiss"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
-  function askAiSay(text) {
-    askAiThread.querySelector('.ask-ai-home')?.remove();
-    const user = Object.assign(document.createElement('div'), { className: 'ask-ai-user', textContent: text });
-    const thinking = Object.assign(document.createElement('div'), { className: 'ask-ai-thinking' });
-    thinking.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#sparkGrad)" d="M12 1.5l2.4 7.1 7.1 2.4-7.1 2.4L12 20.5l-2.4-7.1L2.5 11l7.1-2.4z"/></svg>Thinking…';
-    askAiThread.append(user, thinking);
-    askAiThread.scrollTop = askAiThread.scrollHeight;
-    setTimeout(() => {
-      const reply = Object.assign(document.createElement('div'), { className: 'ask-ai-reply' });
-      reply.innerHTML = /resourc|plan/i.test(text)
-        ? `<p>To build the resource plan, I need three things:</p>
-          <ol class="ask-ai-list"><li><strong>Scope:</strong> which project, team or people is it for?</li><li><strong>Timeframe:</strong> what date range should it cover, for example the next 4 weeks or this quarter?</li><li><strong>Goal:</strong> what should it show? Examples are who is over or under capacity, who to allocate to upcoming tasks, or how to rebalance existing work.</li></ol>
-          <p>Once I have those, I’ll check current workload and open tasks, then propose allocations for you to confirm. I won’t change anything until you approve it.</p>${REMI_PROMO}`
-        : '<p>I can’t help with that in this prototype yet. Try asking me to create a resource plan.</p>';
-      const promo = reply.querySelector('.ask-ai-promo');
-      if (promo) {
-        promo.querySelector('.ask-ai-promo-face').src = document.querySelector('#view-projects .remi .remi-face').src;
-        promo.querySelector('.ask-ai-promo-link').addEventListener('click', createPlanFromAskAi); // in a project: straight into Remi; elsewhere: the project picker
-        promo.querySelector('.ask-ai-promo-close').addEventListener('click', () => promo.remove());
-      }
-      thinking.replaceWith(reply);
-      askAiThread.scrollTop = askAiThread.scrollHeight;
-    }, prefersReducedMotion ? 0 : 1400);
-  }
-  const askAiInput = askAi.querySelector('.ask-ai-input textarea');
+  const askAiInput = document.getElementById('aiDrawerInput');
+  const askAiSendBtn = document.getElementById('aiSendBtn');
   const ASK_AI_PLACEHOLDER = askAiInput.placeholder;
-  function submitAskAi() {
+
+  // Removes the conversation but keeps the intro: shown again for a new chat, hidden under a reply
+  function clearAskAiThread({ showIntro }) {
+    for (const child of [...askAiThread.children]) if (child !== askAiIntro) child.remove();
+    askAiIntro.style.display = showIntro ? '' : 'none';
+  }
+  // Remi's Teammates chip: "Create resource plan" until the project has a plan, then "View resource plan"
+  function renderAskAiTeammates() {
+    const isView = hasPlan();
+    const face = document.querySelector('#view-projects .remi .remi-face').src;
+    const list = document.getElementById('aiDrawerTeammatesList');
+    list.innerHTML = `<button type="button" class="ai-foryou-chip ai-teammate-chip"><img alt="" src="${face}">${isView ? 'View resource plan' : 'Create resource plan'}</button>`;
+    list.firstElementChild.addEventListener('click', isView ? showAskAiPlan : createPlanFromAskAi);
+  }
+
+  // ── TSIA's chat: messages, the thinking dots, the finance answers and follow-up chips ──
+  function scrollAskAi() { askAiThread.scrollTop = askAiThread.scrollHeight; }
+  // A user message is plain text; an AI message is the answer's HTML
+  function aiAppendMessage(role, content) {
+    const el = Object.assign(document.createElement('div'), { className: `chat-msg ${role === 'user' ? 'user' : 'ai'}` });
+    el.innerHTML = role === 'user'
+      ? '<div class="chat-msg-avatar" style="background:var(--palette-indigo-40);color:var(--palette-white);">DW</div><div class="chat-msg-bubble"></div>'
+      : '<div class="chat-msg-sender"><div class="chat-msg-bubble"></div></div>';
+    const bubble = el.querySelector('.chat-msg-bubble');
+    if (role === 'user') bubble.textContent = content;
+    else bubble.innerHTML = content;
+    askAiThread.append(el);
+    scrollAskAi();
+    return el;
+  }
+  function aiAppendThinking() {
+    const el = Object.assign(document.createElement('div'), { className: 'chat-msg ai' });
+    el.innerHTML = '<div class="chat-msg-sender"><div class="chat-msg-bubble chat-thinking"><span></span><span></span><span></span></div></div>';
+    askAiThread.append(el);
+    scrollAskAi();
+    return el;
+  }
+
+  // TSIA's finance answers for the four "For you" prompts. The planned-margin prompt and its "Which phase carries most cost?"
+  // follow-up are left out: they quote TSIA's $150,000 plan and phases, which contradict Remi's plan (docs/nav-audit.md, section 6)
+  function financeReply(text) {
+    const q = text.toLowerCase();
+    if (q.includes('drifting') || (q.includes('margin') && (q.includes('which project') || q.includes('portfolio')))) {
+      return `<p><strong>2 of 11 active projects</strong> are drifting more than 2 points below their planned margin:</p>
+  <ul>
+    <li><strong>Depot Network Review</strong> (Halcyon Logistics) — 24.1% against 32% planned. 118h over plan with two weeks left; the overage is all senior time.</li>
+    <li><strong>CRM Migration</strong> (Blue Horizon) — 27.6% against 34% planned. Scope added in August was never re-quoted.</li>
+  </ul>
+  <p><strong>Enterprise AI Rollout</strong> hasn't started, so it isn't drifting yet — but it is the one to watch. Phase 1 assumes a single junior consultant can deliver 200 hours in three weeks, and covering that overflow at senior rates would take it from 35.2% to 33.8% before any work lands.</p>`;
+    }
+
+    if (q.includes('unbilled')) {
+      return `<p>There's <strong>$63,600 of unbilled time</strong> across the portfolio right now, <strong>$31,900</strong> of it more than 30 days old.</p>
+  <ul>
+    <li><strong>Blue Horizon</strong> — $38,400 across CRM Migration and Client Portal v2. Both are time and materials; nothing has been invoiced since 31 Aug.</li>
+    <li><strong>Halcyon Logistics</strong> — $9,100, all on Depot Network Review. Enterprise AI Rollout is fixed fee and hasn't started, so nothing there is billable yet.</li>
+    <li><strong>Global Media</strong> — $16,100, all within terms.</li>
+  </ul>
+  <p>The oldest item is <strong>$12,300 on CRM Migration</strong>. Want me to draft the invoice schedule for Blue Horizon before month-end?</p>`;
+    }
+
+    if (q.includes('budget burn') || q.includes('month-end') || q.includes('month end')) {
+      return `<p>With <strong>7 working days to month-end</strong>, here's where budgets land if the current burn holds:</p>
+  <ul>
+    <li>🔴 <strong>Depot Network Review</strong> — 94% of budget consumed, 3 weeks of work left. Will breach in early November.</li>
+    <li>🟠 <strong>CRM Migration</strong> — 88% consumed with the UAT phase not started.</li>
+    <li>🟢 <strong>Enterprise AI Rollout</strong> — starts 5 Oct, nothing consumed of the 820 hours yet.</li>
+    <li>🟢 <strong>8 other projects</strong> tracking at or under plan.</li>
+  </ul>
+  <p>Two need a conversation before the month closes: <strong>Depot Network Review</strong> needs a change request, and <strong>CRM Migration</strong> needs the August scope re-quoted.</p>`;
+    }
+
+    if (q.includes('profitable') || q.includes('most profitable')) {
+      return `<p>Client profitability for the quarter to date, by realised margin:</p>
+  <ul>
+    <li><strong>Global Media</strong> — $71,400 on $198,000 billed, <strong>36.1%</strong>. Consistently the cleanest delivery; almost no write-offs.</li>
+    <li><strong>Halcyon Logistics</strong> — $64,900 on $205,000 billed, <strong>31.7%</strong>. Depot Network Review is dragging it down; Enterprise AI Rollout starts 5 Oct at a planned 35.2%.</li>
+    <li><strong>Blue Horizon</strong> — $38,200 on $164,000 billed, <strong>23.3%</strong>. Two projects over plan and the slowest to invoice.</li>
+  </ul>
+  <p>Halcyon is the account to watch — it's the largest by revenue, and Enterprise AI Rollout is the engagement to get right, particularly the agent resource model.</p>`;
+    }
+
+    return null;
+  }
+  const AI_FALLBACK = `I can help with that! Try asking me to <em>run a health check</em>, <em>send a client update</em>, or <em>catch me up on projects</em>.`;
+
+  // Follow-up chips under an answer. TSIA's only one follows the planned-margin prompt, so none apply until that prompt returns
+  const AI_FOLLOW_UPS = [];
+  const AGENT_CHIP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg>`;
+  function clearFollowUps() {
+    for (const el of askAiThread.querySelectorAll('.ai-followups')) el.remove();
+  }
+  function appendFollowUps(text) {
+    const q = text.toLowerCase();
+    const followUp = AI_FOLLOW_UPS.find((f) => f.when(q));
+    if (!followUp) return;
+    const wrap = Object.assign(document.createElement('div'), { className: 'ai-followups' });
+    const chips = Object.assign(document.createElement('div'), { className: 'agent-chips' });
+    for (const ask of followUp.ask) {
+      const chip = Object.assign(document.createElement('button'), { type: 'button', className: 'remi-chip', innerHTML: `${AGENT_CHIP_ICON} ` });
+      chip.append(ask);
+      chip.addEventListener('click', () => { clearFollowUps(); aiSendSuggestion(ask); });
+      chips.append(chip);
+    }
+    wrap.append(chips);
+    askAiThread.append(wrap);
+    scrollAskAi();
+  }
+
+  // ── Composer: text plus any skill chips ──
+  let composerSkills = []; // skills picked from AI Skills, sent with the next message
+  function updateAskAiSend() { askAiSendBtn.disabled = !(askAiInput.value.trim() || composerSkills.length); }
+  function aiAutoResize() {
+    askAiInput.style.height = 'auto';
+    askAiInput.style.height = `${Math.min(askAiInput.scrollHeight, 120)}px`;
+    updateAskAiSend();
+  }
+  function resetAskAiInput() {
+    askAiInput.value = '';
+    askAiInput.style.height = '';
+    updateAskAiSend();
+  }
+  let aiIsProcessing = false;
+  function aiSend() {
+    const skillPart = composerSkills.map((s) => s.name).join(', ');
+    const typed = askAiInput.value.trim();
+    const text = [skillPart, typed].filter(Boolean).join(skillPart && typed ? ' — ' : '');
+    if (!text || aiIsProcessing) return;
+    composerSkills = [];
+    renderComposerChips();
+    clearFollowUps();
+    askAiIntro.style.display = 'none';
+    resetAskAiInput();
+    aiAppendMessage('user', text);
+    const reply = financeReply(text);
+    const thinking = aiAppendThinking();
+    aiIsProcessing = true;
+    setTimeout(() => {
+      thinking.remove();
+      aiAppendMessage('ai', reply || AI_FALLBACK);
+      if (reply) appendFollowUps(text);
+      aiIsProcessing = false;
+    }, reply ? 1500 : 1200);
+  }
+  function aiSendSuggestion(text) {
+    askAiInput.value = text;
+    aiAutoResize();
+    aiSend();
+  }
+  // Enter or Send: an answer Remi's aftercare is waiting for goes to her; anything else is a question for Ask AI
+  function sendFromAskAi() {
+    if (!acAwait) { aiSend(); return; }
     const text = askAiInput.value.trim();
     if (!text) return;
-    askAiInput.value = '';
-    if (acAwait) {
-      const read = acAwait;
-      acAwait = null;
-      askAiInput.placeholder = ASK_AI_PLACEHOLDER;
-      acUser(text);
-      read(text);
-      return;
+    const read = acAwait;
+    acAwait = null;
+    askAiInput.placeholder = ASK_AI_PLACEHOLDER;
+    resetAskAiInput();
+    acUser(text);
+    read(text);
+  }
+  askAiInput.addEventListener('input', aiAutoResize);
+  askAiInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendFromAskAi(); }
+  });
+  askAiSendBtn.addEventListener('click', sendFromAskAi);
+  for (const chip of document.querySelectorAll('#aiDrawerForYou [data-prompt]')) {
+    chip.addEventListener('click', () => aiSendSuggestion(chip.dataset.prompt));
+  }
+
+  // ── AI Skills: the enabled skills from TSIA; a pick becomes a chip in the composer ──
+  const ASK_AI_SKILLS = [
+    { id:'log-time',         name:'Log my time',              desc:'Turn what you did into time entries.',                    category:'Time',      enabled:true  },
+    { id:'create-tasks',     name:'Create tasks from notes',  desc:'Turn notes or a scope into tasks and subtasks.',          category:'Delivery',  enabled:true  },
+    { id:'report-time',      name:'Report time logged',       desc:'Hours by person, project or client for any dates.',       category:'Reporting', enabled:true  },
+    { id:'overdue-work',     name:'List overdue work',        desc:'Overdue and due-soon tasks, grouped and ready to send.',   category:'Delivery',  enabled:true  },
+    { id:'audit-setup',      name:'Audit project setup',      desc:'Check dependencies, milestones and task flow for errors.', category:'Delivery',  enabled:true  },
+  ];
+  const SKILL_LIGHTNING = '<svg viewBox="0 0 24 24" fill="none" stroke="url(#aiGradLine)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+  function skillCatIcon(cat) {
+    const base = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+    switch (cat) {
+      case 'Time':      return `<svg ${base}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+      case 'Reporting': return `<svg ${base}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
+      case 'Delivery':  return `<svg ${base}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`;
+      case 'People':    return `<svg ${base}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+      case 'Finance':   return `<svg ${base}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+      case 'Knowledge': return `<svg ${base}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+      case 'Custom':    return `<svg ${base}><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h0M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"/></svg>`;
+      default:          return `<svg ${base}><circle cx="12" cy="12" r="9"/></svg>`;
     }
-    askAiSay(text);
   }
-  askAiInput.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitAskAi(); } });
-  askAi.querySelector('.ask-ai-send').addEventListener('click', submitAskAi);
-  function askAiHome() {
-    const face = document.querySelector('#view-projects .remi .remi-face').src;
-    const lead = (text) => (text === 'Create resource plan' ? `<img class="ask-ai-chip-face" alt="" src="${face}">` : '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3v5.5A1.5 1.5 0 0 0 5.5 10H12M9.5 7.5 12 10l-2.5 2.5"/></svg>');
-    const chips = (items) => items.map((text) => `<button type="button" class="ask-ai-chip" data-prompt="${text}">${lead(text)}${text}</button>`).join('');
-    const home = Object.assign(document.createElement('div'), { className: 'ask-ai-home' });
-    home.innerHTML = `<h2 class="ask-ai-hello"><span>Hello Hannah,</span>How can I help you today?</h2>
-      <div class="ask-ai-group"><div class="ask-ai-group-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#sparkGrad)" d="M12 1.5l2.4 7.1 7.1 2.4-7.1 2.4L12 20.5l-2.4-7.1L2.5 11l7.1-2.4z"/></svg>Teammates</div><div class="ask-ai-chips">${chips([hasPlan() ? 'View resource plan' : 'Create resource plan'])}</div></div>
-      <div class="ask-ai-group"><div class="ask-ai-group-label"><span aria-hidden="true">✨</span>For you</div><div class="ask-ai-chips">${chips(['What should I focus on next?', 'Write a project status update', 'Catch me up'])}</div></div>
-      <div class="ask-ai-group"><div class="ask-ai-group-label"><span aria-hidden="true">💡</span>Insights</div><div class="ask-ai-chips">${chips(['Is this project on track?', 'How much budget have we spent?', 'Where has the team spent their time?', 'Can we still hit the deadline?'])}</div></div>`;
-    // Only the resource plan prompt is live in this prototype
-    home.querySelector('[data-prompt="View resource plan"]')?.addEventListener('click', showAskAiPlan);
-    home.querySelector('[data-prompt="Create resource plan"]')?.addEventListener('click', createPlanFromAskAi);
-    askAiThread.replaceChildren(home);
+
+  const skillsMenu = document.getElementById('drawerSkillsMenu');
+  const skillsBtn = document.getElementById('drawerSkillsBtn');
+  const composerChips = document.getElementById('chips-aiDrawerInput');
+  function renderDrawerSkillsMenuList() {
+    document.getElementById('drawerSkillsMenuList').innerHTML = ASK_AI_SKILLS.map((s) => `
+        <button type="button" class="skills-menu-item" data-skill="${s.id}">
+          <div class="skills-menu-ico skill-card-icon ${s.category.toLowerCase()}">${skillCatIcon(s.category)}</div>
+          <span class="skills-menu-name">${s.name}</span>
+        </button>`).join('');
   }
+  // Opens above the AI Skills button, kept inside the window
+  function setSkillsMenuOpen(open) {
+    skillsBtn.setAttribute('aria-expanded', String(open));
+    if (!open) { skillsMenu.classList.remove('open'); return; }
+    renderDrawerSkillsMenuList();
+    skillsMenu.classList.add('open');
+    const rect = skillsBtn.getBoundingClientRect();
+    skillsMenu.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - skillsMenu.offsetWidth - 12))}px`;
+    skillsMenu.style.top = `${Math.max(12, rect.top - skillsMenu.offsetHeight - 8)}px`;
+  }
+  function renderComposerChips() {
+    composerChips.innerHTML = composerSkills.map((s, i) => `
+      <span class="composer-skill-chip">${SKILL_LIGHTNING}<span>${s.name}</span>
+        <button type="button" class="cs-x" title="Remove" aria-label="Remove ${s.name}" data-index="${i}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button></span>`).join('');
+  }
+  skillsBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setSkillsMenuOpen(!skillsMenu.classList.contains('open'));
+  });
+  skillsMenu.addEventListener('click', (event) => {
+    const item = event.target.closest('[data-skill]');
+    if (!item) return;
+    setSkillsMenuOpen(false);
+    const skill = ASK_AI_SKILLS.find((s) => s.id === item.dataset.skill);
+    composerSkills.push({ id: skill.id, name: skill.name });
+    renderComposerChips();
+    aiAutoResize();
+    askAiInput.focus();
+  });
+  composerChips.addEventListener('mousedown', (event) => { if (event.target.closest('.cs-x')) event.preventDefault(); }); // keep the caret in the composer
+  composerChips.addEventListener('click', (event) => {
+    const remove = event.target.closest('.cs-x');
+    if (!remove) return;
+    composerSkills.splice(Number(remove.dataset.index), 1);
+    renderComposerChips();
+    updateAskAiSend();
+    askAiInput.focus();
+  });
+  document.addEventListener('click', (event) => {
+    if (skillsMenu.classList.contains('open') && !skillsMenu.contains(event.target) && !event.target.closest('#drawerSkillsBtn')) setSkillsMenuOpen(false);
+  });
+
+  // ── Recent chats: TSIA's plain conversations (the ones that replay TSIA updates are left out) ──
+  const chatHistoryData = [
+    {
+      id: 'h4',
+      name: 'Budget check',
+      ts: '10:05am',
+      preview: '4 projects flagged over budget across your portfolio.',
+      time: 'Yesterday',
+      messages: [
+        { role: 'user', text: 'Check budgets across my projects' },
+        { role: 'ai', text: '<strong>4 projects</strong> are over budget: Website Redesign (+18%), CRM Migration (+9%), Mobile App Launch (+24%), and Brand Refresh (+5%). I\'d recommend a budget review meeting this week.' },
+      ]
+    },
+    {
+      id: 'h5',
+      name: 'Morning catch-up',
+      ts: 'Mon 8:30am',
+      preview: '3 projects updated overnight, 12 tasks due today.',
+      time: '2 days ago',
+      messages: [
+        { role: 'user', text: 'Give me my full morning catch-up' },
+        { role: 'ai', text: 'Morning! Here\'s your catch-up: <strong>3 projects updated</strong> overnight, 12 tasks due today, and your 10am stand-up has 5 attendees confirmed.' },
+        { role: 'ai', text: '<strong>Halcyon Logistics</strong> replied to the status update you sent yesterday. They\'ve approved the Q3 scope extension — I\'ve updated the project milestone accordingly.' },
+      ]
+    },
+  ];
+  const HIST_CHAT_ICON = '<div class="hist-chat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>';
+  const askAiHistory = document.getElementById('aiDrawerHistory');
+  function renderChatHistoryList() {
+    const groups = [['Today', (h) => h.time === 'Today'], ['Yesterday', (h) => h.time === 'Yesterday'], ['Earlier', (h) => !['Today', 'Yesterday'].includes(h.time)]];
+    document.getElementById('chatHistList').innerHTML = groups.map(([label, inGroup]) => {
+      const items = chatHistoryData.filter(inGroup);
+      return items.length ? `<div class="chat-hist-section-label">${label}</div>${items.map((item) => `
+        <div class="chat-hist-item" role="button" tabindex="0" data-history="${item.id}">
+          ${HIST_CHAT_ICON}
+          <div class="chat-hist-info">
+            <div class="chat-hist-name">${item.name}</div>
+            <div class="chat-hist-preview">${item.preview}</div>
+            ${item.ts ? `<div class="chat-hist-ts">${item.ts}</div>` : ''}
+          </div>
+        </div>`).join('')}` : '';
+    }).join('');
+  }
+  function openChatHistory() {
+    renderChatHistoryList();
+    askAiHistory.classList.add('open');
+  }
+  function closeChatHistory() { askAiHistory.classList.remove('open'); }
+  function loadChatHistory(id) {
+    const item = chatHistoryData.find((h) => h.id === id);
+    closeChatHistory();
+    askAiShown = false;
+    acAwait = null;
+    askAiInput.placeholder = ASK_AI_PLACEHOLDER;
+    clearAskAiThread({ showIntro: false });
+    for (const m of item.messages) aiAppendMessage(m.role, m.text);
+  }
+  const chatHistList = document.getElementById('chatHistList');
+  chatHistList.addEventListener('click', (event) => {
+    const item = event.target.closest('[data-history]');
+    if (item) loadChatHistory(item.dataset.history);
+  });
+  chatHistList.addEventListener('keydown', (event) => {
+    const item = event.target.closest('[data-history]');
+    if (item && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); loadChatHistory(item.dataset.history); }
+  });
   // ══ Aftercare: since the plan was agreed, two people got booked elsewhere and four tasks were added to the project.
   //    Ask AI's "View resource plan" shows the plan's health against the agreed plan and walks the user through putting it right.
   //    Every fix changes the plan: the timeline redraws and the health cards move to "compared to the agreed plan" ══
@@ -10112,28 +11154,64 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function showAskAiPlan() {
     askAiShown = true;
     acAwait = null;
-    askAiThread.replaceChildren();
+    closeChatHistory();
+    clearAskAiThread({ showIntro: false });
     acUser(`View project resource plan for ${PROJECT.name}`);
     acOpen();
   }
+  // The drawer slides over the page; nothing moves. Closing keeps the conversation for next time, as in TSIA
   function setAskAiOpen(open) {
-    askAi.hidden = !open;
-    document.body.classList.toggle('ask-ai-open', open);
+    askAiDrawer.classList.toggle('open', open);
+    askAiDrawer.inert = !open;
+    document.getElementById('aiDrawerOverlay').classList.toggle('open', open);
+    askAiBtn.classList.toggle('drawer-open', open);
+    askAiBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      renderAskAiTeammates();
+      setTimeout(() => askAiInput.focus(), 250);
+      return;
+    }
+    closeChatHistory();
+    setSkillsMenuOpen(false);
   }
   function openAskAi(mode) {
     setAskAiOpen(true);
     if (mode === 'plan') { if (!askAiShown) showAskAiPlan(); return; }
-    if (!askAiThread.childElementCount || askAiThread.querySelector('.ask-ai-home')) askAiHome();
+    if (askAiThread.childElementCount === 1) askAiIntro.style.display = ''; // nothing said yet: the intro
   }
-  askAi.querySelector('.ask-ai-close').addEventListener('click', () => setAskAiOpen(false));
-  // New chat (the pencil) goes back to the prompts
-  askAi.querySelector('.ask-ai-new').addEventListener('click', () => { askAiShown = false; askAiHome(); });
+  function startNewChat() {
+    askAiShown = false;
+    acAwait = null;
+    askAiInput.placeholder = ASK_AI_PLACEHOLDER;
+    closeChatHistory();
+    clearAskAiThread({ showIntro: true });
+    renderAskAiTeammates();
+    composerSkills = [];
+    renderComposerChips();
+    resetAskAiInput();
+    setTimeout(() => askAiInput.focus(), 100);
+  }
+  function toggleDrawerExpand() { askAiDrawer.classList.toggle('wide'); }
+  document.getElementById('aiCloseBtn').addEventListener('click', () => setAskAiOpen(false));
+  document.getElementById('aiNewChatBtn').addEventListener('click', startNewChat);
+  document.getElementById('aiHistoryNewBtn').addEventListener('click', startNewChat);
+  document.getElementById('aiHistoryBtn').addEventListener('click', openChatHistory);
+  document.getElementById('aiHistoryBackBtn').addEventListener('click', closeChatHistory);
+  document.getElementById('aiExpandBtn').addEventListener('click', toggleDrawerExpand);
+  // Esc closes the AI Skills menu first, then the drawer; a Remi dialog open on top handles its own Esc
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !askAiDrawer.classList.contains('open') || document.querySelector('dialog[open]')) return;
+    event.preventDefault();
+    if (skillsMenu.classList.contains('open')) { setSkillsMenuOpen(false); skillsBtn.focus(); return; }
+    setAskAiOpen(false);
+    askAiBtn.focus();
+  });
   document.querySelector('#view-timeline .remi').addEventListener('click', () => {
     // 006: aftercare is two weeks after the plan was confirmed; the events since then apply from here on
     if (PROJECT.happyPath && planCreated && !aftercare.fastForwarded) { aftercare.fastForwarded = true; saveAftercare(); acRefreshTimeline(); }
     openAskAi('plan');
   });
-  document.getElementById('askAiBtn').addEventListener('click', () => openAskAi('home'));
+  askAiBtn.addEventListener('click', () => (askAiDrawer.classList.contains('open') ? setAskAiOpen(false) : openAskAi('home')));
   // ── View original plan: the plan summary, read-only, as it was agreed. No chat, no going back; Close just closes it ──
   const snapshotBanner = canvas.querySelector('.pl-snapshot');
   const canvasTitle = canvas.querySelector('#cv-title');

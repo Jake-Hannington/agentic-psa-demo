@@ -2581,6 +2581,8 @@ body {
   font: inherit; font-size: 13.5px; color: var(--color-text-default);
 }
 .stage-menu-item:hover { background: var(--color-background-hover); }
+.stage-menu-list .stage-menu-label:not(:first-child) { margin-top: var(--spacing-2); }
+a.stage-menu-item { text-decoration: none; }
 .global-nav-expand-btn svg { width: 20px; height: 20px; }
 .global-nav-logo {
   display: flex; align-items: center;
@@ -7920,7 +7922,6 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
 
 <!-- ── 🧩 Stage menu — jump straight to any point in the demo ─── -->
 <div class="stage-menu" id="stageMenu">
-  <div class="stage-menu-label">Jump to a stage</div>
   <div class="stage-menu-list" id="stageMenuList"></div>
 </div>
 
@@ -10458,12 +10459,24 @@ const DEMO_STAGES = [
   ['Teamwork AI · AI Skills', () => showTeamworkAi('skills')],
 ];
 
+/* The menu groups DEMO_STAGES under subtitles and adds the Remi prototype. DEMO_STAGES keeps its order, so
+   #stage=N links still work. A number is a DEMO_STAGES index; a word is a Remi screen, linked as /remi/#word.
+   Remi's top bar has the same menu: keep STAGE_MENU the same in remi/index.html. */
+const STAGE_MENU = [
+  ['Client', [['Overview', 0], ['Quotes', 1], ['Enterprise AI Rollout quote', 2], ['Role rates', 3]]],
+  ['Project', [['List', 4], ['Schedule', 5], ['Finance', 6]]],
+  ['Reporting', [['AI margin report', 7]]],
+  ['Teamwork AI', [['AI Agents', 8], ['AI Skills', 9]]],
+  ['Remi', [['Projects list', 'projects'], ['Enterprise AI Rollout project', 'project'], ['Start Remi on the project', 'start']]],
+];
 function toggleStageMenu(e) {
   e.stopPropagation();
   const m = document.getElementById('stageMenu');
   if (m.classList.contains('open')) { m.classList.remove('open'); return; }
-  document.getElementById('stageMenuList').innerHTML = DEMO_STAGES.map(([label], i) =>
-    `<button class="stage-menu-item" onclick="goToStage(${i})">${label}</button>`).join('');
+  document.getElementById('stageMenuList').innerHTML = STAGE_MENU.map(([title, items]) =>
+    `<div class="stage-menu-label">${title}</div>` + items.map(([label, to]) => typeof to === 'number'
+      ? `<button class="stage-menu-item" onclick="goToStage(${to})">${label}</button>`
+      : `<a class="stage-menu-item" href="/remi/#${to}">${label}</a>`).join('')).join('');
   m.classList.add('open');
 }
 function closeStageMenu() { document.getElementById('stageMenu')?.classList.remove('open'); }

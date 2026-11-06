@@ -195,6 +195,27 @@
   }
   .global-nav-expand-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
   .global-nav-expand-btn svg { width: 20px; height: 20px; }
+  /* Stage menu ("Jump to a stage"), as in TSIA */
+  .stage-menu {
+    display: none; position: fixed; top: 46px; left: var(--spacing-3); z-index: 900;
+    min-width: 260px; padding: var(--spacing-2);
+    background: var(--palette-white); border-radius: var(--border-rounded-lg);
+    border: var(--border-width-1) solid var(--color-border-default);
+    box-shadow: 0 16px 40px rgba(11,15,31,0.18);
+  }
+  .stage-menu.open { display: block; }
+  .stage-menu-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--color-text-subtle); padding: var(--spacing-2) var(--spacing-3);
+  }
+  .stage-menu-item {
+    display: block; width: 100%; text-align: left; border: none; background: none; cursor: pointer;
+    padding: var(--spacing-2) var(--spacing-3); border-radius: var(--border-rounded-md);
+    font: inherit; font-size: 13.5px; color: var(--color-text-default);
+  }
+  .stage-menu-item:hover { background: var(--color-background-hover); }
+  .stage-menu-list .stage-menu-label:not(:first-child) { margin-top: var(--spacing-2); }
+  a.stage-menu-item { text-decoration: none; }
   .global-nav-logo {
     display: flex; align-items: center;
     text-decoration: none; flex-shrink: 0;
@@ -2927,6 +2948,14 @@
 
     <!-- Left: expand sidebar + logo -->
     <div class="global-nav-left">
+      <button type="button" class="global-nav-expand-btn" id="stageMenuBtn" title="Jump to a stage" aria-label="Jump to a stage" aria-haspopup="true" aria-expanded="false" aria-controls="stageMenu">
+        <!-- hamburger icon -->
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="3" y1="6"  x2="17" y2="6"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="3" y1="14" x2="17" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
       <a class="global-nav-logo" href="/" title="Teamwork">
         <!-- Teamwork logo — teamwork-short-slate-pink-dot -->
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3022,6 +3051,10 @@
 
     </div>
   </nav>
+<!-- Stage menu: jump to any point in the demo, across the TSIA and Remi prototypes -->
+<div class="stage-menu" id="stageMenu">
+  <div class="stage-menu-list" id="stageMenuList"></div>
+</div>
 
 <div class="app">
   <nav class="nav-sidebar" id="side-nav" aria-label="Main">
@@ -11688,12 +11721,74 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     }
     startFlow();
   });
+  // Starts Remi on the demo project from its dashboard, as Create resource plan there does (no project picker).
+  // Another project chosen earlier in this session reloads onto the demo project first.
+  function startRemiOnDemoProject() {
+    if (PROJECT.name !== HAPPY_PROJECT) {
+      try { sessionStorage.setItem('remiProject', HAPPY_PROJECT); sessionStorage.setItem(DASHBOARD_KEY, HAPPY_PROJECT); sessionStorage.setItem('remiAutoStart', '1'); } catch { /* storage unavailable */ }
+      history.replaceState(null, '', '#project');
+      location.reload();
+      return;
+    }
+    openDashboard(HAPPY_PROJECT);
+    setTimeout(startFlow, 0); // once the page has finished setting up, as remiAutoStart does
+  }
   function showViewFromHash() {
+    if (location.hash === '#start') { // #start: the demo project with Remi open; a reload keeps the dashboard, not the flow
+      history.replaceState(null, '', '#project');
+      startRemiOnDemoProject();
+      return;
+    }
     const name = location.hash.slice(1);
     showView(VIEWS.includes(name) ? name : 'projects');
   }
   window.addEventListener('hashchange', showViewFromHash);
   showViewFromHash();
+
+  // ── Stage menu ("Jump to a stage"), as in TSIA. A number is a TSIA stage (tsia/index.html, DEMO_STAGES), linked as
+  //    /tsia/#stage=N; a word is a Remi screen, opened here. Keep STAGE_MENU the same in tsia/index.html ──
+  const STAGE_MENU = [
+    ['Client', [['Overview', 0], ['Quotes', 1], ['Enterprise AI Rollout quote', 2], ['Role rates', 3]]],
+    ['Project', [['List', 4], ['Schedule', 5], ['Finance', 6]]],
+    ['Reporting', [['AI margin report', 7]]],
+    ['Teamwork AI', [['AI Agents', 8], ['AI Skills', 9]]],
+    ['Remi', [['Projects list', 'projects'], ['Enterprise AI Rollout project', 'project'], ['Start Remi on the project', 'start']]],
+  ];
+  const REMI_STAGES = { projects: () => showView('projects'), project: () => openDashboard(HAPPY_PROJECT), start: startRemiOnDemoProject };
+  const stageMenu = document.getElementById('stageMenu');
+  const stageMenuBtn = document.getElementById('stageMenuBtn');
+  document.getElementById('stageMenuList').innerHTML = STAGE_MENU.map(([title, items]) =>
+    `<div class="stage-menu-label">${title}</div>${items.map(([label, to]) => (typeof to === 'number'
+      ? `<a class="stage-menu-item" href="/tsia/#stage=${to}">${label}</a>`
+      : `<button type="button" class="stage-menu-item" data-remi-stage="${to}">${label}</button>`)).join('')}`).join('');
+  function setStageMenuOpen(open) {
+    stageMenu.classList.toggle('open', open);
+    stageMenuBtn.setAttribute('aria-expanded', String(open));
+  }
+  stageMenuBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setStageMenuOpen(!stageMenu.classList.contains('open'));
+  });
+  stageMenu.addEventListener('click', (event) => {
+    const item = event.target.closest('.stage-menu-item');
+    if (!item) return;
+    setStageMenuOpen(false);
+    if (!item.dataset.remiStage) return; // a TSIA stage: the link does it
+    setDrawerOpen(false);
+    setAskAiOpen(false);
+    REMI_STAGES[item.dataset.remiStage]();
+  });
+  document.addEventListener('click', (event) => {
+    if (stageMenu.classList.contains('open') && !stageMenu.contains(event.target)) setStageMenuOpen(false);
+  });
+  // Capture, so Esc closes only the menu when Ask AI is open under it
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !stageMenu.classList.contains('open')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setStageMenuOpen(false);
+    stageMenuBtn.focus();
+  }, true);
 
   // ── Moderator reset: the faint button in the modal's corner restarts the section you're in ──
   //    Setup → Remi's opening message · Missing details → Remi's untouched suggestions (setup answers kept)

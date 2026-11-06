@@ -2579,6 +2579,7 @@
   .ai-drawer.wide { width: min(760px, 92vw); }
   /* Remi's Teammates chip leads with her face; Remi's plan and aftercare messages keep the old thread's type */
   .ai-teammate-chip img { width: 20px; height: 20px; margin: -2px 0; border-radius: 50%; background: #e2daff; flex: none; }
+  .chat-msg.ai .chat-msg-bubble > .ai-fallback-chips { margin-top: var(--spacing-3); }
   .ai-drawer-messages > :is(.ask-ai-user, .ask-ai-reply, .ask-ai-thinking) { font-size: 14px; line-height: 24px; }
   .ask-ai-user { align-self: flex-end; max-width: 85%; padding: 8px 14px; border-radius: 18px; background: #eef1f8; }
   .ask-ai-thinking { display: flex; align-items: center; gap: 8px; color: #6848bd; }
@@ -10290,12 +10291,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     askAiIntro.style.display = showIntro ? '' : 'none';
   }
   // Remi's Teammates chip: "Create resource plan" until the project has a plan, then "View resource plan"
-  function renderAskAiTeammates() {
+  function teammateChip() {
     const isView = hasPlan();
     const face = document.querySelector('#view-projects .remi .remi-face').src;
-    const list = document.getElementById('aiDrawerTeammatesList');
-    list.innerHTML = `<button type="button" class="ai-foryou-chip ai-teammate-chip"><img alt="" src="${face}">${isView ? 'View resource plan' : 'Create resource plan'}</button>`;
-    list.firstElementChild.addEventListener('click', isView ? showAskAiPlan : createPlanFromAskAi);
+    const chip = Object.assign(document.createElement('button'), { type: 'button', className: 'ai-foryou-chip ai-teammate-chip' });
+    chip.innerHTML = `<img alt="" src="${face}">${isView ? 'View resource plan' : 'Create resource plan'}`;
+    chip.addEventListener('click', isView ? showAskAiPlan : createPlanFromAskAi);
+    return chip;
+  }
+  function renderAskAiTeammates() {
+    document.getElementById('aiDrawerTeammatesList').replaceChildren(teammateChip());
   }
 
   // ── TSIA's chat: messages, the thinking dots, the finance answers and follow-up chips ──
@@ -10367,7 +10372,18 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
     return null;
   }
-  const AI_FALLBACK = `I can help with that! Try asking me to <em>run a health check</em>, <em>send a client update</em>, or <em>catch me up on projects</em>.`;
+  // No answer: offer only what works here, as chips — Remi's Teammates chip and the four "For you" questions
+  function appendFallback() {
+    const message = aiAppendMessage('ai', '<p>I can’t help with that yet. Here’s what I can do:</p>');
+    const chips = Object.assign(document.createElement('div'), { className: 'ai-for-you-list ai-fallback-chips' });
+    chips.append(teammateChip(), ...[...document.querySelectorAll('#aiDrawerForYou [data-prompt]')].map((forYouChip) => {
+      const chip = forYouChip.cloneNode(true);
+      chip.addEventListener('click', () => aiSendSuggestion(chip.dataset.prompt));
+      return chip;
+    }));
+    message.querySelector('.chat-msg-bubble').append(chips);
+    scrollAskAi();
+  }
 
   // Follow-up chips under an answer. TSIA's only one follows the planned-margin prompt, so none apply until that prompt returns
   const AI_FOLLOW_UPS = [];
@@ -10422,8 +10438,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     aiIsProcessing = true;
     setTimeout(() => {
       thinking.remove();
-      aiAppendMessage('ai', reply || AI_FALLBACK);
-      if (reply) appendFollowUps(text);
+      if (reply) {
+        aiAppendMessage('ai', reply);
+        appendFollowUps(text);
+      } else appendFallback();
       aiIsProcessing = false;
     }, reply ? 1500 : 1200);
   }

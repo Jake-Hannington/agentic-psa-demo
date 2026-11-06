@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic PSA demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f9; --surface: #fff; --text: #1d1c39; --muted: #646d7d;
+    --border: #e3e5ea; --accent: #4461d7; --accent-soft: #eef1fd;
+    --live: #0f7b4f; --live-soft: #e6f5ee; --soon: #8a6100; --soon-soft: #fdf3dc;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  main { max-width: 880px; margin: 0 auto; padding: 56px 16px 80px; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 12px; }
+  .lede { color: var(--muted); font-size: 16px; margin: 0 0 40px; max-width: 640px; }
+  h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin: 32px 0 12px; }
+  .scenes { display: grid; gap: 10px; }
+  .scene { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border);
+           border-radius: 12px; padding: 16px 18px; text-decoration: none; color: inherit; transition: border-color .15s, box-shadow .15s; }
+  a.scene:hover, a.scene:focus-visible { border-color: var(--accent); box-shadow: 0 2px 10px rgba(68,97,215,.12); outline: none; }
+  .scene.disabled { opacity: .65; cursor: default; }
+  .num { flex: 0 0 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent);
+         display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+  .body { flex: 1; min-width: 0; }
+  .title { font-weight: 600; font-size: 15px; }
+  .desc { color: var(--muted); font-size: 14px; }
+  .chip { flex: 0 0 auto; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .chip.live { background: var(--live-soft); color: var(--live); }
+  .chip.soon { background: var(--soon-soft); color: var(--soon); }
+  footer { margin-top: 48px; font-size: 13px; color: var(--muted); }
+  @media (max-width: 560px) { .scene { flex-wrap: wrap; } .chip { margin-left: 56px; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Teamwork.com · the agentic PSA</p>
+  <h1>Most tools track work. We make it profitable.</h1>
+  <p class="lede">One project, from how it's won to how its margin is protected. Pick a scene to start from, or begin at the top and follow the story through.</p>
+
+  <h2>1 · Create the project, margin first</h2>
+  <div class="scenes">
+    <div class="scene disabled" aria-disabled="true">
+      <div class="num">1A</div>
+      <div class="body"><div class="title">Create a project from a quote</div>
+        <div class="desc">The Quoting Agent improves the plan before the client signs.</div></div>
+      <span class="chip soon">Coming soon</span>
+    </div>
+    <a class="scene" href="remi/">
+      <div class="num">1B</div>
+      <div class="body"><div class="title">Create a project from an SOW with Remi</div>
+        <div class="desc">Drop in the statement of work. Remi asks only the questions that change your margin.</div></div>
+      <span class="chip live">Live</span>
+    </a>
+  </div>
+
+  <h2>2 · Deliver, invoice and prove the profit</h2>
+  <div class="scenes">
+    <div class="scene disabled" aria-disabled="true">
+      <div class="num">2–6</div>
+      <div class="body"><div class="title">Delivery agent, Remi recommendations, invoicing and profitability</div>
+        <div class="desc">The agent is planned and costed like any team member, and the report proves the margin.</div></div>
+      <span class="chip soon">Coming soon</span>
+    </div>
+  </div>
+
+  <h2>3 · Automate it</h2>
+  <div class="scenes">
+    <div class="scene disabled" aria-disabled="true">
+      <div class="num">7–8</div>
+      <div class="body"><div class="title">Margin Watcher agent</div>
+        <div class="desc">Watches estimate at completion against budget and recommends the fix before margin is lost.</div></div>
+      <span class="chip soon">Coming soon</span>
+    </div>
+  </div>
+
+  <footer>Prototype for demonstration only. All names and figures are illustrative.</footer>
+</main>
+</body>
+</html>

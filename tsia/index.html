@@ -10472,6 +10472,7 @@ function goToStage(i) {
   closeTaskDrawer();
   const step = DEMO_STAGES[i];
   if (step) step[1]();
+  history.replaceState(null, '', '#stage=' + i);
 }
 document.addEventListener('click', e => {
   const m = document.getElementById('stageMenu');
@@ -18312,6 +18313,18 @@ const tmhActivityData = {
     { job: 'Inbox summary',    status: 'complete', trigger: 'Scheduled', start: '8 Apr at 8:30am',   duration: '20 seconds' },
   ],
 };
+
+/* Deep link: #stage=N opens DEMO_STAGES[N] */
+function stageFromHash() {
+  const match = /^#stage=(\d+)$/.exec(location.hash);
+  return match ? Number(match[1]) : null;
+}
+function openStageFromHash() {
+  const n = stageFromHash();
+  if (n !== null && n < DEMO_STAGES.length) goToStage(n);
+}
+window.addEventListener('hashchange', openStageFromHash);
+openStageFromHash();
 </script>
 </body>
 </html>

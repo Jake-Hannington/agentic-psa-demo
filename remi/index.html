@@ -7574,14 +7574,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       'Launch communication plan', 'Adoption dashboard', 'ROI report',
     ],
     roles: ['Engagement Partner', 'Senior Consultant', 'Change Manager', 'Junior Consultant'],
-    // The SOW's roles, then its assumptions and exclusions, as planning instructions
+    // The SOW's planning instruction: its cap on Discovery hours
     get instructions() {
       const capped = this.phases.find((phase) => phase.fixed);
-      return [
-        `Staff the SOW’s roles: ${listOf(this.roles)}`,
-        `Cap ${capped.name} at ${capped.hours}h. More needs a change order.`,
-        'Data migration is out of scope.',
-      ];
+      return [`Keep ${capped.name} within the SOW’s ${capped.hours} hours.`];
     },
     // Mirrors TSIA's Rebalancing after recommendations 1 and 2 (tsia/index.html, _applyRemiSuggestion and approveRemiRec):
     // recommendation 1 hands the AI Readiness Assessment to the Junior Consultant Agent and sets BUD.costTarget to $83,600

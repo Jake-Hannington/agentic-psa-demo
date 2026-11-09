@@ -782,15 +782,10 @@
   .cv-user-file { align-self: flex-end; max-width: 85%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .cv-user-file .cv-file { padding-right: 12px; }
   .cv-user-file .cv-user { max-width: none; }
-  /* Statement of work card: each value Remi read, tagged with where it came from */
+  /* A setup row filled from a statement of work: the value, then where it came from ("From your SOW" or "Default") */
   .cv-row:has(.cv-sow) { align-items: flex-start; }
   .cv-row-text:has(.cv-sow) { flex: 1; min-width: 0; }
   .cv-sow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .cv-sow-label { display: block; font-size: 12px; line-height: 16px; color: var(--text-3); }
-  .cv-sow-value ul, .cv-sow-value ol { margin: 2px 0 0; padding-left: 18px; }
-  .cv-sow-value li + li { margin-top: 2px; }
-  .cv-sow-value summary { cursor: pointer; }
-  .cv-sow-value summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
   .cv-badge.cv-badge-sow { height: 22px; padding: 0 8px; font-size: 12px; line-height: 16px; background: #eef1fb; color: #3a4fb8; }
   /* Entrance (items flagged animateOnMount, first open only). Hidden parts keep their space, so nothing reflows */
   .is-entering .cv-avatar, .is-entering .cv-actions, .is-entering .cv-option { opacity: 0; pointer-events: none; }
@@ -4852,8 +4847,6 @@
     planReadyDelay: 5000,      // how long the "creating" toast stays before "Your plan is ready" replaces it
     toastDelay: 2500,          // after Create plan: how long before the "Remi is creating your plan" toast slides in
     sowThinking: 2000,         // after a statement of work is sent: "Reading your statement of work…"
-    sowRowGap: 350,            // between the rows of the Statement of work card
-    sowClosingDelay: 1200,     // after the last row, before the target margin line
   };
 
   // AI canvas: opened by "Resource with Remi"; it can't be closed in this prototype (✕ and Cancel are visual only; Esc and backdrop clicks are ignored)
@@ -5989,7 +5982,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         if (!text) return STEPS[question.id];
         return [
           ...(index === 0 ? [STEPS[question.id][0]] : []),
-          ...filledAnswer({ card: card.id, icon: question.icon, id: question.id, text, pending: !isLast, next: isLast ? then : questions[index + 1].id }),
+          ...filledAnswer({ card: card.id, icon: question.icon, id: question.id, ...setupRow(key, text), pending: !isLast, next: isLast ? then : questions[index + 1].id }),
         ];
       };
     });
@@ -6199,7 +6192,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     bullet(row) {
       const el = document.createElement('div');
       el.className = 'cv-row-bullet';
-      el.textContent = row.text;
+      if (row.html) el.innerHTML = row.html; // trusted flow copy only
+      else el.textContent = row.text;
       return el;
     },
     answer(row) {
@@ -7551,8 +7545,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   };
   PANEL_ACTIONS.cancelPlanPaste = () => awaitText();
 
-  // ══ "I have a statement of work": a file attached with the paperclip. Remi doesn't read the file. What she "extracts"
-  //    is DEMO_SOW (docs/Halcyon Logistics - Enterprise AI Rollout SOW.pdf), so any file tells the same story.
+  // ══ "I have a statement of work": a file attached with the paperclip. Remi doesn't read the file. What she reads is
+  //    DEMO_SOW (docs/Halcyon Logistics - Enterprise AI Rollout SOW.pdf), so any file tells the same story. Like a pasted plan,
+  //    it answers setup questions before they're asked: Remi fills those rows herself and asks only what it can't answer.
   //    Phase 2 adds people, rates and tasks from TSIA's quote to this object ══
   const DEMO_SOW = {
     client: 'Halcyon Logistics',
@@ -7573,74 +7568,109 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       'Launch communication plan', 'Adoption dashboard', 'ROI report',
     ],
     roles: ['Engagement Partner', 'Senior Consultant', 'Change Manager', 'Junior Consultant'],
-    get notes() {
+    // The SOW's assumptions and exclusions, as planning instructions
+    get instructions() {
       const capped = this.phases.find((phase) => phase.fixed);
       return [
-        `Discovery is capped at ${capped.hours}h (more needs a change order)`,
-        'Supervised AI delivery agents are allowed for drafting',
-        'Data migration is out of scope',
+        `Cap ${capped.name} at ${capped.hours}h. More needs a change order.`,
+        'Supervised AI delivery agents can do first-pass drafting.',
+        'Data migration is out of scope.',
       ];
     },
-    targetMargin: 35,
+    targetMargin: 35, // not in the SOW: the account's target for fixed-fee projects, which Remi offers
+  };
+  // What the SOW doesn't say and Remi doesn't need to ask: her usual answers, tagged "Default"
+  const SOW_DEFAULTS = {
+    otherProjects: true, capacity: { mode: 'limit', value: 80 }, spread: 'best', sharedTasks: false, missingTarget: { mode: 'value', value: 80 },
   };
   const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  // The values Remi quotes, worked out from DEMO_SOW: "$150,000 fixed fee", "5 Oct – 25 Dec 2026 (12 weeks)", "820 hours across 4 phases"
-  function sowFacts(sow) {
-    const day = (iso) => new Date(`${iso}T12:00`);
-    const date = (iso, withYear) => day(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear && { year: 'numeric' }) });
-    const weeks = Math.ceil(((day(sow.end) - day(sow.start)) / 864e5 + 1) / 7);
-    return {
-      value: `$${sow.fee.toLocaleString('en-US')} ${sow.budgetType.toLowerCase()}`,
-      dates: `${date(sow.start)} – ${date(sow.end, true)} (${weeks} weeks)`,
-      effort: `${sow.phases.reduce((sum, phase) => sum + phase.hours, 0)} hours across ${sow.phases.length} phases`,
-    };
-  }
   const SOW_BADGE = '<span class="cv-badge cv-badge-sow">From your SOW</span>';
-  const sowList = (items, tag = 'ul') => `<${tag}>${items.map((text) => `<li>${escapeHtml(text)}</li>`).join('')}</${tag}>`;
-  // One card row per value, in the order of the SOW
-  function sowRows(sow) {
-    const facts = sowFacts(sow);
-    return [
-      ['client', 'idCard', 'Client', escapeHtml(sow.client)],
-      ['project', 'folder', 'Project', escapeHtml(sow.project)],
-      ['value', 'moneyBag', 'Contract value', facts.value],
-      ['dates', 'calendar', 'Dates', facts.dates],
-      ['effort', 'timerSand', 'Effort', facts.effort],
-      ['phases', 'chartGantt', 'Phases', sowList(sow.phases.map((phase) => `${phase.name} ${phase.hours}h${phase.fixed ? ' (fixed)' : ''}`))],
-      ['deliverables', 'fileMultiple', 'Deliverables', `<details><summary>${sow.deliverables.length}</summary>${sowList(sow.deliverables, 'ol')}</details>`],
-      ['roles', 'users', 'Roles', escapeHtml(sow.roles.join(', '))],
-      ['notes', 'info', 'Worth knowing', sowList(sow.notes)],
-    ].map(([key, rowIcon, label, value]) => ({
-      id: `sow-${key}`, icon: rowIcon,
-      html: `<span class="cv-sow"><span><span class="cv-sow-label">${label}</span><span class="cv-sow-value">${value}</span></span>${SOW_BADGE}</span>`,
-    }));
+  const DEFAULT_BADGE = '<span class="cv-badge cv-badge-sow">Default</span>';
+  // The SOW route: which setup keys came from the SOW and which are defaults, and any row it words differently. Null otherwise
+  let sowSetup = null;
+  // A setup row Remi fills herself: tagged with where its value came from in the SOW route, plain text otherwise
+  function setupRow(key, text) {
+    const tag = sowSetup?.tags[key];
+    if (!tag) return { text };
+    return { html: `<span class="cv-sow"><span>${escapeHtml(sowSetup.rows[key] ?? text)}</span>${tag === 'sow' ? SOW_BADGE : DEFAULT_BADGE}</span>` };
+  }
+  const sowWeeks = (sow) => Math.ceil(((atNoon(sow.end) - atNoon(sow.start)) / 864e5 + 1) / 7);
+  // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
+  function applySow(sow) {
+    sowSetup = {
+      tags: { delivery: 'sow', deadlineFlex: 'sow', peopleScope: 'sow', ...Object.fromEntries(Object.keys(SOW_DEFAULTS).map((key) => [key, 'default'])) },
+      rows: { peopleScope: `Consider anyone suitable for the SOW’s roles: ${listOf(sow.roles)}` },
+    };
+    setProjectDates({ start: sow.start, end: sow.end });
+    Object.assign(SETUP, { deadlineFlex: { days: 0 }, peopleScope: 'company', ...structuredClone(SOW_DEFAULTS), budgetStart: 'keep' });
+    for (const key of ['peopleScope', ...Object.keys(SOW_DEFAULTS)]) answeredKeys.add(key);
+    // A new budget from the SOW: nothing to compare with the project's, so no conflict check. The target margin is asked
+    Object.assign(PROJECT.budget, { type: sow.budgetType, amount: sow.fee, start: sow.start, repeat: 'Never', targetMargin: null });
+    BUDGET = sow.fee;
+    SETUP.instructions.push(...sow.instructions.map((text) => ({ text })));
   }
 
   DYNAMIC_STEPS.askForSow = () => [
     { type: 'remiMessage', html: '<p>Great, attach it with the paperclip below and I’ll read it.</p>' },
     { type: 'run', run: highlightAttach },
   ];
-  // Remi's summary in the chat, then the full extraction fills the Statement of work card row by row
+  // One short message, then the usual setup, which finds most of its answers already given
   DYNAMIC_STEPS.sowRead = () => {
-    const facts = sowFacts(DEMO_SOW);
+    applySow(DEMO_SOW);
+    const fee = `$${DEMO_SOW.fee.toLocaleString('en-US')} ${DEMO_SOW.budgetType.toLowerCase()}`;
     return [
-      {
-        type: 'remiMessage',
-        html: `<p>I’ve read your statement of work for ${escapeHtml(DEMO_SOW.client)}. Here’s what I’ll plan from:</p>
-          <ul>
-            <li><strong>${facts.value}</strong>, ${facts.dates}</li>
-            <li><strong>${facts.effort}</strong>, with ${DEMO_SOW.deliverables.length} deliverables</li>
-            <li><strong>${DEMO_SOW.roles.length} roles:</strong> ${escapeHtml(listOf(DEMO_SOW.roles))}</li>
-          </ul>`,
-      },
-      { type: 'canvasCard', id: 'sow', title: 'Statement of work', icon: 'fileMultiple', working: true, rows: [{ kind: 'shimmer' }] },
-      { type: 'cardSequence', card: 'sow', beats: sowRows(DEMO_SOW).map((row) => [row]), beatGapMs: FLOW_TIMING.sowRowGap, rowStaggerMs: 0, closingDelayMs: FLOW_TIMING.sowClosingDelay, then: 'sowNext' },
+      { type: 'remiMessage', html: `<p>I’ve read the SOW for ${escapeHtml(DEMO_SOW.client)}’ ${escapeHtml(DEMO_SOW.project)}: a ${fee} over ${sowWeeks(DEMO_SOW)} weeks. I’ll fill in what I can from it and only ask what it doesn’t tell me.</p>` },
+      ...stepItems('askDeliveryDate'),
     ];
   };
-  // Where the margin questions start. Phase 2 replaces this step
-  DYNAMIC_STEPS.sowNext = () => [
-    { type: 'remiMessage', html: `<p>Your target margin is ${DEMO_SOW.targetMargin}%. I’ve got a few questions that will change your margin, so let’s go through them.</p>` },
+  // Budget: read from the SOW as the project's budget is read in the 006 route, then the one value it doesn't give
+  STEPS.sowBudget = [
+    { type: 'thinkingState', label: 'Reading the budget from your SOW', durationMs: FLOW_TIMING.toldThinking, then: 'sowBudgetRows', lingers: true },
   ];
+  DYNAMIC_STEPS.sowBudgetRows = () => [
+    { type: 'canvasCard', id: 'budget', title: 'Budget', icon: 'receipt', working: true, rows: [{ kind: 'shimmer' }] },
+    {
+      type: 'cardSequence', card: 'budget', then: 'askSowMargin', keepWorking: true,
+      beatGapMs: FLOW_TIMING.budgetBeatGap, rowStaggerMs: FLOW_TIMING.budgetRowStagger, closingDelayMs: FLOW_TIMING.budgetRowStagger,
+      beats: [
+        [
+          { icon: 'moneyBag', html: `<span class="cv-sow"><span>Use a ${PROJECT.budget.type} budget type</span>${SOW_BADGE}</span>` },
+          { id: 'budget-amount', icon: 'dollarCircle', html: `<span class="cv-sow"><span>${PROJECT.budget.type} amount <strong>${budgetMoney(PROJECT.budget.amount)}</strong></span>${SOW_BADGE}</span>` },
+        ],
+        [
+          { id: 'budget-start', icon: 'calendar', html: `<span class="cv-sow"><span>Budget starts ${budgetStartText()}</span>${SOW_BADGE}</span>` },
+          { icon: 'repeat', html: `<span class="cv-sow"><span>${PROJECT.budget.repeat} repeat the budget</span>${DEFAULT_BADGE}</span>` },
+        ],
+      ],
+    },
+  ];
+  DYNAMIC_STEPS.askSowMargin = () => [
+    { type: 'remiMessage', html: `<p>Your SOW doesn’t include a target margin. Your fixed-fee projects target ${DEMO_SOW.targetMargin}%. Should I use that?</p>` },
+    {
+      type: 'optionSet',
+      options: [
+        { label: `Use ${DEMO_SOW.targetMargin}%`, setup: { key: 'sowMargin', value: DEMO_SOW.targetMargin }, next: 'sowMarginSet' },
+        { label: 'Use a different margin', row: '{value}', setup: { key: 'sowMargin', value: (n) => n }, freeText: { prompt: 'What target margin should I use?', format: 'percent' }, next: 'sowMarginSet' },
+      ],
+    },
+  ];
+  // The margin's row is the one the 006 route reads from the project: margin, profit and cost limit
+  DYNAMIC_STEPS.sowMarginSet = () => {
+    PROJECT.budget.targetMargin = SETUP.sowMargin;
+    TARGET_MARGIN = SETUP.sowMargin;
+    const marginRow = stepItems('buildBudgetRest')[0].beats.flat().find((row) => row.id === 'budget-margin');
+    fillCardRow('budget', marginRow, { pending: false });
+    return [{ type: 'thinkingState', label: 'Reading your planning instructions', durationMs: FLOW_TIMING.toldThinking, then: 'sowInstructions' }];
+  };
+  // Planning instructions: the SOW's, on the usual card. No "anything else?": the setup ends there
+  DYNAMIC_STEPS.sowInstructions = () => {
+    instructionsAsked = true;
+    instructionsAnswered = true;
+    return [
+      { ...instructionsCard(), rows: SETUP.instructions.map((i) => ({ kind: 'bullet', html: `<span class="cv-sow"><span>${escapeHtml(i.text)}</span>${SOW_BADGE}</span>` })) },
+      ...stepItems('budgetDone'),
+    ];
+  };
 
   // ── The composer's attachment: one file at a time; it unlocks the text box until it's sent or removed ──
   const attachButton = chatInput.querySelector('.cv-attach');
@@ -7815,10 +7845,14 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   let otherDateAsked = false;
   function writeDatesRow(pending) {
     canvas.querySelector('[data-card-id="scope"] [data-row-id="scope-dates"]')?.remove();
-    fillCardRow('scope', { id: 'scope-dates', icon: 'calendar', text: datesRowText() }, { pending });
+    fillCardRow('scope', { id: 'scope-dates', icon: 'calendar', ...setupRow('delivery', datesRowText()) }, { pending });
   }
   DYNAMIC_STEPS.datesSet = () => {
     const { start, end } = SETUP.dates;
+    if (sowSetup) {
+      writeDatesRow(true);
+      return filledAnswer({ card: 'scope', icon: 'chartGantt', id: 'scope-flex', ...setupRow('deadlineFlex', `Deadline is fixed. Don’t plan beyond ${formatDate(atNoon(end))}`), pending: false, next: 'askWhoToConsider' });
+    }
     const askOther = Boolean(start) !== Boolean(end) && !otherDateAsked;
     writeDatesRow(Boolean(end) || askOther);
     if (askOther) {
@@ -7933,7 +7967,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       case 'missingTarget': return value.mode === 'skip' ? 'Leave missing billable targets unset' : `Set missing billable targets to ${value.value}%`;
       case 'billableRate': return value == null ? 'Leave missing billable rates unset' : `Set missing billable rates to ${formatRate(value)}`;
       case 'costRate': return value == null ? 'Leave missing cost rates unset' : `Set missing cost rates to ${formatRate(value)}`;
-      default: return null;
+      default: return peopleQuestionOf(key)?.options.find((o) => JSON.stringify(o.setup.value) === JSON.stringify(value))?.row ?? null;
     }
   }
   const peopleQuestionOf = (key) => PEOPLE_QUESTIONS.find((q) => q.options.some((o) => o.setup?.key === key));
@@ -8090,7 +8124,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   let readingThinking = null; // the loader that stays while answers fill in
   DYNAMIC_STEPS.fillTold = () => {
     const row = toldRow;
-    fillCardRow(row.card, { icon: row.icon, text: row.text, id: row.id }, { pending: row.pending });
+    fillCardRow(row.card, { icon: row.icon, text: row.text, html: row.html, id: row.id }, { pending: row.pending });
     return [{ type: 'pause', durationMs: 600, then: row.next }];
   };
   DYNAMIC_STEPS.askDeliveryDate = () => {
@@ -12220,6 +12254,10 @@ The client needs to sign off designs before development starts.`;
   });
   PANEL_ACTIONS.budgetChangeStart = () => { changing = { field: null, resume: 'budgetConfirm' }; };
   PANEL_ACTIONS.budgetDatesReset = () => { SETUP.budgetDates = null; };
+
+  // The SOW brings a new budget, so it isn't read from the project (set last, over the other routes' own readBudget)
+  const projectReadBudget = DYNAMIC_STEPS.readBudget;
+  DYNAMIC_STEPS.readBudget = () => (sowSetup ? STEPS.sowBudget : projectReadBudget?.() ?? STEPS.readBudget);
 
   // Checks for 006 (run in the console or by checks/006.spec.cjs): the setup answers go through the parser and the planner
   // in code, with no clicks, and each data assertion comes back as pass or fail. The page's own state is left alone

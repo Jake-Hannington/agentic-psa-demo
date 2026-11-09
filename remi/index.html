@@ -2721,7 +2721,8 @@
   .pd-crumb-link:hover { text-decoration: underline; }
   .pd-head { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 44px 0 22px; border-bottom: 1px solid var(--line); white-space: nowrap; }
   .pd-logo { width: 36px; height: 36px; flex: none; border-radius: 50%; background: #5fd3e8; color: #0b0f1f; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; }
-  .pd-name { margin: 0; font-size: 20px; font-weight: 600; line-height: 26px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+  .pd-name { flex: none; margin: 0; font-size: 20px; font-weight: 600; line-height: 26px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+  .pd-head > .pd-client { flex: none; } /* the name, client and dates keep their room; the tabs, which already clip, give way */
   .pd-star { width: 20px; height: 20px; flex: none; color: var(--text-2); }
   .pd-client { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 14px; background: #f3f4f7; font-size: 14px; color: var(--text); }
   .pd-status { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #d5d9e3; flex: none; }
@@ -4138,6 +4139,7 @@
       <h1 class="pd-name"></h1>
       <svg class="i pd-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg>
       <span class="pd-client"><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="1.5"/><path d="M9 8h2M13 8h2M9 12h2M13 12h2M10.5 20v-3h3v3"/></svg><span class="pd-client-name"></span></span>
+      <span class="pd-client pd-dates"><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="pd-dates-text"></span></span>
       <span class="pd-status" aria-hidden="true"></span>
       <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="18" r="1.2"/></svg>
       <nav class="pd-tabs" aria-label="Project">
@@ -7578,7 +7580,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         'Data migration is out of scope.',
       ];
     },
-    targetMargin: 35, // not in the SOW: the account's target for fixed-fee projects, which Remi offers
+    targetMargin: 35, // not in the SOW: the margin Remi's proposed staffing reaches, which she offers as the target
   };
   // What the SOW doesn't say and Remi doesn't need to ask: her usual answers
   const SOW_DEFAULTS = {
@@ -7586,7 +7588,6 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   };
   const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let sowSetup = false; // the SOW route: its answers are set, and its budget, margin and instructions steps replace the project's
-  const sowWeeks = (sow) => Math.ceil(((atNoon(sow.end) - atNoon(sow.start)) / 864e5 + 1) / 7);
   // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
   function applySow(sow) {
     sowSetup = true;
@@ -7610,12 +7611,27 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // One short message, then the usual setup, which finds most of its answers already given
   DYNAMIC_STEPS.sowRead = () => {
     applySow(DEMO_SOW);
-    const fee = `$${DEMO_SOW.fee.toLocaleString('en-US')} ${DEMO_SOW.budgetType.toLowerCase()}`;
     return [
-      { type: 'remiMessage', html: `<p>I’ve read the SOW for ${escapeHtml(DEMO_SOW.client)}’ ${escapeHtml(DEMO_SOW.project)}: a ${fee} over ${sowWeeks(DEMO_SOW)} weeks. I’ll fill in what I can from it and only ask what it doesn’t tell me.</p>` },
+      { type: 'remiMessage', html: `<p>I’ve read the SOW for ${escapeHtml(DEMO_SOW.client)}’ ${escapeHtml(DEMO_SOW.project)}. It adds the phases, deliverables and roles that weren’t in the quote. That covers most of what I need, so I’ll just check a few things with you that affect your margin.</p>` },
       ...stepItems('askDeliveryDate'),
     ];
   };
+  // ── Q2, straight after the staffing question on the People card: delivery agents (SETUP.useAgents, for later phases) ──
+  const peopleCostPriority = DYNAMIC_STEPS.askCostPriority;
+  DYNAMIC_STEPS.askCostPriority = () => {
+    const items = peopleCostPriority();
+    if (!sowSetup) return items;
+    return items.map((item) => (item.type === 'optionSet' ? { ...item, options: item.options.map((o) => ({ ...o, next: 'askSowAgents' })) } : item));
+  };
+  DYNAMIC_STEPS.askSowAgents = () => {
+    const after = STEPS.askCostPriority.find((item) => item.type === 'optionSet').options[0]; // where the staffing question went next
+    const reply = (label, row, value) => ({ label, row, card: 'people', icon: 'idCard', rowId: 'askSowAgents', pending: after.pending, next: after.next, setup: { key: 'useAgents', value } });
+    return [
+      { type: 'remiMessage', html: '<p>Some of the SOW’s work, like first-pass drafting, has been delivered by delivery agents on similar projects. Do you want to leverage delivery agents in this project?</p>' },
+      { type: 'optionSet', options: [reply('Yes, use delivery agents', 'Use delivery agents where they’ve delivered similar work', true), reply('No, I’ll decide later', 'Don’t plan delivery agents for now', false)] },
+    ];
+  };
+
   // Budget: read from the SOW as the project's budget is read in the 006 route, then the one value it doesn't give
   STEPS.sowBudget = [
     { type: 'thinkingState', label: 'Reading the budget from your SOW', durationMs: FLOW_TIMING.toldThinking, then: 'sowBudgetRows', lingers: true },
@@ -7637,16 +7653,20 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       ],
     },
   ];
-  DYNAMIC_STEPS.askSowMargin = () => [
-    { type: 'remiMessage', html: `<p>Your SOW doesn’t include a target margin. Your fixed-fee projects target ${DEMO_SOW.targetMargin}%. Should I use that?</p>` },
+  // Q3: the margin the proposed staffing reaches, offered as the target. It names only the choices that got it there
+  DYNAMIC_STEPS.askSowMargin = () => {
+    const staffing = listOf([SETUP.costPriority === 'minimise' ? 'cost-optimised people' : 'the right mix of people', ...(SETUP.useAgents ? ['delivery agents'] : [])]);
+    return [
+    { type: 'remiMessage', html: `<p>Based on your SOW and the staffing I’m proposing, with ${staffing}, this project’s margin comes out at ${DEMO_SOW.targetMargin}%. Do you want to track this as the target margin?</p>` },
     {
       type: 'optionSet',
       options: [
-        { label: `Use ${DEMO_SOW.targetMargin}%`, setup: { key: 'sowMargin', value: DEMO_SOW.targetMargin }, next: 'sowMarginSet' },
+        { label: `Yes, use ${DEMO_SOW.targetMargin}%`, setup: { key: 'sowMargin', value: DEMO_SOW.targetMargin }, next: 'sowMarginSet' },
         { label: 'Use a different margin', row: '{value}', setup: { key: 'sowMargin', value: (n) => n }, freeText: { prompt: 'What target margin should I use?', format: 'percent' }, next: 'sowMarginSet' },
       ],
     },
-  ];
+    ];
+  };
   // The margin's row is the one the 006 route reads from the project: margin, profit and cost limit
   DYNAMIC_STEPS.sowMarginSet = () => {
     PROJECT.budget.targetMargin = SETUP.sowMargin;
@@ -11958,7 +11978,13 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function fillDashboard() {
     projectView.querySelector('.pd-name').textContent = dashboardProject;
     projectView.querySelector('.pd-crumb-name').textContent = dashboardProject;
-    projectView.querySelector('.pd-client-name').textContent = 'Halcyon Logistics';
+    projectView.querySelector('.pd-client-name').textContent = DEMO_SOW.client;
+    projectView.querySelector('.pd-dates-text').textContent = `${projectDay(DEMO_SOW.start)} – ${projectDay(DEMO_SOW.end)}`;
+  }
+  // "Mon, 5 Oct", as the projects list writes dates
+  function projectDay(iso) {
+    const date = atNoon(iso);
+    return `${date.toLocaleDateString('en-GB', { weekday: 'short' })}, ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
   }
   function openDashboard(name) {
     dashboardProject = name;
@@ -11976,7 +12002,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     for (const name of [HAPPY_PROJECT]) { // client demo: only the demo project
       const row = template.cloneNode(true);
       row.querySelector('.pj-name span').textContent = name;
-      row.querySelector('.pj-client').textContent = 'Halcyon Logistics';
+      // The project made from TSIA's quote: its client and the quote's dates (the template row is Atlas Rebrand's)
+      row.querySelector('.pj-client').textContent = DEMO_SOW.client;
+      const [startCell, endCell] = row.querySelectorAll('.pj-date');
+      startCell.textContent = projectDay(DEMO_SOW.start);
+      endCell.textContent = projectDay(DEMO_SOW.end);
       row.querySelector('.pj-category').lastChild.textContent = 'Engineering';
       row.classList.add('is-openable');
       row.tabIndex = 0;

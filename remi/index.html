@@ -4988,6 +4988,7 @@
   }
 
   // ══ Enterprise AI Rollout, from 006 (the demo's happy path): its own data; the user pastes the plan into the chat.
+  //    Its phases and task names are the SOW's work (TSIA's QUOTE_SECTIONS); the people, hours and assignments are 006's.
   //    Everything 006 shows reads from here; 001–005 never do. The 004 team, plus Olivia Grant (front-end, at the 80% limit),
   //    Brad Frost (front-end, free, kept off development by the planning instruction) and Ryan Giles (developer, no rates) ══
   const t6 = (id, name, phase, role, estimate, assignee = null) => ({ id, name, phase, role, estimate, assignee });
@@ -5077,50 +5078,50 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         other: [30, 30, 20, 20, 26, 26, 30, 30] },
     ],
     tasks: [
-      t6('kickoff', 'Project kickoff', 'phase-1', 'Product manager', 4, 'wakaz'),
-      t6('requirements', 'Requirements sign-off', 'phase-1', 'Product manager', 4, 'wakaz'),
-      t6('content-audit', 'Content audit', 'phase-1', 'UX Researcher', 4, 'priya'),
-      t6('tech-discovery', 'Technical discovery', 'phase-1', 'Developer', 8, 'hannah'),
-      t6('architecture', 'App architecture', 'phase-1', 'Developer', 8, 'tom'),
+      t6('kickoff', 'Stakeholder interviews & workshop synthesis', 'phase-1', 'Product manager', 4, 'wakaz'),
+      t6('requirements', 'Stakeholder interviews: workshop sign-off', 'phase-1', 'Product manager', 4, 'wakaz'),
+      t6('content-audit', 'Use-case discovery', 'phase-1', 'UX Researcher', 4, 'priya'),
+      t6('tech-discovery', 'AI Readiness Assessment', 'phase-1', 'Developer', 8, 'hannah'),
+      t6('architecture', 'AI Readiness Assessment: tooling review', 'phase-1', 'Developer', 8, 'tom'),
       // Phase 1 and 3 tasks with missing details: Remi suggests a role and estimate from similar work (see the gaps stage)
-      { id: 'research', name: 'Research', phase: 'phase-1', gap: { role: 'Researcher', similarRoleTasks: 3, estimate: 8, similarEstimateTasks: 3, estimateFrom: [['Competitor research', 'Atlas Rebrand', 7], ['Market research', 'Holiday Gift Guide', 9], ['User research synthesis', 'Customer Onboarding Flow', 8]] } },
-      { id: 'customer-interviews', name: 'Customer interviews', phase: 'phase-1', gap: { role: 'Researcher', similarRoleTasks: 4, estimate: 12, similarEstimateTasks: 4, estimateFrom: [['Customer interviews', 'Customer Onboarding Flow', 12], ['Stakeholder interviews', 'Billing Portal Revamp', 10], ['User interviews', 'Mobile App Refresh', 14], ['Partner interviews', 'Partner Webinar Series', 12]] } },
-      { id: 'lofi-wireframes', name: 'Low-fi wireframes', phase: 'phase-1', assignee: 'barry', gap: { role: 'Product Designer', similarRoleTasks: 5, estimate: 16, similarEstimateTasks: 5, estimateFrom: [['Low-fi wireframes', 'Mobile App Refresh', 18], ['Onboarding wireframes', 'Customer Onboarding Flow', 14], ['Store finder wireframes', 'Store Locator Rebuild', 16], ['Billing wireframes', 'Billing Portal Revamp', 17], ['Pricing page wireframes', 'Pricing Page Experiments', 15]] } },
-      { id: 'animated-onboarding', name: 'Animated onboarding sequence', phase: 'phase-2', gap: { role: 'Motion Designer', similarRoleTasks: 3, estimate: 8, similarEstimateTasks: 3, estimateFrom: [['Logo animation', 'Atlas Rebrand', 8], ['Gift reveal micro-interactions', 'Holiday Gift Guide', 7], ['Webinar intro motion graphics', 'Partner Webinar Series', 9]] } },
-      t6('ds-audit', 'Design system audit', 'phase-2', 'Designer', 8, 'emily'),
-      t6('widget-ui', 'Match centre UI', 'phase-2', 'Designer', 10, 'jessica'),
-      t6('settings-ui', 'Settings screens', 'phase-2', 'Designer', 8, 'barry'),
-      t6('api-client', 'Game stats API client', 'phase-2', 'Developer', 8, 'kim'),
-      t6('webhooks', 'Live score feed', 'phase-2', 'Developer', 8, 'ryan'),
-      t6('ticket-sync', 'Leaderboard service', 'phase-2', 'Developer', 8, 'ryan'),
-      { id: 'hifi-designs', name: 'High-fi designs', phase: 'phase-3', assignee: 'barry', gap: { role: 'Product Designer', similarRoleTasks: 4, estimate: 24, similarEstimateTasks: 4, estimateFrom: [['High-fi designs', 'Mobile App Refresh', 26], ['Onboarding UI designs', 'Customer Onboarding Flow', 22], ['Gift guide visual designs', 'Holiday Gift Guide', 24], ['Billing portal designs', 'Billing Portal Revamp', 24]] } },
-      { id: 'usability-testing', name: 'Usability testing', phase: 'phase-3', gap: { role: 'UX Researcher', similarRoleTasks: 4, estimate: 6, similarEstimateTasks: 4, estimateFrom: [['Usability testing', 'Mobile App Refresh', 6], ['Prototype testing', 'Customer Onboarding Flow', 5], ['Usability sessions', 'Billing Portal Revamp', 7], ['Store finder testing', 'Store Locator Rebuild', 6]] } },
-      t6('fe-components', 'Front-end: component library', 'phase-2', 'Frontend Developer', 8, 'olivia'),
-      t6('fe-layouts', 'Front-end: responsive layouts', 'phase-3', 'Frontend Developer', 8, 'olivia'),
-      t6('fe-ticket-view', 'Front-end: match view', 'phase-2', 'Frontend Developer', 8),
-      t6('fe-settings', 'Front-end: settings page', 'phase-3', 'Frontend Developer', 8),
-      t6('auth', 'Auth and permissions', 'phase-3', 'Developer', 8, 'ryan'),
-      t6('error-handling', 'Error handling', 'phase-3', 'Developer', 6, 'hannah'),
-      t6('test-plan', 'Test plan', 'phase-3', 'QA Engineer', 6, 'luis'),
-      t6('integration-tests', 'Integration tests', 'phase-3', 'QA Engineer', 8, 'luis'),
-      t6('ticket-designs', 'Match view designs', 'phase-3', 'Designer', 20, 'emily'),
-      t6('design-qa', 'Design QA', 'phase-3', 'Designer', 8, 'emily'),
-      t6('regression', 'Regression testing', 'phase-4', 'QA Engineer', 8, 'luis'),
-      t6('bug-fixes', 'Bug fixes', 'phase-4', 'Developer', 4, 'tom'),
-      t6('release-notes', 'Release notes', 'phase-4', 'UX Researcher', 8, 'priya'),
-      t6('launch-checklist', 'Launch checklist', 'phase-4', 'QA Engineer', 4, 'luis'),
-      t6('design-polish', 'Final design polish', 'phase-4', 'Designer', 8, 'barry'),
-      t6('accessibility', 'Accessibility review', 'phase-4', 'Designer', 4, 'emily'),
-      t6('uat', 'UAT support', 'phase-4', 'QA Engineer', 6, 'luis'),
-      t6('launch-comms', 'Launch comms', 'phase-4', 'Product manager', 4, 'wakaz'),
-      t6('performance', 'Performance check', 'phase-4', 'Developer', 4, 'kim'),
+      { id: 'research', name: 'Use-case discovery: sizing', phase: 'phase-1', gap: { role: 'Researcher', similarRoleTasks: 3, estimate: 8, similarEstimateTasks: 3, estimateFrom: [['Competitor research', 'Atlas Rebrand', 7], ['Market research', 'Holiday Gift Guide', 9], ['User research synthesis', 'Customer Onboarding Flow', 8]] } },
+      { id: 'customer-interviews', name: 'Stakeholder interviews: operations leads', phase: 'phase-1', gap: { role: 'Researcher', similarRoleTasks: 4, estimate: 12, similarEstimateTasks: 4, estimateFrom: [['Customer interviews', 'Customer Onboarding Flow', 12], ['Stakeholder interviews', 'Billing Portal Revamp', 10], ['User interviews', 'Mobile App Refresh', 14], ['Partner interviews', 'Partner Webinar Series', 12]] } },
+      { id: 'lofi-wireframes', name: 'AI Readiness Assessment: data review', phase: 'phase-1', assignee: 'barry', gap: { role: 'Product Designer', similarRoleTasks: 5, estimate: 16, similarEstimateTasks: 5, estimateFrom: [['Low-fi wireframes', 'Mobile App Refresh', 18], ['Onboarding wireframes', 'Customer Onboarding Flow', 14], ['Store finder wireframes', 'Store Locator Rebuild', 16], ['Billing wireframes', 'Billing Portal Revamp', 17], ['Pricing page wireframes', 'Pricing Page Experiments', 15]] } },
+      { id: 'animated-onboarding', name: 'ROI business case: steering committee pack', phase: 'phase-2', gap: { role: 'Motion Designer', similarRoleTasks: 3, estimate: 8, similarEstimateTasks: 3, estimateFrom: [['Logo animation', 'Atlas Rebrand', 8], ['Gift reveal micro-interactions', 'Holiday Gift Guide', 7], ['Webinar intro motion graphics', 'Partner Webinar Series', 9]] } },
+      t6('ds-audit', 'Prioritised transformation roadmap', 'phase-2', 'Designer', 8, 'emily'),
+      t6('widget-ui', 'Roadmap analysis support', 'phase-2', 'Designer', 10, 'jessica'),
+      t6('settings-ui', 'ROI business case', 'phase-2', 'Designer', 8, 'barry'),
+      t6('api-client', 'Business case modelling', 'phase-2', 'Developer', 8, 'kim'),
+      t6('webhooks', 'Business case modelling: benefits model', 'phase-2', 'Developer', 8, 'ryan'),
+      t6('ticket-sync', 'Business case modelling: payback model', 'phase-2', 'Developer', 8, 'ryan'),
+      { id: 'hifi-designs', name: 'Acceptable-use / governance policy', phase: 'phase-3', assignee: 'barry', gap: { role: 'Product Designer', similarRoleTasks: 4, estimate: 24, similarEstimateTasks: 4, estimateFrom: [['High-fi designs', 'Mobile App Refresh', 26], ['Onboarding UI designs', 'Customer Onboarding Flow', 22], ['Gift guide visual designs', 'Holiday Gift Guide', 24], ['Billing portal designs', 'Billing Portal Revamp', 24]] } },
+      { id: 'usability-testing', name: 'Training curriculum & prompt library: pilot session', phase: 'phase-3', gap: { role: 'UX Researcher', similarRoleTasks: 4, estimate: 6, similarEstimateTasks: 4, estimateFrom: [['Usability testing', 'Mobile App Refresh', 6], ['Prototype testing', 'Customer Onboarding Flow', 5], ['Usability sessions', 'Billing Portal Revamp', 7], ['Store finder testing', 'Store Locator Rebuild', 6]] } },
+      t6('fe-components', 'Roadmap analysis support: dependency map', 'phase-2', 'Frontend Developer', 8, 'olivia'),
+      t6('fe-layouts', 'Training curriculum & prompt library: role-based modules', 'phase-3', 'Frontend Developer', 8, 'olivia'),
+      t6('fe-ticket-view', 'Roadmap analysis support: use-case sequencing', 'phase-2', 'Frontend Developer', 8),
+      t6('fe-settings', 'Training curriculum & prompt library: prompt templates', 'phase-3', 'Frontend Developer', 8),
+      t6('auth', 'Champion programme playbook', 'phase-3', 'Developer', 8, 'ryan'),
+      t6('error-handling', 'Acceptable-use / governance policy: controls', 'phase-3', 'Developer', 6, 'hannah'),
+      t6('test-plan', 'Champion programme playbook: champion selection', 'phase-3', 'QA Engineer', 6, 'luis'),
+      t6('integration-tests', 'Curriculum & prompt review: prompt testing', 'phase-3', 'QA Engineer', 8, 'luis'),
+      t6('ticket-designs', 'Training curriculum & prompt library', 'phase-3', 'Designer', 20, 'emily'),
+      t6('design-qa', 'Curriculum & prompt review', 'phase-3', 'Designer', 8, 'emily'),
+      t6('regression', 'Dashboard technical review: data checks', 'phase-4', 'QA Engineer', 8, 'luis'),
+      t6('bug-fixes', 'Adoption dashboard: fixes', 'phase-4', 'Developer', 4, 'tom'),
+      t6('release-notes', 'ROI report', 'phase-4', 'UX Researcher', 8, 'priya'),
+      t6('launch-checklist', 'Launch communication plan: launch checklist', 'phase-4', 'QA Engineer', 4, 'luis'),
+      t6('design-polish', 'Adoption dashboard', 'phase-4', 'Designer', 8, 'barry'),
+      t6('accessibility', 'Adoption dashboard: usage tracking', 'phase-4', 'Designer', 4, 'emily'),
+      t6('uat', 'Adoption dashboard: user acceptance', 'phase-4', 'QA Engineer', 6, 'luis'),
+      t6('launch-comms', 'Launch communication plan', 'phase-4', 'Product manager', 4, 'wakaz'),
+      t6('performance', 'Dashboard technical review', 'phase-4', 'Developer', 4, 'kim'),
     ],
     allocations: [],
     holidays: [], // the team's in Ireland and the UK: no bank holidays fall in the plan's weeks
     // The front-end suggestion: each option books an allocation for the unplanned front-end work, sized by that work.
     // Only people on this project (Q2), one person per task (Q7), never someone a planning instruction keeps off the work
     frontEnd: {
-      allocation: { id: 'frontend-block', name: 'Front-end development', role: 'Frontend Developer', phase: 'phase-3' },
+      allocation: { id: 'frontend-block', name: 'Curriculum build support', role: 'Frontend Developer', phase: 'phase-3' },
       options: { olivia: { person: 'olivia' }, placeholder: { person: 'fe-placeholder' } },
     },
     // Aftercare: two weeks after the plan is confirmed, two things change in one week (W48). Each is applied on top of the
@@ -5170,10 +5171,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   if (projectChoice === HAPPY_PROJECT) Object.assign(PROJECT, { name: HAPPY_PROJECT, happyPath: true, budget: { ...DEMO_006.budget } });
   const ORIGINAL_BUDGET = { ...PROJECT.budget }; // what's on the project, before anything typed in the chat
   const PHASES = [
-    { id: 'phase-1', name: 'Phase 1', weeks: [0, 1] },
-    { id: 'phase-2', name: 'Phase 2', weeks: [2, 3] },
-    { id: 'phase-3', name: 'Phase 3', weeks: [4, 5] },
-    { id: 'phase-4', name: 'Phase 4', weeks: [6] },
+    { id: 'phase-1', name: 'Readiness & Discovery', weeks: [0, 1] },
+    { id: 'phase-2', name: 'Roadmap & Business Case', weeks: [2, 3] },
+    { id: 'phase-3', name: 'Governance & Enablement', weeks: [4, 5] },
+    { id: 'phase-4', name: 'Rollout & Adoption', weeks: [6] },
   ];
 
   // Role → the group the plan reports it under. Roles not listed report under their own name
@@ -7588,9 +7589,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   };
   const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let sowSetup = false; // the SOW route: its answers are set, and its budget, margin and instructions steps replace the project's
-  // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
-  function applySow(sow) {
-    sowSetup = true;
+  // The plan side of the SOW: its dates, Remi's usual answers, its budget, and rates scaled to its fee. Applied when the SOW is
+  // read, and again when the page reloads mid-demo (sessionStorage 'remiSow'), so the timeline keeps Enterprise AI Rollout's figures
+  let sowRatesScaled = false;
+  function applySowPlan(sow) {
     setProjectDates({ start: sow.start, end: sow.end });
     // "Consider anyone suitable and available": the SOW names roles, not people (its roles are the first planning instruction)
     Object.assign(SETUP, { deadlineFlex: { days: 0 }, peopleScope: 'company', ...structuredClone(SOW_DEFAULTS), budgetStart: 'keep' });
@@ -7601,7 +7603,27 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     Object.assign(ORIGINAL_BUDGET, PROJECT.budget);
     BUDGET = sow.fee;
     TARGET_MARGIN = sow.targetMargin;
+    if (sowRatesScaled) return;
+    sowRatesScaled = true;
+    const scale = (n) => (n == null ? n : Math.round(n * (sow.fee / DEMO_006.fee)));
+    for (const p of PEOPLE_DATA) for (const key of ['costRate', 'billableRate']) p[key] = scale(p[key]);
+    for (const gap of RATE_GAPS) {
+      for (const rate of [gap.billable, gap.cost]) {
+        rate.value = scale(rate.value);
+        if (rate.suggestion) rate.suggestion = { value: scale(rate.suggestion.value), range: rate.suggestion.range.map(scale) };
+      }
+    }
+  }
+  const SOW_KEY = 'remiSow';
+  function saveSowPlan() {
+    try { sessionStorage.setItem(SOW_KEY, JSON.stringify({ costPriority: SETUP.costPriority, useAgents: SETUP.useAgents, targetMargin: PROJECT.budget.targetMargin })); } catch { /* storage unavailable */ }
+  }
+  // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
+  function applySow(sow) {
+    sowSetup = true;
+    applySowPlan(sow);
     SETUP.instructions.push(...sow.instructions.map((text) => ({ text })));
+    saveSowPlan();
   }
 
   DYNAMIC_STEPS.askForSow = () => [
@@ -7671,6 +7693,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   DYNAMIC_STEPS.sowMarginSet = () => {
     PROJECT.budget.targetMargin = SETUP.sowMargin;
     TARGET_MARGIN = SETUP.sowMargin;
+    saveSowPlan();
     const marginRow = stepItems('buildBudgetRest')[0].beats.flat().find((row) => row.id === 'budget-margin');
     fillCardRow('budget', marginRow, { pending: false });
     instructionsAsked = true; // from here a typed instruction joins the card
@@ -9185,6 +9208,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // ── Plan states: a view over buildPlan's output, with the strings each widget shows ──
   let BUDGET = PROJECT.budget.amount; // both can change in the setup chat
   let TARGET_MARGIN = PROJECT.budget.targetMargin;
+  try {
+    const sow = JSON.parse(sessionStorage.getItem(SOW_KEY) || 'null');
+    if (sow && PROJECT.happyPath && location.hash !== '#start') {
+      applySowPlan(DEMO_SOW);
+      Object.assign(SETUP, { costPriority: sow.costPriority, useAgents: sow.useAgents });
+      PROJECT.budget.targetMargin = sow.targetMargin;
+      ORIGINAL_BUDGET.targetMargin = sow.targetMargin;
+      TARGET_MARGIN = sow.targetMargin;
+    }
+  } catch { /* storage unavailable */ }
   // What the earlier screens decided: roles from "People missing a role", details from "Tasks with missing details"
   const PLAN_SOURCES = {
     roleOf(person) {
@@ -9647,7 +9680,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   stopDialog.querySelector('.stop-confirm').addEventListener('click', () => {
     stopDialog.close();
     canvas.close();
-    try { for (const key of ['remiProject', 'remiAutoStart', 'remiRestart', 'remiCanvasEntrancePlayed', 'remiPlanCreated']) sessionStorage.removeItem(key); } catch { /* storage unavailable */ }
+    try { for (const key of ['remiProject', 'remiAutoStart', 'remiRestart', 'remiCanvasEntrancePlayed', 'remiPlanCreated', SOW_KEY]) sessionStorage.removeItem(key); } catch { /* storage unavailable */ }
     history.replaceState(null, '', '#projects');
     location.reload();
   });

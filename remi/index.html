@@ -4847,6 +4847,7 @@
     planReadyDelay: 5000,      // how long the "creating" toast stays before "Your plan is ready" replaces it
     toastDelay: 2500,          // after Create plan: how long before the "Remi is creating your plan" toast slides in
     sowThinking: 2000,         // after a statement of work is sent: "Reading your statement of work…"
+    sowInstructionGap: 400,    // between the SOW's planning instructions as they land on the card
   };
 
   // AI canvas: opened by "Resource with Remi"; it can't be closed in this prototype (✕ and Cancel are visual only; Esc and backdrop clicks are ignored)
@@ -6232,7 +6233,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const card = canvas.querySelector(`[data-card-id="${cardId}"]`);
     const body = card.querySelector('.cv-card-body');
     body.querySelector('.cv-row-shimmer')?.remove();
-    body.append(ROW_RENDERERS.answer(row));
+    body.append(ROW_RENDERERS[row.kind ?? 'answer'](row));
     if (pending) body.append(ROW_RENDERERS.shimmer());
     body.setAttribute('aria-busy', String(pending));
     card.classList.toggle('is-working', pending);
@@ -7593,9 +7594,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     // "Consider anyone suitable and available": the SOW names roles, not people (its roles are the first planning instruction)
     Object.assign(SETUP, { deadlineFlex: { days: 0 }, peopleScope: 'company', ...structuredClone(SOW_DEFAULTS), budgetStart: 'keep' });
     for (const key of ['peopleScope', ...Object.keys(SOW_DEFAULTS)]) answeredKeys.add(key);
-    // A new budget from the SOW: nothing to compare with the project's, so no conflict check. The target margin is asked
-    Object.assign(PROJECT.budget, { type: sow.budgetType, amount: sow.fee, start: sow.start, repeat: 'Never', targetMargin: null });
+    // A new budget from the SOW replaces the project's (006: $30,000 at 40%) everywhere, and is the baseline later steps compare
+    // with, so nothing reads the old one. The margin starts at the target Remi offers; the margin question can change it
+    Object.assign(PROJECT.budget, { type: sow.budgetType, amount: sow.fee, start: sow.start, repeat: 'Never', targetMargin: sow.targetMargin });
+    Object.assign(ORIGINAL_BUDGET, PROJECT.budget);
     BUDGET = sow.fee;
+    TARGET_MARGIN = sow.targetMargin;
     SETUP.instructions.push(...sow.instructions.map((text) => ({ text })));
   }
 
@@ -7649,24 +7653,28 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     TARGET_MARGIN = SETUP.sowMargin;
     const marginRow = stepItems('buildBudgetRest')[0].beats.flat().find((row) => row.id === 'budget-margin');
     fillCardRow('budget', marginRow, { pending: false });
-    return [{ type: 'thinkingState', label: 'Reading your planning instructions', durationMs: FLOW_TIMING.toldThinking, then: 'sowInstructions' }];
+    instructionsAsked = true; // from here a typed instruction joins the card
+    return [{ type: 'thinkingState', label: 'Reading your planning instructions', durationMs: FLOW_TIMING.budgetThinking, then: 'sowInstructionRows', lingers: true }];
   };
-  // Planning instructions: the SOW's, on the usual card. No "anything else?": the setup ends there
-  DYNAMIC_STEPS.sowInstructions = () => {
-    instructionsAsked = true;
-    instructionsAnswered = true;
-    return [instructionsCard(), { type: 'pause', durationMs: 600, then: 'sowRecap' }];
-  };
-  // The recap reads the filled cards, so it says what they say
-  function setupRecapHtml() {
-    const rowText = (row) => (row.querySelector('.cv-stats') ? [...row.querySelectorAll('.cv-stats > span')].map((s) => s.textContent).join(', ') : row.textContent).replace(/\s+/g, ' ').trim();
-    return [...cardStack().querySelectorAll('.cv-card')].map((card) => `<p><strong>${escapeHtml(card.querySelector('h3').textContent)}</strong></p>
-      <ul>${[...card.querySelectorAll('.cv-card-body > :is(.cv-row-answer, .cv-row-bullet)')].map((row) => `<li>${escapeHtml(rowText(row))}</li>`).join('')}</ul>`).join('');
-  }
-  DYNAMIC_STEPS.sowRecap = () => {
-    const [done, message, ...rest] = STEPS.budgetDone;
-    return [done, { ...message, html: `<p>Here’s what I’ll plan with:</p>${setupRecapHtml()}${message.html}` }, ...rest];
-  };
+  // Planning instructions: the SOW's, added one at a time like the budget's rows, then the usual "anything else?"
+  DYNAMIC_STEPS.sowInstructionRows = () => [
+    { ...instructionsCard(), working: true, rows: [{ kind: 'shimmer' }] },
+    {
+      type: 'cardSequence', card: 'instructions', then: 'sowAskInstructions',
+      beats: SETUP.instructions.map((i) => [{ kind: 'bullet', text: i.text }]),
+      beatGapMs: FLOW_TIMING.sowInstructionGap, rowStaggerMs: 0, closingDelayMs: FLOW_TIMING.budgetRowStagger,
+    },
+  ];
+  DYNAMIC_STEPS.sowAskInstructions = () => [
+    { type: 'remiMessage', html: '<p>That’s everything I need from your SOW. Is there anything else I should consider when planning? For example, keeping someone off the project or capping a person’s time.</p>' },
+    ...STEPS.askInstructions.slice(1), // Skip, nothing to add, and a typed instruction: each ends in budgetDone
+  ];
+  // The cards on the right already show every answer, so the SOW route closes without a recap
+  DYNAMIC_STEPS.budgetDone = () => (sowSetup ? [
+    STEPS.budgetDone[0],
+    { type: 'remiMessage', html: '<p>Great, I’m ready to build your plan. Check everything on the right, and select ‘Generate plan’ when you’re happy.</p>' },
+    ...STEPS.budgetDone.slice(2),
+  ] : STEPS.budgetDone);
 
   // ── The composer's attachment: one file at a time; it unlocks the text box until it's sent or removed ──
   const attachButton = chatInput.querySelector('.cv-attach');

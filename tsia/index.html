@@ -6423,7 +6423,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     </button>
     <div class="nav-ai-wrap">
-    <button class="nav-icon-btn active" id="navTeamworkAiBtn" title="Teamwork AI" onclick="showTeamworkAi(lastTeamworkAiTab)">
+    <button class="nav-icon-btn active" id="navTeamworkAiBtn" title="Teamwork AI" onclick="openAgents()">
       <svg class="ai-spark" viewBox="0 0 16 16"><use href="#aiSparkIcon"/></svg>
     </button>
       <div class="nav-ai-popover">
@@ -6431,7 +6431,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Ask AI
         </button>
-        <button class="nav-ai-popover-item" onclick="showTeamworkAi('teammates')">
+        <button class="nav-ai-popover-item" onclick="openAgents()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           AI Agents
         </button>
@@ -6633,7 +6633,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
         </svg>
         <a href="#">Home</a>
         <span class="breadcrumb-sep">/</span>
-        <a href="#" onclick="showTeammatesPage(); return false;">AI Agents</a>
+        <a href="/agents/">AI Agents</a>
         <span class="breadcrumb-sep" id="bcTeammateSep">/</span>
         <span class="breadcrumb-current" id="breadcrumbCurrent">Flo</span>
       </div>
@@ -6654,7 +6654,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
           <!-- AI Teammates is hidden for this demo; the panel and its wiring stay
                in place so it can be brought back by removing this style. -->
           <button class="tab-btn" id="twaiTabTeammatesHome" style="display:none" onclick="switchTeamworkAiTab('teammates-home')">AI Teammates</button>
-          <button class="tab-btn" id="twaiTabTeammates" onclick="switchTeamworkAiTab('teammates')">AI Agents</button>
+          <button class="tab-btn" id="twaiTabTeammates" onclick="openAgents()">AI Agents</button>
           <button class="tab-btn" id="twaiTabSkills" onclick="switchTeamworkAiTab('skills')">AI Skills</button>
         </div>
       </div>
@@ -9005,6 +9005,11 @@ function renderCombinedActivity() {
 /* Called by switchTeamworkAiTab / showTeamworkAi when the homepage is shown */
 function renderTeammatesPage() { switchTeammatesTab(_teammatesTab || 'jobs'); }
 
+/* AI Agents lives in the agents prototype (/agents/): every way into it goes there, not to this page's older AI Agents tab */
+function openAgents() { location.href = '/agents/'; }
+/* Stages that are another prototype's page: the stage menu and #stage=N links go there. DEMO_STAGES keeps its numbers */
+const STAGE_LINKS = { 8: '/agents/' };
+
 function showTeammatesPage() {
   document.getElementById('clientPage').classList.remove('visible');
   document.getElementById('clientBreadcrumbRow').style.display = 'none';
@@ -10482,6 +10487,7 @@ function toggleStageMenu(e) {
 }
 function closeStageMenu() { document.getElementById('stageMenu')?.classList.remove('open'); }
 function goToStage(i) {
+  if (STAGE_LINKS[i]) { location.href = STAGE_LINKS[i]; return; }
   closeStageMenu();
   closeTaskDrawer();
   const step = DEMO_STAGES[i];

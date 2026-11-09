@@ -12240,6 +12240,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   // ── Stage menu ("Jump to a stage"), as in TSIA. A number is a TSIA stage (tsia/index.html, DEMO_STAGES), linked as
   //    /tsia/#stage=N; a word is a Remi screen, opened here. Keep STAGE_MENU the same in tsia/index.html ──
+  const TSIA_STAGE_LINKS = { 8: '/agents/' }; // as tsia/index.html STAGE_LINKS: AI Agents is the agents prototype
   const STAGE_MENU = [
     ['Client', [['Overview', 0], ['Quotes', 1], ['Enterprise AI Rollout quote', 2], ['Role rates', 3]]],
     ['Project', [['List', 4], ['Schedule', 5], ['Finance', 6]]],
@@ -12252,7 +12253,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const stageMenuBtn = document.getElementById('stageMenuBtn');
   document.getElementById('stageMenuList').innerHTML = STAGE_MENU.map(([title, items]) =>
     `<div class="stage-menu-label">${title}</div>${items.map(([label, to]) => (typeof to === 'number'
-      ? `<a class="stage-menu-item" href="/tsia/#stage=${to}">${label}</a>`
+      ? `<a class="stage-menu-item" href="${TSIA_STAGE_LINKS[to] ?? `/tsia/#stage=${to}`}">${label}</a>`
       : `<button type="button" class="stage-menu-item" data-remi-stage="${to}">${label}</button>`)).join('')}`).join('');
   function setStageMenuOpen(open) {
     stageMenu.classList.toggle('open', open);

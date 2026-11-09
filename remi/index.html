@@ -7004,12 +7004,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   });
 
   // ── "Choose another role": pick it in the panel, or type it and Remi finds the matching roles ──
-  const ROLE_PLACEHOLDER = 'Type a role for Abbey';
+  const rolePlaceholder = () => `Type a role for ${ABBEY.name.split(' ')[0]}`; // Abbey, or Elena in the SOW route
   const escapeText = (text) => text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   PANEL_ACTIONS.awaitAbbeyRole = () => {
     PANEL_ACTIONS.highlightAbbey();
     awaitingAbbeyInPanel = true;
-    awaitText(ROLE_PLACEHOLDER, readAbbeyRole);
+    awaitText(rolePlaceholder(), readAbbeyRole);
   };
   // A role named in full narrows to roles containing it ("designer" → Designer, Product Designer…); otherwise any word that matches
   function matchingRoles(typed) {
@@ -7031,7 +7031,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       ]);
     } else {
       appendItems([{ type: 'remiMessage', html: `<p>I couldn’t find a role like <strong>${escapeText(typed)}</strong>. Try another name, or pick one in the panel.</p>` }]);
-      awaitText(ROLE_PLACEHOLDER, readAbbeyRole);
+      awaitText(rolePlaceholder(), readAbbeyRole);
     }
   }
   function setAbbeyRole(role) {
@@ -7606,6 +7606,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     TARGET_MARGIN = sow.targetMargin;
     const placeholder = PEOPLE_DATA.find((p) => p.id === 'fe-placeholder');
     if (placeholder) placeholder.name = 'New hire or contractor'; // the summary's placeholder: someone to hire or contract in, not 006's front-end developer
+    // Elena Marsh is 006's Abbey under TSIA's name (see SOW_ROLE_PEOPLE): the same person everywhere the plan shows her
+    const elena = PEOPLE_DATA.find((p) => p.id === 'abbey');
+    if (elena) Object.assign(elena, { name: 'Elena Marsh', avatar: { initials: 'EM', background: '#fbd0e6', color: '#9d1c5c' } });
     if (sowRatesScaled) return;
     sowRatesScaled = true;
     const scale = (n) => (n == null ? n : Math.round(n * (sow.fee / DEMO_006.fee)));

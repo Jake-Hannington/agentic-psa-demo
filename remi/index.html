@@ -2810,6 +2810,9 @@
   .tl-tabs { margin-left: 16px; display: flex; align-self: stretch; gap: 2px; overflow: hidden; }
   .tl-tab { display: flex; align-items: center; padding: 0 14px; font-size: 16px; color: var(--text-2); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
   .tl-tab.active { color: var(--blue); font-weight: 600; border-bottom-color: var(--blue); }
+  a.tl-tab { text-decoration: none; cursor: pointer; } /* the project's other tabs are TSIA's */
+  a.tl-tab:hover { color: var(--text); }
+  a.tl-tab:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; border-radius: 4px; }
   .tl-toolbar { min-height: 64px; padding: 12px 18px 12px 22px; }
   .tl-date { color: var(--text); font-weight: 500; }
   .tl-scroll { flex: 1; min-height: 0; overflow: auto; --tl-day: 44px; --tl-left: 340px; }
@@ -4190,7 +4193,6 @@
         <li class="current">Timeline</li>
       </ol>
       <div class="crumbs-right">
-        <span><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Tour</span>
         <span><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.7 0 8.5 3.1 8.5 7s-3.8 7-8.5 7c-1 0-2-.1-2.9-.4L4.5 20l1.2-3.6C4.3 15 3.5 13.1 3.5 11c0-3.9 3.8-7 8.5-7z"/></svg>Feedback</span>
       </div>
     </div>
@@ -4202,8 +4204,8 @@
       <span class="tl-status" aria-hidden="true"></span>
       <span class="kebab"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor;stroke:none" aria-hidden="true"><circle cx="12" cy="5.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18.5" r="1.6"/></svg></span>
       <nav class="tl-tabs" aria-label="Project views">
-        <span class="tl-tab">Dashboard</span><span class="tl-tab">List</span><span class="tl-tab">Board</span><span class="tl-tab">Table</span>
-        <span class="tl-tab active">Timeline</span><span class="tl-tab">Time</span><span class="tl-tab">Finance</span><span class="tl-tab">Schedule</span><span class="tl-tab">Reports</span><span class="tl-tab">More…</span>
+        <span class="tl-tab">Dashboard</span><a class="tl-tab" href="/tsia/#stage=4">List</a><span class="tl-tab">Board</span><span class="tl-tab">Table</span>
+        <span class="tl-tab active" aria-current="page">Timeline</span><span class="tl-tab">Time</span><a class="tl-tab" href="/tsia/#stage=6">Finance</a><a class="tl-tab" href="/tsia/#stage=5">Schedule</a><span class="tl-tab">Reports</span><span class="tl-tab">More…</span>
       </nav>
     </div>
     <div class="workspace">
@@ -11220,6 +11222,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     return from.getMonth() === to.getMonth() ? `${from.getDate()}–${to.getDate()} ${month(to)}` : `${from.getDate()} ${month(from)} – ${to.getDate()} ${month(to)}`;
   }
   const acWeekLabel = (weeks) => `${acWeekRange(weeks)} <span class="ac-dim">(week ${weeks[0] + 1}${weeks.length > 1 ? `–${weeks.at(-1) + 1}` : ''})</span>`;
+  // SOW route: the conflicts' people shown in the SOW's consulting roles; their 006 roles still drive who can take the work
+  const SOW_ROLE_LABELS = { Developer: 'Junior Consultant', Designer: 'Senior Consultant' };
+  const acRoleLabel = (role) => (sowTimeline ? SOW_ROLE_LABELS[role] ?? role : role);
   function acAddWorkdays(date, n) {
     let d = new Date(date);
     for (let left = n; left > 0;) { d = addDays(d, 1); if (d.getDay() % 6) left -= 1; }
@@ -11340,13 +11345,14 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function acHealthHtml(s) {
     const { plan } = s;
     const open = s.openConflicts.length + s.openTasks.length > 0;
-    const end = plan.built.completion ? acAddWorkdays(plan.built.completion, s.delay) : null;
+    const delivers = sowTimeline ? atNoon(SETUP.dates?.end ?? DEMO_SOW.end) : plan.built.completion; // SOW route: the project's end date
+    const end = delivers ? acAddWorkdays(delivers, s.delay) : null;
     const tasks = plan.built.tasks.length + AC_TASKS.length;
     const cost = plan.cost + s.costDelta;
     const revenue = revenueOf(plan) + s.revenueDelta;
     const money = (n) => budgetMoney(Math.round(Math.abs(n)));
     const health = [
-      acCard('calendar', 'Delivery date', end ? formatDate(end) : '-', acStatus(s.delay > 0, open, { mark: 'warn', text: `${acDays(s.delay)} late` }, `+${acDays(s.delay)} past original deadline`)),
+      acCard('calendar', 'Delivery date', end ? `${sowTimeline ? `${end.toLocaleDateString('en-GB', { weekday: 'short' })} ` : ''}${formatDate(end)}` : '-', acStatus(s.delay > 0, open, { mark: 'warn', text: `${acDays(s.delay)} late` }, `+${acDays(s.delay)} past original deadline`)),
       acCard('users', 'Resourcing', s.openConflicts.length ? `${s.openConflicts.length} ${plural(s.openConflicts.length, 'conflict', 'conflicts')}` : 'No conflicts',
         s.openConflicts.length ? { tone: 'bad', mark: 'warn', text: `${s.openConflicts.length} ${plural(s.openConflicts.length, 'person is', 'people are')} over capacity` } : { tone: 'good', mark: 'good', text: 'On track' }),
       acCard('check', 'Planned work', `${tasks} tasks`, s.openTasks.length ? { tone: 'bad', mark: 'warn', text: `${s.openTasks.length} ${plural(s.openTasks.length, 'task needs', 'tasks need')} planning` } : !AC_TASKS.length ? { tone: 'good', mark: 'good', text: 'On track' } : { tone: 'flat', text: `+${AC_TASKS.length} tasks since original plan` }),
@@ -11428,7 +11434,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     return `<div class="ac-table-scroll"><table class="ac-table${PROJECT.happyPath ? ' is-fit' : ''}"><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
   const acWho = (person) => (!person ? '<span class="ac-who ac-dim">Unassigned</span>'
-    : PROJECT.happyPath ? `<span class="ac-who">${personAvatar(person)}<span class="pl-option-who"><span>${person.name}</span><span class="pl-option-role">${person.role}</span></span></span>`
+    : PROJECT.happyPath ? `<span class="ac-who">${personAvatar(person)}<span class="pl-option-who"><span>${person.name}</span><span class="pl-option-role">${acRoleLabel(person.role)}</span></span></span>`
       : `<span class="ac-who">${personAvatar(person)}${person.name}</span>`);
   const acTaskName = (name) => `<span class="ac-task">${name}</span>`;
   // What an option does to the margin: extra cost takes it down, a cheaper person puts it up
@@ -11714,6 +11720,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     setAskAiOpen(false);
     askAiBtn.focus();
   });
+  for (const tab of document.querySelectorAll('#view-timeline a.tl-tab')) tab.addEventListener('click', () => { setAskAiOpen(false); setDrawerOpen(false); });
   document.querySelector('#view-timeline .remi').addEventListener('click', () => {
     // 006: aftercare is two weeks after the plan was confirmed; the events since then apply from here on
     if (PROJECT.happyPath && planCreated && !aftercare.fastForwarded) { aftercare.fastForwarded = true; saveAftercare(); acRefreshTimeline(); }
@@ -12045,6 +12052,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     return months.map((m) => `<span style="width:calc(${m.days} * var(--tl-day))">${m.days > 3 ? m.name : ''}</span>`).join('');
   }
   function renderTimeline(agreed) {
+    if (sowTimeline) { // the grid opens on the project's first week (Mon 5 Oct 2026); the label says so
+      const opens = atNoon(PROJECT.start);
+      document.querySelector('#view-timeline .tl-date').firstChild.textContent = `${opens.toLocaleDateString('en-GB', { weekday: 'long' })}, ${opens.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    }
     const plan = withAftercare(agreed); // with any fixes made in Ask AI since
     for (const el of document.querySelectorAll('.tl-project-name')) el.textContent = PROJECT.name;
     const grid = document.querySelector('.tl-grid');

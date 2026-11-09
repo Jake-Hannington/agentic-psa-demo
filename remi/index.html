@@ -767,7 +767,12 @@
   .cv-attach.is-highlighted { color: var(--blue); background: #eef1fb; animation: cv-attach-pulse 1s ease-out 2; }
   @keyframes cv-attach-pulse { 0% { box-shadow: 0 0 0 0 rgba(60, 92, 230, 0.45); } 100% { box-shadow: 0 0 0 10px rgba(60, 92, 230, 0); } }
   /* An attached file: a chip above the text box, and a card in the user's message */
-  .cv-attachment { display: flex; margin-bottom: 8px; }
+  /* With a file attached the composer grows upwards by the chip and its 12px gap, so the text area and icon row keep their room */
+  .cv-input { transition: height 180ms ease-out; }
+  .cv-input.has-file { height: calc(145px + var(--cv-chip-h, 52px) + 12px); }
+  .cv-input.has-file .cv-textarea { min-height: 48px; } /* two lines */
+  @media (prefers-reduced-motion: reduce) { .cv-input { transition: none; } }
+  .cv-attachment { display: flex; margin-bottom: 12px; }
   .cv-attachment[hidden] { display: none; }
   .cv-file { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; min-width: 0; padding: 6px 6px 6px 8px; border: 1px solid #e1e4ea; border-radius: 10px; background: #fff; }
   .cv-file-icon { width: 28px; height: 28px; flex: none; border-radius: 6px; background: #fdecec; color: #d23f3f; display: flex; align-items: center; justify-content: center; }
@@ -6299,7 +6304,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   }
   canvas.addEventListener('pointerover', (event) => {
     const trigger = event.target.closest('[data-tooltip]');
-    if (trigger && trigger !== tooltipTrigger) showInfoTooltip(trigger);
+    if (trigger && trigger !== tooltipTrigger && !trigger.dataset.tooltipMuted) showInfoTooltip(trigger);
   });
   canvas.addEventListener('pointerout', (event) => {
     const trigger = event.target.closest('[data-tooltip]');
@@ -6307,7 +6312,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   });
   canvas.addEventListener('focusin', (event) => {
     const trigger = event.target.closest('[data-tooltip]');
-    if (trigger) showInfoTooltip(trigger);
+    if (trigger && !trigger.dataset.tooltipMuted) showInfoTooltip(trigger);
   });
   canvas.addEventListener('focusout', (event) => {
     if (event.target.closest('[data-tooltip]')) hideInfoTooltip();
@@ -7695,8 +7700,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     card.append(remove);
     attachmentSlot.replaceChildren(card);
     attachmentSlot.hidden = false;
+    chatInput.style.setProperty('--cv-chip-h', `${attachmentSlot.offsetHeight}px`);
+    resizeComposer(true);
     attachButton.classList.remove('is-highlighted');
-    hideInfoTooltip(); // the pointer is often still on the paperclip
+    // The pointer is often still on the paperclip: its tooltip would cover the text box, so it waits until the pointer leaves
+    attachButton.dataset.tooltipMuted = 'true';
+    hideInfoTooltip();
     chatInput.classList.add('is-active');
     chatTextarea.disabled = false;
     chatTextarea.removeAttribute('inputmode');
@@ -7709,6 +7718,21 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     attachmentSlot.replaceChildren();
     attachmentSlot.hidden = true;
     fileInput.value = ''; // the same file can be picked again
+    resizeComposer(false);
+  }
+  // The composer sits under the thread, so growing it shortens the thread: keep the latest message in view while it animates
+  let composerPinFrame = 0;
+  function resizeComposer(hasFile) {
+    const wasAtBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 24;
+    chatInput.classList.toggle('has-file', hasFile);
+    if (!wasAtBottom && hasFile) return;
+    cancelAnimationFrame(composerPinFrame);
+    const until = performance.now() + 250;
+    const pin = () => {
+      thread.scrollTop = thread.scrollHeight;
+      if (performance.now() < until) composerPinFrame = requestAnimationFrame(pin);
+    };
+    pin();
   }
   function removeAttachedFile() {
     const before = inputBeforeAttach;
@@ -7718,7 +7742,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     chatTextarea.placeholder = before.placeholder;
     if (before.disabled) chatTextarea.value = '';
     updateSendButton();
-    attachButton.focus();
+    (chatTextarea.disabled ? attachButton : chatTextarea).focus(); // the text box, unless it was locked before the file
   }
   // Sending the file replaces whatever Remi was waiting on: open replies go, as they do for a typed reply
   function sendAttachedFile() {
@@ -7745,6 +7769,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     attachHighlightTimer = setTimeout(() => attachButton.classList.remove('is-highlighted'), 2000);
   }
   attachButton.addEventListener('click', () => fileInput.click());
+  // A real move away (not the composer growing under a still pointer) lets the tooltip show again
+  document.addEventListener('pointermove', (event) => {
+    if (attachButton.dataset.tooltipMuted && !attachButton.contains(event.target)) delete attachButton.dataset.tooltipMuted;
+  });
   fileInput.addEventListener('change', () => {
     const [file] = fileInput.files;
     if (file) attachFile(file);

@@ -633,7 +633,9 @@
   /* ── AI canvas: near-full-page modal (sizes from Figma) ── */
   .canvas {
     width: min(94vw, 2340px); height: min(94vh, 1320px); max-width: none; max-height: none;
-    padding: 0; border: 0; border-radius: 12px; color: var(--text); background: #fff; overflow: hidden;
+    /* clip, not hidden: its off-canvas drawer makes it wider than it looks, and hidden overflow can still be scrolled (a
+       scrollIntoView nudged the whole canvas sideways) */
+    padding: 0; border: 0; border-radius: 12px; color: var(--text); background: #fff; overflow: clip;
     box-shadow: 0 32px 80px rgba(15, 23, 42, 0.22), 0 8px 24px rgba(15, 23, 42, 0.08);
     display: grid; grid-template-rows: 72px minmax(0, 1fr);
     font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;

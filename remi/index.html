@@ -7582,7 +7582,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         'Data migration is out of scope.',
       ];
     },
-    targetMargin: 35, // not in the SOW: the margin Remi's proposed staffing reaches, which she offers as the target
+    targetMargin: 35.2, // not in the SOW: the margin Remi's proposed staffing reaches (TSIA's project: $97,200 cost on $150,000), which she offers as the target
   };
   // What the SOW doesn't say and Remi doesn't need to ask: her usual answers
   const SOW_DEFAULTS = {
@@ -7611,8 +7611,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     if (elena) Object.assign(elena, { name: 'Elena Marsh', avatar: { initials: 'EM', background: '#fbd0e6', color: '#9d1c5c' } });
     if (sowRatesScaled) return;
     sowRatesScaled = true;
-    const scale = (n) => (n == null ? n : Math.round(n * (sow.fee / DEMO_006.fee)));
+    // Rates scale so the summary's plan, once the placeholder is added, costs what TSIA's project does: $97,200 on $150,000
+    // (35.2%). That plan costs SOW_006_PLAN_COST at 006's own rates; rounding to whole dollars leaves SOW_RATE_TOP_UP to add back
+    const scale = (n) => (n == null ? n : Math.round((n * sow.fee * (1 - sow.targetMargin / 100)) / SOW_006_PLAN_COST));
     for (const p of PEOPLE_DATA) for (const key of ['costRate', 'billableRate']) p[key] = scale(p[key]);
+    for (const [id, dollars] of Object.entries(SOW_RATE_TOP_UP)) PEOPLE_DATA.find((p) => p.id === id).costRate += dollars;
     for (const gap of RATE_GAPS) {
       for (const rate of [gap.billable, gap.cost]) {
         rate.value = scale(rate.value);
@@ -7620,6 +7623,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       }
     }
   }
+  const SOW_006_PLAN_COST = 22140; // 006's plan with the placeholder, at 006's rates (window.check006: $22,140)
+  // +$1/h for people with 38h, 12h, 8h and 16h in that plan: the $74 the rounding leaves. None of them is a conflict's option,
+  // so the options keep their order (Barry and Emily still share a rate; Ryan stays cheaper than Hannah)
+  const SOW_RATE_TOP_UP = { priya: 1, wakaz: 1, abbey: 1, olivia: 1 };
   const SOW_KEY = 'remiSow';
   function saveSowPlan(extra = {}) {
     try {
@@ -9517,7 +9524,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       ...(PROJECT.happyPath
         ? ((cost) => ({ outlookCostPct: `(${cost.toFixed(1)}%)`, outlookProfitPct: `(${(100 - cost).toFixed(1)}%)`, outlookMargin: `${(100 - cost).toFixed(1)}%` }))(revenueOf(plan) ? (plan.cost / revenueOf(plan)) * 100 : 0)
         : { outlookCostPct: `(${costShare(plan)}%)`, outlookProfitPct: `(${100 - costShare(plan)}%)`, outlookMargin: `${100 - costShare(plan)}%` }),
-      costPct: `(${Math.round((plan.cost / BUDGET) * 100)}%)`, profitPct: `(${100 - Math.round((plan.cost / BUDGET) * 100)}%)`,
+      // The SOW route's target isn't a whole number (35.2%), so its split shows one decimal place, as the outlook does
+      ...(sowSetup
+        ? ((cost) => ({ costPct: `(${cost.toFixed(1)}%)`, profitPct: `(${(100 - cost).toFixed(1)}%)` }))((plan.cost / BUDGET) * 100)
+        : { costPct: `(${Math.round((plan.cost / BUDGET) * 100)}%)`, profitPct: `(${100 - Math.round((plan.cost / BUDGET) * 100)}%)` }),
       budgetKind: `${PROJECT.budget.type} - ${PROJECT.budget.repeat === 'Never' ? 'Never repeats' : `Repeats ${PROJECT.budget.repeat.toLowerCase()}`}`,
       budgetPeriod: dateRange(atNoon(SETUP.budgetStart === 'move' ? PROJECT.start : PROJECT.budget.start), plan.built.completion),
       margin: PROJECT.happyPath ? `${marginExact(plan).toFixed(1)}%` : `${marginOf(plan)}%`, marginBadge: marginBadge(PROJECT.happyPath ? Math.round(marginExact(plan) * 10) / 10 : marginOf(plan)), targetMargin: `${TARGET_MARGIN}%`,
@@ -12116,7 +12126,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       const [startCell, endCell] = row.querySelectorAll('.pj-date');
       startCell.textContent = projectDay(DEMO_SOW.start);
       endCell.textContent = projectDay(DEMO_SOW.end);
-      row.querySelector('.pj-category').lastChild.textContent = 'Engineering';
+      row.querySelector('.pj-category').lastChild.textContent = 'Transformation consulting'; // as TSIA's convert dialog
+      const owner = row.querySelector('.pj-owner'); // Priya Raman, in TSIA's colour for her (schedPeople)
+      owner.textContent = 'PR';
+      Object.assign(owner.style, { background: 'var(--palette-purple-40)', color: 'var(--palette-white, #fff)' });
       row.classList.add('is-openable');
       row.tabIndex = 0;
       row.setAttribute('aria-label', `Open ${name}`);

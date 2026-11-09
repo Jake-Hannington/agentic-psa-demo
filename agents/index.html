@@ -17734,15 +17734,45 @@ function openMarginWatcher() {
     return { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key, enabled: true };
   });
   a.triggers.splice(at, 0, ...ev);
-  a.permissions.projects = ['Depot Network Review', 'Enterprise AI Rollout'];
+  // Focus is picked in the chat; its options suggest the Halcyon fixed-fee projects
+  a._suggestProjects = ['Depot Network Review', 'Enterprise AI Rollout'];
+  a._offerFirstRun = true;
   _setMode(a, 'draft');   // changes wait for approval, unlike the Act default for new agents
-  // Greet again now the focus and mode are set, so the next question fits
+  // Greet again now the mode is set, so the next question fits
   abSeedThread({ template: t });
   abRenderAll();
 }
 /* "Draft changes" is a decision about what the agent may do, so the setup chat doesn't ask again */
 const _mwStepDone0 = _abStepDone;
 _abStepDone = function (step, a) { return (step === 'caps' && !!a.permissions.caps.draft) || _mwStepDone0(step, a); };
+/* The focus options keep their wording; only Margin Watcher suggests different projects */
+const _mwChips0 = _abStepChips;
+_abStepChips = function (step, a) {
+  const mine = step === 'projects' && a && a._suggestProjects ? a._suggestProjects.filter(x => _canSeeProject(x)) : [];
+  if (mine.length > 1) return [`Only ${mine[0]}`, `${mine[0]} and ${mine[1]}`, `I'll pick them in Settings`];
+  return _mwChips0(step, a);
+};
+/* Margin Watcher offers its first run once it goes live, from the chat or the Activate button.
+   Other new agents don't, so the offer is opt-in per agent. */
+function _mwOfferFirstRun() {
+  const a = agentDraft;
+  if (!a || !a._offerFirstRun || a._firstRunOffered || a.status !== 'active') return;
+  a._firstRunOffered = true;
+  _abAwaiting = 'firstRun';
+  abAddMessage('ai', 'Want me to run a first check now?');
+}
+let _mwInReply = false;
+const _mwReply0 = abBuilderReply;
+abBuilderReply = function (text) {
+  _mwInReply = true;
+  try { return _mwReply0(text); } finally { _mwInReply = false; _mwOfferFirstRun(); }
+};
+const _mwToggle0 = toggleAgentActive;
+toggleAgentActive = function () {
+  const r = _mwToggle0.apply(this, arguments);
+  if (!_mwInReply) _mwOfferFirstRun();
+  return r;
+};
 /* Dana runs Olivia's seeded agents on the same projects Olivia picked */
 AGENTS.forEach(a => { if (a._scopes && !a._scopes.dana) a._scopes.dana = [...(a._scopes[a.ownerId] || [])]; });
 </script>

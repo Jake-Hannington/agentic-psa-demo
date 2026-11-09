@@ -17702,6 +17702,8 @@ renderJobsGallery = function () {
       </div>
     </section>`);
 };
+// The gallery was first drawn before this override existed
+if (_teammatesTab === 'jobs') renderJobsGallery();
 
 /* Notify and Knowledge read as headings in the instructions, like Role and Rules */
 const _mwPromptHTML0 = _abPromptHTML;

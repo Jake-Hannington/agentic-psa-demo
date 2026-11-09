@@ -6035,7 +6035,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
           { id: 'budget-amount', icon: 'dollarCircle', html: `${PROJECT.budget.type} amount <strong>${budgetMoney(PROJECT.budget.amount)}</strong>` },
         ],
         [
-          { id: 'budget-margin', icon: 'target', html: `<span class="cv-stats"><span><strong>Margin:</strong> ${PROJECT.budget.targetMargin}%</span><span><strong>Profit:</strong> ${budgetMoney(budgetProfit())}</span><span><strong>Cost limit:</strong> ${budgetMoney(PROJECT.budget.amount - budgetProfit())}</span></span>` },
+          { id: 'budget-margin', icon: 'target', html: `<span class="cv-stats"><span><strong>Margin:</strong> ${PROJECT.budget.targetMargin}%</span><span><strong>Profit:</strong> ${budgetMoney(budgetProfit())}</span><span><strong>Cost:</strong> ${budgetMoney(PROJECT.budget.amount - budgetProfit())}</span></span>` },
         ],
       ],
     },
@@ -7729,7 +7729,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     },
     ];
   };
-  // The margin's row is the one the 006 route reads from the project: margin, profit and cost limit
+  // The margin's row is the one the 006 route reads from the project: margin, profit and cost
   DYNAMIC_STEPS.sowMarginSet = () => {
     PROJECT.budget.targetMargin = SETUP.sowMargin;
     TARGET_MARGIN = SETUP.sowMargin;
@@ -8852,7 +8852,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       budget.carry !== undefined && { id: 'mb-carry', icon: 'check', text: budget.carry ? `Add unspent ${unit} to next period’s budget` : `Don’t carry unspent ${unit} over` },
       budget.deduct !== undefined && { id: 'mb-deduct', icon: 'check', text: budget.deduct ? `Subtract overspent ${unit} from next period’s budget` : `Don’t subtract overspent ${unit}` },
       // A fixed fee's own target: the margin, and the profit and cost that follow from it
-      budget.targetMargin && { id: 'mb-margin', icon: 'target', html: `<span class="cv-stats"><span><strong>Margin:</strong> ${budget.targetMargin}%</span><span><strong>Profit:</strong> ${budgetMoney((budget.amount * budget.targetMargin) / 100)}</span><span><strong>Cost limit:</strong> ${budgetMoney(budget.amount - (budget.amount * budget.targetMargin) / 100)}</span></span>` },
+      budget.targetMargin && { id: 'mb-margin', icon: 'target', html: `<span class="cv-stats"><span><strong>Margin:</strong> ${budget.targetMargin}%</span><span><strong>Profit:</strong> ${budgetMoney((budget.amount * budget.targetMargin) / 100)}</span><span><strong>Cost:</strong> ${budgetMoney(budget.amount - (budget.amount * budget.targetMargin) / 100)}</span></span>` },
     ].filter(Boolean);
   }
   // Draw the budget in view; the arrows step through them (hidden when there's only one)
@@ -12430,7 +12430,7 @@ The client needs to sign off designs before development starts.`;
     const start = startMode === 'move' ? PROJECT.start : budget.start;
     return [
       `${budget.type}: ${budgetMoney(budget.amount)}${was(budget.amount !== original.amount, budgetMoney(original.amount))}`,
-      `Target margin: ${budget.targetMargin}%${was(budget.targetMargin !== original.targetMargin, `${original.targetMargin}%`)}, so profit ${budgetMoney(profit)} and cost limit ${budgetMoney(budget.amount - profit)}`,
+      `Target margin: ${budget.targetMargin}%${was(budget.targetMargin !== original.targetMargin, `${original.targetMargin}%`)}, so profit ${budgetMoney(profit)} and cost ${budgetMoney(budget.amount - profit)}`,
       startMode === 'keep' ? `Starts: ${day(start)}${wasNote('kept from the project')}`
         : startMode === 'move' ? `Starts: ${SETUP.delivery === 'asap' ? 'when the work starts' : day(start)}${wasNote(`was ${day(original.start)}, moved to fit the plan as you asked`)}`
           : `Starts: ${day(start)}${was(start !== original.start, day(original.start))}`,
@@ -12659,11 +12659,11 @@ The client needs to sign off designs before development starts.`;
     const was = DEMO_006.budget;
     check('Budget confirmation: every value and “was” value', JSON.stringify(confirmText) === JSON.stringify([
       `Fixed fee: ${budgetMoney(DEMO_006.fee)} (was ${budgetMoney(was.amount)})`,
-      `Target margin: ${demoBudget.margin}% (was ${was.targetMargin}%), so profit ${budgetMoney(DEMO_006.fee * demoBudget.margin / 100)} and cost limit ${budgetMoney(DEMO_006.fee * (1 - demoBudget.margin / 100))}`,
+      `Target margin: ${demoBudget.margin}% (was ${was.targetMargin}%), so profit ${budgetMoney(DEMO_006.fee * demoBudget.margin / 100)} and cost ${budgetMoney(DEMO_006.fee * (1 - demoBudget.margin / 100))}`,
       `Starts: when the work starts (was ${DAY_MONTH.format(atNoon(was.start))}, moved to fit the plan as you asked)`,
       `Repeats: ${was.repeat} (kept from the project)`,
     ]), confirmText.join(' · '));
-    check('Budget confirmation: $35,000 (was $30,000); 35% (was 40%), profit $12,250, cost limit $22,750; starts 2 Nov (was 13 Oct)', confirmText[0] === 'Fixed fee: $35,000 (was $30,000)' && confirmText[1] === 'Target margin: 35% (was 40%), so profit $12,250 and cost limit $22,750' && confirmText[2] === 'Starts: when the work starts (was 13 Oct, moved to fit the plan as you asked)');
+    check('Budget confirmation: $35,000 (was $30,000); 35% (was 40%), profit $12,250, cost $22,750; starts 2 Nov (was 13 Oct)', confirmText[0] === 'Fixed fee: $35,000 (was $30,000)' && confirmText[1] === 'Target margin: 35% (was 40%), so profit $12,250 and cost $22,750' && confirmText[2] === 'Starts: when the work starts (was 13 Oct, moved to fit the plan as you asked)');
     const keptText = budgetConfirmRows({ ...PROJECT.budget, amount: demoBudget.fee, targetMargin: demoBudget.margin }, DEMO_006.budget, 'keep')[2].replace(/<[^>]+>/g, '');
     check('Budget confirmation: a kept date reads “Starts: 13 Oct (kept from the project)”', keptText === 'Starts: 13 Oct (kept from the project)', keptText);
     // The card and the confirmation agree: moved (no date yet, moved from the same date) or kept (the same date)

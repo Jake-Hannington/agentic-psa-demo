@@ -950,6 +950,10 @@ body {
 .jobs-section { margin-bottom: var(--spacing-8); }
 .jobs-section-label { font-size: 15px; font-weight: 700; color: var(--color-text-default); margin-bottom: var(--spacing-4); }
 .jobs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-4); }
+/* Recommended for you: one featured template above the categories */
+.jobs-section-recommended .jobs-section-label { margin-bottom: 2px; }
+.jobs-section-sub { font-size: 13px; color: var(--color-text-subtle); margin-bottom: var(--spacing-4); }
+.job-card-tag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 8px; border-radius: 100px; background: var(--palette-indigo-10); color: var(--palette-indigo-40); white-space: nowrap; }
 
 /* Hero card — spans 2 columns */
 .job-hero {
@@ -5685,7 +5689,7 @@ img.ag-av { display: block; width: 100%; height: 100%; object-fit: cover; border
             <div class="askai-messages" id="askAiMessages">
               <div class="askai-hero" id="askAiHero">
                 <div class="askai-greeting">
-                  <span class="askai-greet-hello">Hello Olan,</span>
+                  <span class="askai-greet-hello">Hello Dana,</span>
                   <span class="askai-greet-help">How can I help you today?</span>
                 </div>
 
@@ -6153,7 +6157,7 @@ img.ag-av { display: block; width: 100%; height: 100%; object-fit: cover; border
   <div class="ai-drawer-messages" id="aiDrawerMessages">
     <div class="ai-drawer-intro" id="aiDrawerIntro">
       <div class="ai-drawer-greeting">
-        <span class="ai-greet-hello" id="aiDrawerIntroTitle">Hello Olan,</span>
+        <span class="ai-greet-hello" id="aiDrawerIntroTitle">Hello Dana,</span>
         <span class="ai-greet-help" id="aiDrawerIntroText">How can I help you today?</span>
       </div>
       <div class="ai-for-you" id="aiDrawerForYou">
@@ -6689,16 +6693,17 @@ img.ag-av { display: block; width: 100%; height: 100%; object-fit: cover; border
    users can't use AI at all. */
 const COMPANY_NAME = 'Acme Agency';
 const PEOPLE = {
+  dana:    { id: 'dana', name: 'Dana Whitfield', short: 'Dana', initials: 'DW', color: '#4461d7', role: 'site_admin', roleLabel: 'Ops Manager', projects: 'all', financials: true, blurb: 'Ops Manager · site admin · all projects' },
   olivia:  { id: 'olivia', name: 'Ops Manager Olivia', short: 'Olivia', initials: 'OO', color: '#6848bd', role: 'site_admin', roleLabel: 'Site admin', projects: 'all', blurb: 'Site admin · all projects' },
-  paula:   { id: 'paula', name: 'PM Paula', short: 'Paula', initials: 'PP', color: '#d6247f', role: 'project_admin', roleLabel: 'Project admin', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Q4 Marketing Campaign'], blurb: 'Project admin · 3 projects' },
+  paula:   { id: 'paula', name: 'PM Paula', short: 'Paula', initials: 'PP', color: '#d6247f', role: 'project_admin', roleLabel: 'Project admin', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Q4 Marketing Campaign', 'Depot Network Review', 'Enterprise AI Rollout'], blurb: 'Project admin · 5 projects' },
   william: { id: 'william', name: 'WB William', short: 'William', initials: 'WB', color: '#1e8e5a', role: 'standard', roleLabel: 'Standard user', projects: ['Brightline Brand Refresh', 'Q4 Marketing Campaign'], blurb: 'Standard user · 2 projects' },
   colin:   { id: 'colin', name: 'Client Colin', short: 'Colin', initials: 'CC', color: '#64697d', role: 'client', roleLabel: 'Client user · Northwind Traders', company: 'Northwind Traders', projects: ['Northwind Website Redesign', 'Northwind Mobile App'], blurb: 'Client user · Northwind Traders · no AI' },
   sam:     { id: 'sam', name: 'Sam Rivera', short: 'Sam', initials: 'SR', color: '#3578bb', role: 'standard', roleLabel: 'Standard user', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Brightline Brand Refresh', 'Contoso CRM Migration'] },
   aoife:   { id: 'aoife', name: 'Aoife Kelly', short: 'Aoife', initials: 'AK', color: '#318160', role: 'standard', roleLabel: 'Standard user', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Brightline Brand Refresh', 'Q4 Marketing Campaign'] },
 };
-const PERSONA_IDS = ['olivia', 'paula', 'william', 'colin'];
+const PERSONA_IDS = ['dana', 'olivia', 'paula', 'william', 'colin'];
 const ACCOUNT = { sharingEnabled: true };
-let ME = 'olivia';
+let ME = 'dana';
 function _me() { return PEOPLE[ME]; }
 function _isAdmin(id = ME) { return PEOPLE[id].role === 'site_admin'; }
 function _isClient(id = ME) { return PEOPLE[id].role === 'client'; }
@@ -6800,7 +6805,7 @@ const updates = [
     <h3>Infrastructure Upgrade</h3>
     <ul>
       <li>Budget burn is accelerating — up 14% week-over-week without a matching increase in task throughput.</li>
-      <li>Two unplanned infrastructure incidents this month added ~€8,400 in unbudgeted costs.</li>
+      <li>Two unplanned infrastructure incidents this month added ~$8,400 in unbudgeted costs.</li>
     </ul>
     <div class="section-divider"></div>
     <h2>🟡 Approaching Budget Threshold</h2>
@@ -9657,12 +9662,12 @@ function _weekReply(q, u) {
 function _healthReply(q, u) {
   if (q.includes('at risk') || q.includes('most') || (q.includes('which') && q.includes('project'))) {
     if (u.id === 1) return `The <strong>3 projects needing immediate attention</strong>:<br><br>1. <strong>Website Redesign</strong> — task progress slowing, budget high relative to remaining scope, activity dropping off.<br>2. <strong>CRM Migration</strong> — tasks repeatedly pushed forward, budget nearing risk thresholds, contributor bottlenecks.<br>3. <strong>Mobile App Launch</strong> — key deliverables behind, team velocity declining, stakeholder updates infrequent.<br><br>Website Redesign and Mobile App Launch are most time-sensitive — both have upcoming milestones at risk.`;
-    if (u.id === 3) return `The two projects over budget relative to progress:<br><br>1. <strong>Website Redesign</strong> — 68% budget consumed, 51% tasks complete. At current burn, budget runs out ~3 weeks before planned completion.<br>2. <strong>Infrastructure Upgrade</strong> — burn rate up 14% week-over-week. Two unplanned incidents added ~€8,400.<br><br>CRM Migration is approaching thresholds at 79% budget, 60% complete — worth monitoring closely.`;
+    if (u.id === 3) return `The two projects over budget relative to progress:<br><br>1. <strong>Website Redesign</strong> — 68% budget consumed, 51% tasks complete. At current burn, budget runs out ~3 weeks before planned completion.<br>2. <strong>Infrastructure Upgrade</strong> — burn rate up 14% week-over-week. Two unplanned incidents added ~$8,400.<br><br>CRM Migration is approaching thresholds at 79% budget, 60% complete — worth monitoring closely.`;
     if (u.id === 10) return `Two priority items this week:<br><br>1. <strong>CRM Migration (budget risk)</strong> — at 84% budget, 63% tasks complete. Will exhaust budget by Apr 17. Needs a scope/budget review this week.<br>2. <strong>Website Redesign</strong> — design approval 5 days overdue. Escalate to creative director today.`;
     return `The projects most at risk are in the 🔴 sections above — those flagged as Needs Attention are the ones requiring immediate action.`;
   }
   if (q.includes('budget') || q.includes('overrun') || q.includes('caused')) {
-    if (u.id === 3) return `Budget overrun drivers by project:<br><br><strong>Website Redesign:</strong> Design revisions and scope changes. At current burn, budget exhausts ~3 weeks before completion.<br><br><strong>Infrastructure Upgrade:</strong> Extended vendor support hours + two unplanned incidents (~€8,400). Burn rate up 14% week-over-week.<br><br><strong>CRM Migration (approaching threshold):</strong> Data quality issues requiring extra cleansing work + two integration requirements added post-scope.`;
+    if (u.id === 3) return `Budget overrun drivers by project:<br><br><strong>Website Redesign:</strong> Design revisions and scope changes. At current burn, budget exhausts ~3 weeks before completion.<br><br><strong>Infrastructure Upgrade:</strong> Extended vendor support hours + two unplanned incidents (~$8,400). Burn rate up 14% week-over-week.<br><br><strong>CRM Migration (approaching threshold):</strong> Data quality issues requiring extra cleansing work + two integration requirements added post-scope.`;
     if (u.id === 10) return `The CRM Migration overrun has two root causes:<br><br>1. <strong>Extended data cleansing</strong> — legacy system data quality worse than scoped during discovery.<br>2. <strong>Two additional integration requirements</strong> — added post-kickoff without a corresponding budget increase.<br><br>Current: 84% budget spent, 63% complete — a 21-point gap. Budget exhausted by Apr 17 at current burn rate, 8 days before planned completion.`;
     return `Budget concerns are detailed in the health check sections above. Primary drivers are typically unplanned scope additions or extended effort on specific workstreams.`;
   }
@@ -11192,6 +11197,8 @@ const AB_PROJECT_DATA = [
   { name: 'Brightline Brand Refresh',   client: 'Brightline' },
   { name: 'Contoso CRM Migration',      client: 'Contoso' },
   { name: 'Q4 Marketing Campaign',      client: 'Acme Agency' },
+  { name: 'Depot Network Review',       client: 'Halcyon Logistics' },
+  { name: 'Enterprise AI Rollout',      client: 'Halcyon Logistics' },
 ];
 const AB_PROJECTS = AB_PROJECT_DATA.map(p => p.name);
 
@@ -12929,13 +12936,13 @@ const NT_MEETINGS = [
     title: 'Q3 campaign kickoff', platform: 'zoom', project: null, host: 'you',
     attendees: ['you', 'priya', 'dan', 'sarah'],
     verdict: "Aligned and ready to start.",
-    risks: ["Key visuals depend on final copy landing by Fri 2 May.", "The €40k paid cap may limit reach in the first three weeks."],
+    risks: ["Key visuals depend on final copy landing by Fri 2 May.", "The $40k paid cap may limit reach in the first three weeks."],
     overview: 'Kickoff for the Q3 campaign. The team aligned on the “Work, simplified” theme, a three-channel launch plan (paid social, email nurture and a webinar) and a 4 August go-live.',
     discussed: [
       ['Campaign theme', 'Priya presented three concepts. The team chose “Work, simplified” as the clearest fit for the mid-market audience.'],
       ['Channel mix', 'Paid social leads, supported by a 5-email nurture sequence and a customer webinar in launch week 2.'],
       ['Creative timeline', 'Sarah needs final copy by 2 May to deliver key visuals by 16 May.'],
-      ['Budget', 'Paid spend capped at €40k for the first six weeks, reviewed after week 3.'],
+      ['Budget', 'Paid spend capped at $40k for the first six weeks, reviewed after week 3.'],
     ],
     actions: [
       { who: 'you',   text: 'Share the final campaign brief with the creative team', due: 'Wed 23 Apr' },
@@ -14208,9 +14215,9 @@ function wfRenderLogs() {
 const WF_SAMPLE = {
   task: 'task “Homepage QA pass” in Acme Website Redesign',
   tasks: '6 overdue tasks across 3 projects',
-  deal: 'deal “Brightline rebrand” — €48,000',
+  deal: 'deal “Brightline rebrand” — $48,000',
   opportunity: 'opportunity “Northwind portal phase 2” — $62,000',
-  invoice: 'invoice INV-1042 — €12,400',
+  invoice: 'invoice INV-1042 — $12,400',
   project: 'project “Brightline — Rebrand” from template',
   time: '38.5 billable hours across 4 projects',
   message: 'message delivered',
@@ -14384,7 +14391,7 @@ const NOTIFS = {
     { html: '<b>Ops Manager Olivia</b> shared <b>Missing Time Agent</b> with you — can use only.', time: 'Just now', unread: true },
     { html: '<b>PM Paula</b> shared <b>Daily Brief Agent</b> with everyone at Acme Agency.', time: 'Yesterday', unread: true },
   ],
-  colin: [], sam: [], aoife: [],
+  colin: [], sam: [], aoife: [], dana: [],
 };
 function _notify(to, html) {
   if (!to || to === ME) return;
@@ -15313,6 +15320,39 @@ const PROJECTS = [
         _T('Ad creative variations', 'aoife', 'todo', 'Mon, 26 Oct 2026', 'Fri, 6 Nov 2026', 'low', 0, 10, 'Three creative routes with two copy variants each.', []),
       ] },
     ] },
+  { id: 'p6', name: 'Depot Network Review', client: 'Halcyon Logistics', owner: 'paula', start: '5 Oct 2026', end: '18 Dec 2026', health: 'At risk', fee: 48500, targetMargin: 35, budget: 31525, spent: 19085, progress: 55,
+    risk: 'Integration design is running over on senior hours, and depot data migration work that isn’t in the SOW is creeping in.',
+    lists: [
+      { name: 'Integration', tasks: [
+        _T('Integration design', 'sam', 'progress', 'Mon, 5 Oct 2026', 'Fri, 30 Oct 2026', 'high', 46, 32, 'Design how the depot management, routing and warehouse systems exchange data. Senior architect work.', ['+Current-state system map', '+Interface inventory', 'Target integration design'],
+          [['sam', '2 days ago', 'The routing system needs two more interfaces than we scoped. Still on the senior architect.'], ['paula', 'Yesterday', 'Noted. Let’s see if a mid-level engineer can take the interface specs.']]),
+        _T('Integration test plan', 'sam', 'todo', 'Mon, 2 Nov 2026', 'Fri, 13 Nov 2026', 'medium', 0, 12, 'Plan end-to-end tests for the new depot interfaces.', []),
+      ] },
+      { name: 'Network review', tasks: [
+        _T('Depot site assessments', 'aoife', 'review', 'Mon, 5 Oct 2026', 'Fri, 16 Oct 2026', 'high', 28, 30, 'Assess the 14 depots for capacity, access and system readiness.', ['+North region', '+South region', 'Summary of findings']),
+        _T('Network data documentation', 'aoife', 'todo', 'Mon, 26 Oct 2026', 'Fri, 20 Nov 2026', 'medium', 0, 24, 'Document the network data model, data owners and refresh cycles for Halcyon’s team.', ['Data model', 'Owners and refresh cycles']),
+        _T('Depot system data migration', 'sam', 'progress', 'Mon, 12 Oct 2026', 'Fri, 6 Nov 2026', 'medium', 18, 0, 'Move depot records from the legacy system into the new network model. Not in the SOW.', ['+Extract legacy records', 'Map fields', 'Load and reconcile'],
+          [['paula', 'Today', 'Halcyon asked for this on the weekly call. It isn’t in the SOW, so we need to agree how it’s paid for.']]),
+      ] },
+      { name: 'Recommendations', tasks: [
+        _T('Network optimisation report', 'paula', 'todo', 'Mon, 23 Nov 2026', 'Fri, 11 Dec 2026', 'high', 0, 20, 'Recommend depot changes with cost and service impact for each.', []),
+      ] },
+    ] },
+  { id: 'p7', name: 'Enterprise AI Rollout', client: 'Halcyon Logistics', owner: 'paula', start: '5 Oct 2026', end: '25 Dec 2026', health: 'Good', fee: 150000, targetMargin: 35.2, budget: 97200, spent: 33528, progress: 40,
+    risk: 'The ROI business case depends on Halcyon’s finance data arriving on time.',
+    lists: [
+      { name: 'Discovery & Readiness', tasks: [
+        _T('AI Readiness Assessment', 'aoife', 'review', 'Mon, 5 Oct 2026', 'Fri, 23 Oct 2026', 'high', 34, 36, 'Assess data, systems, skills and governance readiness across Halcyon’s business units.', ['+Stakeholder interviews', '+Data and systems audit', 'Readiness scorecard']),
+        _T('Use-case discovery workshops', 'paula', 'progress', 'Mon, 12 Oct 2026', 'Fri, 30 Oct 2026', 'medium', 12, 16, 'Run workshops with each business unit to find and rank AI use cases.', ['+Operations', '+Finance', 'Customer service']),
+      ] },
+      { name: 'Strategy & Roadmap', tasks: [
+        _T('Prioritised transformation roadmap', 'paula', 'progress', 'Mon, 26 Oct 2026', 'Fri, 20 Nov 2026', 'high', 8, 30, 'Sequence the top use cases into a phased roadmap with owners and milestones.', ['+Shortlist use cases', 'Phase plan', 'Roadmap review']),
+        _T('ROI business case', 'william', 'todo', 'Mon, 9 Nov 2026', 'Fri, 27 Nov 2026', 'high', 0, 24, 'Build the ROI business case for the first wave of use cases.', ['Cost model', 'Benefit model']),
+      ] },
+      { name: 'Governance & Enablement', tasks: [
+        _T('AI acceptable-use policy', 'aoife', 'todo', 'Mon, 16 Nov 2026', 'Fri, 4 Dec 2026', 'medium', 0, 14, 'Draft Halcyon’s AI acceptable-use policy and approval flow.', []),
+      ] },
+    ] },
 ];
 let _curProjectId = 'p1';
 function _curProject() { return PROJECTS.find(p => p.id === _curProjectId) || PROJECTS[0]; }
@@ -15450,7 +15490,7 @@ function _rerenderTaskComments() {
 }
 
 /* ── Agents answer from project data, filtered to the asker's access ── */
-const _eur = n => '€' + Math.round(n).toLocaleString('en-IE');
+const _eur = n => '$' + Math.round(n).toLocaleString('en-US');
 function _agentKind(a) {
   const n = a.name.toLowerCase();
   if (/budget|profit|unbilled/.test(n)) return 'budget';
@@ -15495,7 +15535,7 @@ function _projectLine(kind, p) {
 }
 function _mentionedProject(q) {
   const t = (q || '').toLowerCase();
-  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'] };
+  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['enterprise', 'rollout'] };
   return PROJECTS.find(p => t.includes(p.name.toLowerCase()) || keys[p.id].some(k => t.includes(k))) || null;
 }
 /* Full answer (HTML for chat and Run now; plain text for task comments) */
@@ -15672,7 +15712,7 @@ Object.assign(PEOPLE.sam, { financials: true });
 /* Word-level project matching, so "approve" doesn't mean the Mobile App */
 function _mentionedProject(q) {
   const t = (q || '').toLowerCase();
-  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'] };
+  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['enterprise', 'rollout'] };
   return PROJECTS.find(p => t.includes(p.name.toLowerCase()) || keys[p.id].some(k => new RegExp(`\\b${k}\\b`).test(t))) || null;
 }
 
@@ -17169,6 +17209,7 @@ toggleAgentActive = function () {
     { type: 'run', agent: 'ag2', line: 'Budget Watch Agent finished a run', title: 'Contoso CRM Migration could run over budget before its next milestone', meta: 'Budget check · 5 projects checked', time: 'Mon 2 Nov', unread: true },
     share('paula', 'ag1', { time: 'Mon 2 Nov', unread: true }),
   ];
+  NOTIFS.dana = NOTIFS.olivia.map(n => ({ ...n }));
   NOTIFS.paula = [share('olivia', 'ag2', { time: 'Yesterday', unread: true }), share('sam', 'ag5', { time: '2 days ago', unread: false })];
   NOTIFS.william = [share('olivia', 'ag7', { time: 'Just now', unread: true }),
     { type: 'share', person: 'paula', agent: 'ag3', line: 'PM Paula shared an agent', title: 'Daily Brief Agent is now shared with everyone at Acme Agency', meta: 'You can use it', time: 'Yesterday', unread: true }];
@@ -17626,6 +17667,82 @@ openNotif = function (i) {
   }
   return _f17OpenNotif0(i);
 };
+
+/* ══ Margin Watcher, phase 1: a featured template above the categories,
+   opening a builder that's already filled in ══════════════════════════ */
+const MARGIN_WATCHER_TEMPLATE = {
+  slug: 'margin-watcher', name: 'Margin Watcher',
+  desc: 'Watches estimate at completion against budget on your fixed-fee projects and recommends fixes before margin is lost.',
+  skills: ['project-budget', 'find-overrun-budgets', 'custom-budget-variance', 'report-time'],
+  triggerType: 'Scheduled', trigger: 'Daily at 09:00',
+};
+AB_GLYPH.evBudget = '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>';
+AB_EVENT_PRESETS.push({ key: 'project.budget_changed', when: 'a project budget changes', icon: 'evBudget', name: 'A project budget changes', desc: 'Runs when a project’s budget is changed' });
+
+const _mwGallery0 = renderJobsGallery;
+renderJobsGallery = function () {
+  _mwGallery0();
+  const el = document.getElementById('jobsSections');
+  if (!el) return;
+  const t = MARGIN_WATCHER_TEMPLATE;
+  el.insertAdjacentHTML('afterbegin', `
+    <section class="jobs-section jobs-section-recommended" id="job-cat-recommended">
+      <div class="jobs-section-label">Recommended for you</div>
+      <div class="jobs-section-sub">Suggested because you run fixed-fee projects</div>
+      <div class="jobs-grid">
+        <div class="job-card" data-slug="${t.slug}" onclick="openMarginWatcher()">
+          <div class="job-card-top">
+            <div class="job-card-icon">${jobIcon(t.name)}</div>
+            <span class="job-card-tag">Recommended</span>
+          </div>
+          <div class="job-card-title">${t.name}</div>
+          <div class="job-card-desc">${t.desc}</div>
+          <div class="job-card-foot">${t.skills.filter(id => skillsData.some(k => k.id === id)).map(agentSkillIcon).join('')}</div>
+        </div>
+      </div>
+    </section>`);
+};
+
+/* Notify and Knowledge read as headings in the instructions, like Role and Rules */
+const _mwPromptHTML0 = _abPromptHTML;
+_abPromptHTML = function (p) {
+  return _mwPromptHTML0(p).replace(/<div>(Notify|Knowledge)<\/div>/g, '<div class="ab-ph">$1</div>');
+};
+
+function _mwPrompt() {
+  return [
+    'Role', 'You watch margin on active fixed-fee projects.', '',
+    'Objective', 'Compare each project’s estimate at completion (EAC) with its cost budget, and catch margin loss before it happens.', '',
+    'Focus', '• Active fixed-fee projects: Depot Network Review, Enterprise AI Rollout.', '',
+    'Output', 'Warn when EAC reaches 90% of the cost budget (Approaching). Alert when it goes over (Exceeded). Explain the cause in one or two lines, recommend up to three actions with the margin each recovers, and propose the changes for approval.', '',
+    'Rules', '• Never change a project without approval.', '• Lead with the $ impact, then the margin %.', '',
+    'Notify', `• ${PEOPLE.dana.name} (${PEOPLE.dana.roleLabel}) and the project’s PM.`, '',
+    'Knowledge', '• Target margin by project type.', '• Your rate card.',
+  ].join('\n');
+}
+function openMarginWatcher() {
+  const t = MARGIN_WATCHER_TEMPLATE;
+  openAgentBuilder({ template: t });
+  const a = agentDraft;
+  a.instructions.prompt = _mwPrompt();
+  // Daily at 09:00 comes from the template; add the two events after it
+  const at = a.triggers.findIndex(x => x.group === 'scheduled') + 1;
+  const ev = ['task.logged_time', 'project.budget_changed'].map(key => {
+    const e = AB_EVENT_PRESETS.find(x => x.key === key);
+    return { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key, enabled: true };
+  });
+  a.triggers.splice(at, 0, ...ev);
+  a.permissions.projects = ['Depot Network Review', 'Enterprise AI Rollout'];
+  _setMode(a, 'draft');   // changes wait for approval, unlike the Act default for new agents
+  // Greet again now the focus and mode are set, so the next question fits
+  abSeedThread({ template: t });
+  abRenderAll();
+}
+/* "Draft changes" is a decision about what the agent may do, so the setup chat doesn't ask again */
+const _mwStepDone0 = _abStepDone;
+_abStepDone = function (step, a) { return (step === 'caps' && !!a.permissions.caps.draft) || _mwStepDone0(step, a); };
+/* Dana runs Olivia's seeded agents on the same projects Olivia picked */
+AGENTS.forEach(a => { if (a._scopes && !a._scopes.dana) a._scopes.dana = [...(a._scopes[a.ownerId] || [])]; });
 </script>
 </body>
 </html>

@@ -782,11 +782,6 @@
   .cv-user-file { align-self: flex-end; max-width: 85%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .cv-user-file .cv-file { padding-right: 12px; }
   .cv-user-file .cv-user { max-width: none; }
-  /* A setup row filled from a statement of work: the value, then where it came from ("From your SOW" or "Default") */
-  .cv-row:has(.cv-sow) { align-items: flex-start; }
-  .cv-row-text:has(.cv-sow) { flex: 1; min-width: 0; }
-  .cv-sow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .cv-badge.cv-badge-sow { height: 22px; padding: 0 8px; font-size: 12px; line-height: 16px; background: #eef1fb; color: #3a4fb8; }
   /* Entrance (items flagged animateOnMount, first open only). Hidden parts keep their space, so nothing reflows */
   .is-entering .cv-avatar, .is-entering .cv-actions, .is-entering .cv-option { opacity: 0; pointer-events: none; }
   .is-entering .cv-option { transform: translateY(8px); }
@@ -6192,8 +6187,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     bullet(row) {
       const el = document.createElement('div');
       el.className = 'cv-row-bullet';
-      if (row.html) el.innerHTML = row.html; // trusted flow copy only
-      else el.textContent = row.text;
+      el.textContent = row.text;
       return el;
     },
     answer(row) {
@@ -7584,21 +7578,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     otherProjects: true, capacity: { mode: 'limit', value: 80 }, spread: 'best', sharedTasks: false, missingTarget: { mode: 'value', value: 80 },
   };
   const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const SOW_BADGE = '<span class="cv-badge cv-badge-sow">From your SOW</span>';
-  const DEFAULT_BADGE = '<span class="cv-badge cv-badge-sow">Default</span>';
-  // The SOW route: which setup keys came from the SOW and which are defaults, and any row it words differently. Null otherwise
+  // The SOW route: the rows it words differently from a pasted plan. Null otherwise
   let sowSetup = null;
-  // A setup row Remi fills herself: tagged with where its value came from in the SOW route, plain text otherwise
+  // A setup row Remi fills herself, in the SOW route's wording where it has its own
   function setupRow(key, text) {
-    const tag = sowSetup?.tags[key];
-    if (!tag) return { text };
-    return { html: `<span class="cv-sow"><span>${escapeHtml(sowSetup.rows[key] ?? text)}</span>${tag === 'sow' ? SOW_BADGE : DEFAULT_BADGE}</span>` };
+    return { text: sowSetup?.rows[key] ?? text };
   }
   const sowWeeks = (sow) => Math.ceil(((atNoon(sow.end) - atNoon(sow.start)) / 864e5 + 1) / 7);
   // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
   function applySow(sow) {
     sowSetup = {
-      tags: { delivery: 'sow', deadlineFlex: 'sow', peopleScope: 'sow', ...Object.fromEntries(Object.keys(SOW_DEFAULTS).map((key) => [key, 'default'])) },
       rows: { peopleScope: `Consider anyone suitable for the SOW’s roles: ${listOf(sow.roles)}` },
     };
     setProjectDates({ start: sow.start, end: sow.end });
@@ -7634,12 +7623,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       beatGapMs: FLOW_TIMING.budgetBeatGap, rowStaggerMs: FLOW_TIMING.budgetRowStagger, closingDelayMs: FLOW_TIMING.budgetRowStagger,
       beats: [
         [
-          { icon: 'moneyBag', html: `<span class="cv-sow"><span>Use a ${PROJECT.budget.type} budget type</span>${SOW_BADGE}</span>` },
-          { id: 'budget-amount', icon: 'dollarCircle', html: `<span class="cv-sow"><span>${PROJECT.budget.type} amount <strong>${budgetMoney(PROJECT.budget.amount)}</strong></span>${SOW_BADGE}</span>` },
+          { icon: 'moneyBag', text: `Use a ${PROJECT.budget.type} budget type` },
+          { id: 'budget-amount', icon: 'dollarCircle', html: `${PROJECT.budget.type} amount <strong>${budgetMoney(PROJECT.budget.amount)}</strong>` },
         ],
         [
-          { id: 'budget-start', icon: 'calendar', html: `<span class="cv-sow"><span>Budget starts ${budgetStartText()}</span>${SOW_BADGE}</span>` },
-          { icon: 'repeat', html: `<span class="cv-sow"><span>${PROJECT.budget.repeat} repeat the budget</span>${DEFAULT_BADGE}</span>` },
+          { id: 'budget-start', icon: 'calendar', text: `Budget starts ${budgetStartText()}` },
+          { icon: 'repeat', text: `${PROJECT.budget.repeat} repeat the budget` },
         ],
       ],
     },
@@ -7667,7 +7656,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     instructionsAsked = true;
     instructionsAnswered = true;
     return [
-      { ...instructionsCard(), rows: SETUP.instructions.map((i) => ({ kind: 'bullet', html: `<span class="cv-sow"><span>${escapeHtml(i.text)}</span>${SOW_BADGE}</span>` })) },
+      instructionsCard(),
       ...stepItems('budgetDone'),
     ];
   };
@@ -8124,7 +8113,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   let readingThinking = null; // the loader that stays while answers fill in
   DYNAMIC_STEPS.fillTold = () => {
     const row = toldRow;
-    fillCardRow(row.card, { icon: row.icon, text: row.text, html: row.html, id: row.id }, { pending: row.pending });
+    fillCardRow(row.card, { icon: row.icon, text: row.text, id: row.id }, { pending: row.pending });
     return [{ type: 'pause', durationMs: 600, then: row.next }];
   };
   DYNAMIC_STEPS.askDeliveryDate = () => {

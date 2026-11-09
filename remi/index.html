@@ -760,6 +760,38 @@
   @keyframes cv-blink { 50% { opacity: 0; } }
   .cv-input-actions { display: flex; align-items: center; gap: 14px; color: #9aa1ae; }
   .cv-input-actions .i { width: 18px; height: 18px; }
+  /* Paperclip: attaches a file whenever the chat is open, also while the text box is locked */
+  .cv-attach { width: 28px; height: 28px; margin: 0 -5px; padding: 0; border: 0; border-radius: 6px; background: none; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .cv-attach:hover { background: #eef1fb; color: #5b6272; }
+  .cv-attach:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .cv-attach.is-highlighted { color: var(--blue); background: #eef1fb; animation: cv-attach-pulse 1s ease-out 2; }
+  @keyframes cv-attach-pulse { 0% { box-shadow: 0 0 0 0 rgba(60, 92, 230, 0.45); } 100% { box-shadow: 0 0 0 10px rgba(60, 92, 230, 0); } }
+  /* An attached file: a chip above the text box, and a card in the user's message */
+  .cv-attachment { display: flex; margin-bottom: 8px; }
+  .cv-attachment[hidden] { display: none; }
+  .cv-file { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; min-width: 0; padding: 6px 6px 6px 8px; border: 1px solid #e1e4ea; border-radius: 10px; background: #fff; }
+  .cv-file-icon { width: 28px; height: 28px; flex: none; border-radius: 6px; background: #fdecec; color: #d23f3f; display: flex; align-items: center; justify-content: center; }
+  .cv-file-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cv-file-meta { min-width: 0; display: flex; flex-direction: column; text-align: left; }
+  .cv-file-name { font-size: 13px; font-weight: 500; line-height: 18px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cv-file-size { font-size: 12px; line-height: 16px; color: #8b91a0; }
+  .cv-file-remove { width: 24px; height: 24px; flex: none; padding: 0; border: 0; border-radius: 6px; background: none; color: #8b91a0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cv-file-remove:hover { background: #f3f4f7; color: var(--text); }
+  .cv-file-remove:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .cv-file-remove svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .cv-user-file { align-self: flex-end; max-width: 85%; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .cv-user-file .cv-file { padding-right: 12px; }
+  .cv-user-file .cv-user { max-width: none; }
+  /* Statement of work card: each value Remi read, tagged with where it came from */
+  .cv-row:has(.cv-sow) { align-items: flex-start; }
+  .cv-row-text:has(.cv-sow) { flex: 1; min-width: 0; }
+  .cv-sow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .cv-sow-label { display: block; font-size: 12px; line-height: 16px; color: var(--text-3); }
+  .cv-sow-value ul, .cv-sow-value ol { margin: 2px 0 0; padding-left: 18px; }
+  .cv-sow-value li + li { margin-top: 2px; }
+  .cv-sow-value summary { cursor: pointer; }
+  .cv-sow-value summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+  .cv-badge.cv-badge-sow { height: 22px; padding: 0 8px; font-size: 12px; line-height: 16px; background: #eef1fb; color: #3a4fb8; }
   /* Entrance (items flagged animateOnMount, first open only). Hidden parts keep their space, so nothing reflows */
   .is-entering .cv-avatar, .is-entering .cv-actions, .is-entering .cv-option { opacity: 0; pointer-events: none; }
   .is-entering .cv-option { transform: translateY(8px); }
@@ -4499,7 +4531,9 @@
     <section class="cv-rail" aria-label="Chat with Remi">
       <div class="cv-thread" role="log" aria-live="polite"></div>
       <div class="cv-input">
-        <!-- Inert except while Remi is waiting on a typed answer -->
+        <!-- An attached file waits here until it's sent -->
+        <div class="cv-attachment" hidden></div>
+        <!-- Inert except while Remi is waiting on a typed answer, or a file is attached -->
         <div class="cv-input-field">
           <span class="cv-affix cv-prefix" aria-hidden="true" hidden>$</span>
           <span class="cv-affix cv-suffix" aria-hidden="true" hidden>/h</span>
@@ -4507,7 +4541,8 @@
           <textarea class="cv-textarea" aria-label="Message Remi" disabled placeholder="Chat with Remi if you have any questions on the final plan or if you want to make any changes"></textarea>
         </div>
         <div class="cv-input-actions">
-          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5 9 14a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.6-5.6l-7 7a6 6 0 0 0 8.5 8.5l6-6"/></svg>
+          <button type="button" class="cv-attach" aria-label="Upload file" data-tooltip="Upload file"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 7.5 9 14a2 2 0 0 0 2.8 2.8l7-7a4 4 0 0 0-5.6-5.6l-7 7a6 6 0 0 0 8.5 8.5l6-6"/></svg></button>
+          <input type="file" class="cv-file-input" accept=".pdf,.doc,.docx" hidden>
           <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
           <button type="button" class="cv-send" aria-label="Send" disabled><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-7zM12 13l8-9"/></svg></button>
         </div>
@@ -4816,6 +4851,9 @@
     planBuilding: 6000,        // after Continue: the "Generating your plan" step
     planReadyDelay: 5000,      // how long the "creating" toast stays before "Your plan is ready" replaces it
     toastDelay: 2500,          // after Create plan: how long before the "Remi is creating your plan" toast slides in
+    sowThinking: 2000,         // after a statement of work is sent: "Reading your statement of work…"
+    sowRowGap: 350,            // between the rows of the Statement of work card
+    sowClosingDelay: 1200,     // after the last row, before the target margin line
   };
 
   // AI canvas: opened by "Resource with Remi"; it can't be closed in this prototype (✕ and Cancel are visual only; Esc and backdrop clicks are ignored)
@@ -5822,7 +5860,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         options: [
           { label: '✨ I’m new, tell me how me how this works', next: 'prepareExplainer' },
           { label: 'Take a look at the project and guide me', next: 'lookAtProject' },
-          { label: 'I already have a plan. I’ll paste it below', next: 'askForPlan' },
+          { label: 'I have a statement of work. I’ll attach it', next: 'askForSow' },
         ],
       },
     ],
@@ -6075,6 +6113,13 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const el = document.createElement('div');
     el.className = 'cv-item cv-user';
     el.textContent = item.text;
+    return el;
+  }
+  function renderFileMessage(item) {
+    const el = document.createElement('div');
+    el.className = 'cv-item cv-user-file';
+    el.append(renderFileCard(item.file));
+    if (item.text) el.append(Object.assign(document.createElement('div'), { className: 'cv-user', textContent: item.text }));
     return el;
   }
   function renderOptionSet(item) {
@@ -7217,7 +7262,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   // Chat items go in the thread; canvas items go on the card stack
   const RENDERERS = {
-    remiMessage: renderRemiMessage, userMessage: renderUserMessage, optionSet: renderOptionSet, thinkingState: renderThinkingState,
+    remiMessage: renderRemiMessage, userMessage: renderUserMessage, fileMessage: renderFileMessage, optionSet: renderOptionSet, thinkingState: renderThinkingState,
     canvasCard: renderCanvasCard, attentionPanel: renderAttentionPanel,
   };
   const CANVAS_ITEM_TYPES = new Set(['canvasCard', 'attentionPanel']);
@@ -7289,13 +7334,13 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   let lastQuestion = null; // the Remi message the next reply chips answer, so she can ask it again after a detour
   function appendItems(items) {
     // 006: Remi stops reading to say or ask something: the loader goes
-    if (readingThinking && items.some((item) => ['remiMessage', 'optionSet', 'userMessage'].includes(item.type) || (item.type === 'thinkingState' && !item.reading))) { readingThinking.remove(); readingThinking = null; }
+    if (readingThinking && items.some((item) => ['remiMessage', 'optionSet', 'userMessage', 'fileMessage'].includes(item.type) || (item.type === 'thinkingState' && !item.reading))) { readingThinking.remove(); readingThinking = null; }
     const mounted = items.map((item) => {
       if (EFFECT_ITEM_TYPES.has(item.type)) return { item, el: null };
       const el = RENDERERS[item.type](item);
       (CANVAS_ITEM_TYPES.has(item.type) ? cardStack() : thread).append(el);
       if (item.type === 'remiMessage') lastQuestion = item.question ?? item.html.match(/<p>(?:(?!<p>)[\s\S])*<\/p>\s*$/)?.[0] ?? item.html; // just the asking part
-      else if (item.type === 'userMessage' || item.type === 'thinkingState') lastQuestion = null; // the next replies don't answer an older question
+      else if (['userMessage', 'fileMessage', 'thinkingState'].includes(item.type)) lastQuestion = null; // the next replies don't answer an older question
       if (item.type === 'optionSet') openReplies = { item, el, question: lastQuestion };
       return { item, el };
     });
@@ -7413,7 +7458,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   // Show "$" … "/h" around a rate once there's something typed; indent the text past the "$"
   function updateRateAffixes() {
-    const format = pendingTextAnswer ? NUMBER_FORMATS[pendingTextAnswer.freeText.format] : numberShortcut()?.format;
+    const format = attachedFile ? null : pendingTextAnswer ? NUMBER_FORMATS[pendingTextAnswer.freeText.format] : numberShortcut()?.format;
     const show = Boolean(format) && chatTextarea.value !== '';
     ratePrefix.hidden = !show || !format.prefix;
     rateSuffix.hidden = !show;
@@ -7428,6 +7473,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   function updateSendButton() {
     updateRateAffixes();
+    if (attachedFile) { sendButton.disabled = false; return; } // the file sends with or without a message
     if (awaitingText) { sendButton.disabled = !chatTextarea.value.trim(); return; }
     if (chatSyncReady && generalChatOn()) { sendButton.disabled = !chatTextarea.value.trim() || !chatIdle(); return; }
     if (instructionMode && !pendingTextAnswer) { sendButton.disabled = !chatTextarea.value.trim(); return; }
@@ -7504,6 +7550,187 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     ];
   };
   PANEL_ACTIONS.cancelPlanPaste = () => awaitText();
+
+  // ══ "I have a statement of work": a file attached with the paperclip. Remi doesn't read the file. What she "extracts"
+  //    is DEMO_SOW (docs/Halcyon Logistics - Enterprise AI Rollout SOW.pdf), so any file tells the same story.
+  //    Phase 2 adds people, rates and tasks from TSIA's quote to this object ══
+  const DEMO_SOW = {
+    client: 'Halcyon Logistics',
+    project: 'Enterprise AI Rollout',
+    fee: 150000,
+    budgetType: 'Fixed fee',
+    start: '2026-10-05',
+    end: '2026-12-25',
+    phases: [
+      { name: 'Readiness & Discovery', hours: 252, fixed: true },
+      { name: 'Roadmap & Business Case', hours: 180 },
+      { name: 'Governance & Enablement', hours: 200 },
+      { name: 'Rollout & Adoption', hours: 188 },
+    ],
+    deliverables: [
+      'AI Readiness Assessment', 'Prioritised transformation roadmap', 'ROI business case',
+      'Acceptable-use and governance policy', 'Champion programme playbook', 'Training curriculum and prompt library',
+      'Launch communication plan', 'Adoption dashboard', 'ROI report',
+    ],
+    roles: ['Engagement Partner', 'Senior Consultant', 'Change Manager', 'Junior Consultant'],
+    get notes() {
+      const capped = this.phases.find((phase) => phase.fixed);
+      return [
+        `Discovery is capped at ${capped.hours}h (more needs a change order)`,
+        'Supervised AI delivery agents are allowed for drafting',
+        'Data migration is out of scope',
+      ];
+    },
+    targetMargin: 35,
+  };
+  const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // The values Remi quotes, worked out from DEMO_SOW: "$150,000 fixed fee", "5 Oct – 25 Dec 2026 (12 weeks)", "820 hours across 4 phases"
+  function sowFacts(sow) {
+    const day = (iso) => new Date(`${iso}T12:00`);
+    const date = (iso, withYear) => day(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', ...(withYear && { year: 'numeric' }) });
+    const weeks = Math.ceil(((day(sow.end) - day(sow.start)) / 864e5 + 1) / 7);
+    return {
+      value: `$${sow.fee.toLocaleString('en-US')} ${sow.budgetType.toLowerCase()}`,
+      dates: `${date(sow.start)} – ${date(sow.end, true)} (${weeks} weeks)`,
+      effort: `${sow.phases.reduce((sum, phase) => sum + phase.hours, 0)} hours across ${sow.phases.length} phases`,
+    };
+  }
+  const SOW_BADGE = '<span class="cv-badge cv-badge-sow">From your SOW</span>';
+  const sowList = (items, tag = 'ul') => `<${tag}>${items.map((text) => `<li>${escapeHtml(text)}</li>`).join('')}</${tag}>`;
+  // One card row per value, in the order of the SOW
+  function sowRows(sow) {
+    const facts = sowFacts(sow);
+    return [
+      ['client', 'idCard', 'Client', escapeHtml(sow.client)],
+      ['project', 'folder', 'Project', escapeHtml(sow.project)],
+      ['value', 'moneyBag', 'Contract value', facts.value],
+      ['dates', 'calendar', 'Dates', facts.dates],
+      ['effort', 'timerSand', 'Effort', facts.effort],
+      ['phases', 'chartGantt', 'Phases', sowList(sow.phases.map((phase) => `${phase.name} ${phase.hours}h${phase.fixed ? ' (fixed)' : ''}`))],
+      ['deliverables', 'fileMultiple', 'Deliverables', `<details><summary>${sow.deliverables.length}</summary>${sowList(sow.deliverables, 'ol')}</details>`],
+      ['roles', 'users', 'Roles', escapeHtml(sow.roles.join(', '))],
+      ['notes', 'info', 'Worth knowing', sowList(sow.notes)],
+    ].map(([key, rowIcon, label, value]) => ({
+      id: `sow-${key}`, icon: rowIcon,
+      html: `<span class="cv-sow"><span><span class="cv-sow-label">${label}</span><span class="cv-sow-value">${value}</span></span>${SOW_BADGE}</span>`,
+    }));
+  }
+
+  DYNAMIC_STEPS.askForSow = () => [
+    { type: 'remiMessage', html: '<p>Great, attach it with the paperclip below and I’ll read it.</p>' },
+    { type: 'run', run: highlightAttach },
+  ];
+  // Remi's summary in the chat, then the full extraction fills the Statement of work card row by row
+  DYNAMIC_STEPS.sowRead = () => {
+    const facts = sowFacts(DEMO_SOW);
+    return [
+      {
+        type: 'remiMessage',
+        html: `<p>I’ve read your statement of work for ${escapeHtml(DEMO_SOW.client)}. Here’s what I’ll plan from:</p>
+          <ul>
+            <li><strong>${facts.value}</strong>, ${facts.dates}</li>
+            <li><strong>${facts.effort}</strong>, with ${DEMO_SOW.deliverables.length} deliverables</li>
+            <li><strong>${DEMO_SOW.roles.length} roles:</strong> ${escapeHtml(listOf(DEMO_SOW.roles))}</li>
+          </ul>`,
+      },
+      { type: 'canvasCard', id: 'sow', title: 'Statement of work', icon: 'fileMultiple', working: true, rows: [{ kind: 'shimmer' }] },
+      { type: 'cardSequence', card: 'sow', beats: sowRows(DEMO_SOW).map((row) => [row]), beatGapMs: FLOW_TIMING.sowRowGap, rowStaggerMs: 0, closingDelayMs: FLOW_TIMING.sowClosingDelay, then: 'sowNext' },
+    ];
+  };
+  // Where the margin questions start. Phase 2 replaces this step
+  DYNAMIC_STEPS.sowNext = () => [
+    { type: 'remiMessage', html: `<p>Your target margin is ${DEMO_SOW.targetMargin}%. I’ve got a few questions that will change your margin, so let’s go through them.</p>` },
+  ];
+
+  // ── The composer's attachment: one file at a time; it unlocks the text box until it's sent or removed ──
+  const attachButton = chatInput.querySelector('.cv-attach');
+  const fileInput = chatInput.querySelector('.cv-file-input');
+  const attachmentSlot = chatInput.querySelector('.cv-attachment');
+  const FILE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3.5H7.5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8z"/><path d="M14 3.5V8h4.5M9 13h6M9 16.5h4"/></svg>';
+  const REMOVE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  let attachedFile = null; // { name, size } while a file waits in the composer
+  let inputBeforeAttach = null; // the text box as it was, for when the file is removed
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  function renderFileCard(file) {
+    const card = document.createElement('div');
+    card.className = 'cv-file';
+    card.innerHTML = `<span class="cv-file-icon">${FILE_ICON}</span><span class="cv-file-meta"><span class="cv-file-name"></span><span class="cv-file-size"></span></span>`;
+    const name = card.querySelector('.cv-file-name');
+    name.textContent = file.name;
+    name.title = file.name;
+    card.querySelector('.cv-file-size').textContent = formatFileSize(file.size);
+    return card;
+  }
+  function attachFile(file) {
+    if (!attachedFile) inputBeforeAttach = { active: chatInput.classList.contains('is-active'), disabled: chatTextarea.disabled, placeholder: chatTextarea.placeholder };
+    attachedFile = { name: file.name, size: file.size };
+    const card = renderFileCard(attachedFile);
+    const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'cv-file-remove', innerHTML: REMOVE_ICON });
+    remove.setAttribute('aria-label', `Remove ${file.name}`);
+    card.append(remove);
+    attachmentSlot.replaceChildren(card);
+    attachmentSlot.hidden = false;
+    attachButton.classList.remove('is-highlighted');
+    hideInfoTooltip(); // the pointer is often still on the paperclip
+    chatInput.classList.add('is-active');
+    chatTextarea.disabled = false;
+    chatTextarea.removeAttribute('inputmode');
+    chatTextarea.placeholder = 'Add a message, or just send';
+    updateSendButton();
+    chatTextarea.focus();
+  }
+  function clearAttachment() {
+    attachedFile = null;
+    attachmentSlot.replaceChildren();
+    attachmentSlot.hidden = true;
+    fileInput.value = ''; // the same file can be picked again
+  }
+  function removeAttachedFile() {
+    const before = inputBeforeAttach;
+    clearAttachment();
+    chatInput.classList.toggle('is-active', before.active);
+    chatTextarea.disabled = before.disabled;
+    chatTextarea.placeholder = before.placeholder;
+    if (before.disabled) chatTextarea.value = '';
+    updateSendButton();
+    attachButton.focus();
+  }
+  // Sending the file replaces whatever Remi was waiting on: open replies go, as they do for a typed reply
+  function sendAttachedFile() {
+    const file = attachedFile;
+    const typed = chatTextarea.value.trim();
+    clearAttachment();
+    chatTextarea.value = '';
+    chatTextarea.placeholder = defaultPlaceholder;
+    pendingTextAnswer = null;
+    awaitingText = null;
+    instructionMode = false;
+    if (openReplies?.el.isConnected) openReplies.el.remove();
+    appendItems([
+      { type: 'fileMessage', file, text: typed },
+      { type: 'thinkingState', label: 'Reading your statement of work', durationMs: FLOW_TIMING.sowThinking, then: 'sowRead' },
+    ]);
+  }
+  let attachHighlightTimer = 0;
+  function highlightAttach() {
+    clearTimeout(attachHighlightTimer);
+    attachButton.classList.remove('is-highlighted');
+    void attachButton.offsetWidth; // restart the pulse
+    attachButton.classList.add('is-highlighted');
+    attachHighlightTimer = setTimeout(() => attachButton.classList.remove('is-highlighted'), 2000);
+  }
+  attachButton.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const [file] = fileInput.files;
+    if (file) attachFile(file);
+  });
+  attachmentSlot.addEventListener('click', (event) => {
+    if (event.target.closest('.cv-file-remove')) removeAttachedFile();
+  });
 
   // ── "I have a date": typed dates, read into a start and/or a due date ──
   const MONTH_NAMES = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -8025,7 +8252,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const generalChatOn = () => canvas.dataset.stage === 'canvas' && flowStarted && !pendingTextAnswer && !awaitingText && !instructionMode;
   const chatIdle = () => Boolean(openReplies?.el.isConnected) || setupDone;
   function syncChatInput() {
-    if (!chatSyncReady || pendingTextAnswer || awaitingText || instructionMode) return;
+    if (!chatSyncReady || attachedFile || pendingTextAnswer || awaitingText || instructionMode) return;
     const on = generalChatOn();
     chatInput.classList.toggle('is-active', on);
     chatTextarea.disabled = !on;
@@ -8604,7 +8831,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   // Block disallowed keystrokes before they land, so they simply never appear
   chatTextarea.addEventListener('beforeinput', (event) => {
-    if (!pendingTextAnswer || !event.inputType.startsWith('insert')) return;
+    if (attachedFile || !pendingTextAnswer || !event.inputType.startsWith('insert')) return;
     const format = NUMBER_FORMATS[pendingTextAnswer.freeText.format];
     if (event.data === null) {
       if (event.inputType === 'insertLineBreak' || event.inputType === 'insertParagraph') event.preventDefault();
@@ -8615,7 +8842,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     if (!isAllowedNumberText(next, format)) event.preventDefault();
   });
   chatTextarea.addEventListener('input', () => {
-    if (pendingTextAnswer) {
+    if (pendingTextAnswer && !attachedFile) {
       const format = NUMBER_FORMATS[pendingTextAnswer.freeText.format];
       let text = chatTextarea.value;
       if (!isAllowedNumberText(text, format)) text = sanitizeNumberText(text, format);
@@ -8626,9 +8853,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     updateSendButton();
   });
   chatTextarea.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (pendingTextAnswer) submitTextAnswer(); else if (awaitingText) submitAwaitedText(); else if (instructionMode) submitInstructionOrValues(); else if (generalChatOn()) submitGeneral(); }
+    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (attachedFile) sendAttachedFile(); else if (pendingTextAnswer) submitTextAnswer(); else if (awaitingText) submitAwaitedText(); else if (instructionMode) submitInstructionOrValues(); else if (generalChatOn()) submitGeneral(); }
   });
-  sendButton.addEventListener('click', () => { if (pendingTextAnswer) submitTextAnswer(); else if (awaitingText) submitAwaitedText(); else if (instructionMode) submitInstructionOrValues(); else if (generalChatOn()) submitGeneral(); });
+  sendButton.addEventListener('click', () => { if (attachedFile) sendAttachedFile(); else if (pendingTextAnswer) submitTextAnswer(); else if (awaitingText) submitAwaitedText(); else if (instructionMode) submitInstructionOrValues(); else if (generalChatOn()) submitGeneral(); });
 
   // ── Entrance: items flagged animateOnMount play in sequence, once per session ──
   const TYPE_MS_PER_CHAR = 8;

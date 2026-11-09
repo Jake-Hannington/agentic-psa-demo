@@ -12494,6 +12494,7 @@ The client needs to sign off designs before development starts.`;
         { type: 'remiMessage', html: '<p>I’ve found a few people on this project without a role. I’ve suggested roles for three of them from their past work. One needs your approval, because it’s a new role on your account. What would you like to do?</p>' },
         options,
         { ...panel, gaps: [{ ...peopleGap, people: sowGapRows() }] },
+        { type: 'run', run: () => GAP_ROWS.get('people-missing-role').setOpen(true) }, // open on arrival: the panel's one section
       ];
     },
     whyRoles: () => [

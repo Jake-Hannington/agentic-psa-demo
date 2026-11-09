@@ -7582,6 +7582,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
         'Data migration is out of scope.',
       ];
     },
+    // Mirrors TSIA's Rebalancing after recommendations 1 and 2 (tsia/index.html, _applyRemiSuggestion and approveRemiRec):
+    // recommendation 1 hands the AI Readiness Assessment to the Junior Consultant Agent and sets BUD.costTarget to $83,600
+    // (44.3%); recommendation 2 changes no figures in TSIA. Remi's timeline, weeks later, starts from here
+    rebalancedCost: 83600,
+    get rebalancedMargin() { return ((this.fee - this.rebalancedCost) / this.fee) * 100; }, // REBALANCED_MARGIN: 44.3%
     targetMargin: 35.2, // not in the SOW: the margin Remi's proposed staffing reaches (TSIA's project: $97,200 cost on $150,000), which she offers as the target
   };
   // What the SOW doesn't say and Remi doesn't need to ask: her usual answers
@@ -7628,6 +7633,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // so the options keep their order (Barry and Emily still share a rate; Ryan stays cheaper than Hannah)
   const SOW_RATE_TOP_UP = { priya: 1, wakaz: 1, abbey: 1, olivia: 1 };
   const SOW_KEY = 'remiSow';
+  // What the timeline needs to rebuild the created plan: the setup answers and every gap-filling answer (Elena's role included)
+  function sowPlanState() {
+    return {
+      setup: structuredClone(SETUP),
+      people: PEOPLE.map(({ id, status, role }) => ({ id, status, role })),
+      tasks: ALL_TASKS.map(({ id, role, roleStatus, extraRoles, estimate, estimateStatus }) => ({ id, role, roleStatus, extraRoles, estimate, estimateStatus })),
+      rates: RATE_GAPS.map(({ id, billable, cost }) => ({ id, billable: { value: billable.value, status: billable.status }, cost: { value: cost.value, status: cost.status } })),
+    };
+  }
+  let sowTimeline = false; // the SOW route's plan is the one created: the timeline starts from TSIA's Rebalancing (see acAgreed)
   function saveSowPlan(extra = {}) {
     try {
       const saved = JSON.parse(sessionStorage.getItem(SOW_KEY) || '{}');
@@ -7637,6 +7652,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
   function applySow(sow) {
     sowSetup = true;
+    sowTimeline = true;
     delete SUGGESTION_OPTIONS['front-end'].olivia; // 006's front-end developer: the SOW route offers the placeholder only
     applySowPlan(sow);
     SETUP.instructions.push(...sow.instructions.map((text) => ({ text })));
@@ -9268,6 +9284,15 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const sow = JSON.parse(sessionStorage.getItem(SOW_KEY) || 'null');
     if (sow && PROJECT.happyPath && location.hash !== '#start') {
       applySowPlan(DEMO_SOW);
+      sowTimeline = true;
+      sowGapRows(); // Elena's row and the role she and her task share
+      if (sow.setup) Object.assign(SETUP, sow.setup);
+      for (const saved of sow.people ?? []) Object.assign(PEOPLE.find((p) => p.id === saved.id) ?? {}, saved);
+      for (const saved of sow.tasks ?? []) Object.assign(ALL_TASKS.find((t) => t.id === saved.id) ?? {}, saved);
+      for (const saved of sow.rates ?? []) {
+        const gap = RATE_GAPS.find((g) => g.id === saved.id);
+        if (gap) { Object.assign(gap.billable, saved.billable); Object.assign(gap.cost, saved.cost); }
+      }
       Object.assign(SETUP, { costPriority: sow.costPriority, useAgents: sow.useAgents });
       PROJECT.budget.targetMargin = sow.targetMargin;
       ORIGINAL_BUDGET.targetMargin = sow.targetMargin;
@@ -9753,7 +9778,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     resetAftercare();
     recordActivity({ job: 'Create resource plan', project: PROJECT.name, at: planCreatedAt.toISOString(), ms: FLOW_TIMING.toastDelay + FLOW_TIMING.planReadyDelay });
     try { sessionStorage.setItem('remiPlanCreated', JSON.stringify({ project: PROJECT.name, at: planCreatedAt.toISOString() })); } catch { /* storage unavailable */ }
-    if (sowSetup) saveSowPlan({ committed });
+    if (sowSetup) saveSowPlan({ committed, ...sowPlanState() });
     if (!askAiShown) renderAskAiTeammates(); // Ask AI now offers to view the plan
     setSuggestionsOpen(false);
     canvas.close();
@@ -11113,7 +11138,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     aftercare = { conflicts: {}, tasks: {} };
     try { sessionStorage.removeItem(AC_KEY); } catch { /* storage unavailable */ }
   }
-  const acAgreed = () => (PROJECT.happyPath ? planFor(committed) : currentPlan ?? planFor(committed));
+  const acAgreedBuilt = () => (PROJECT.happyPath ? planFor(committed) : currentPlan ?? planFor(committed));
+  // SOW route: after the trip to TSIA the agreed plan costs what TSIA's Rebalancing left (DEMO_SOW.rebalancedCost). The plans
+  // the aftercare compares with it move by the same amount, so each conflict's cost and margin change stays as calculated
+  const acRebalanced = (plan, built = acAgreedBuilt()) => (sowTimeline ? { ...plan, cost: plan.cost - (built.cost - DEMO_SOW.rebalancedCost) } : plan);
+  const acAgreed = () => acRebalanced(acAgreedBuilt());
   const AC_EVENTS = PROJECT.happyPath ? DEMO_006.aftercareEvents : [];
   const acToday = () => addDays(atNoon(PROJECT.start), DEMO_006.fastForwardDays);
   // The plan's sources with every confirmed assignment kept (booked blocks still staff themselves), the events applied to
@@ -11158,13 +11187,14 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       .sort((a, b) => a.person.costRate - b.person.costRate || b.room - a.room);
   }
   function acState006() {
-    const agreed = acAgreed();
+    const built = acAgreedBuilt();
+    const agreed = acRebalanced(built, built);
     const events = Boolean(aftercare.fastForwarded);
-    const before = planFor(committed, acPlanSources(PLAN_SOURCES, agreed.built, { events }));
+    const before = acRebalanced(planFor(committed, acPlanSources(PLAN_SOURCES, agreed.built, { events })), built);
     const conflicts = events ? acConflicts006(before.built, SETUP) : [];
     const moves = {};
     for (const c of conflicts) if (aftercare.conflicts[c.id]) for (const t of c.tasks) moves[t.id] = aftercare.conflicts[c.id];
-    const now = Object.keys(moves).length ? planFor(committed, acPlanSources(PLAN_SOURCES, agreed.built, { events, moves })) : before;
+    const now = Object.keys(moves).length ? acRebalanced(planFor(committed, acPlanSources(PLAN_SOURCES, agreed.built, { events, moves })), built) : before;
     const openConflicts = conflicts.filter((c) => !aftercare.conflicts[c.id]);
     return { plan: agreed, now, conflicts, openConflicts, openTasks: [], delay: Math.max(0, ...openConflicts.map((c) => c.delay)), costDelta: now.cost - agreed.cost, revenueDelta: 0 };
   }

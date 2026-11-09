@@ -6836,8 +6836,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
 
   // ── Why this role? / Why this estimate?: she shows the work behind a suggestion in the chat, then picks up where the conversation was ──
   let detailsFor = null;
-  function askRemi({ question, thinking, answer }) {
-    detailsFor = { answer, resume: openReplies?.el.isConnected ? openReplies.item : null, question: openReplies?.question };
+  function askRemi({ question, thinking, answer, followUp }) {
+    detailsFor = { answer, followUp, resume: openReplies?.el.isConnected ? openReplies.item : null, question: openReplies?.question };
     if (detailsFor.resume) openReplies.el.remove(); // the replies come back after her explanation
     appendItems([
       { type: 'userMessage', text: question },
@@ -6845,10 +6845,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     ]);
   }
   // After her explanation Remi asks the question the replies answer again, then puts them back
-  DYNAMIC_STEPS.remiDetails = () => [
+  DYNAMIC_STEPS.remiDetails = () => (detailsFor.followUp ? [detailsFor.answer(), ...detailsFor.followUp()] : [
     detailsFor.answer(),
     ...(detailsFor.resume ? [...(detailsFor.question ? [{ type: 'remiMessage', html: detailsFor.question, question: detailsFor.question }] : []), detailsFor.resume] : []),
-  ];
+  ]);
   // "What are roles?" (People missing a role): a quick guide from the Teamwork docs, then back to where she was
   const ROLES_DOC_URL = 'https://support.teamwork.com/projects/people/roles';
   function explainRoles() {
@@ -6866,6 +6866,15 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   }
   function askRemiForDetails(person) {
     const first = person.name.split(' ')[0];
+    if (sowSetup && person === ABBEY && ABBEY.status === 'needsReview') {
+      const workings = roleWorkings(person);
+      askRemi({
+        question: `Why do you suggest ${person.suggestion.role} for ${first}?`, thinking: `Looking at ${first}’s project work`,
+        answer: () => ({ ...workings, html: `${workings.html}<p>What would you like to do?</p>` }),
+        followUp: () => SOW_GAP_STEPS.peopleReview().slice(1), // the approval's highlight and buttons, not its message
+      });
+      return;
+    }
     askRemi({ question: `Why do you suggest ${person.suggestion.role} for ${first}?`, thinking: `Looking at ${first}’s project work`, answer: () => roleWorkings(person) });
   }
   function askRemiAboutTaskRole(item) {
@@ -7000,7 +7009,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   onGapChange(() => {
     if (awaitingAbbeyInPanel && ABBEY.status !== 'needsReview') {
       awaitingAbbeyInPanel = false;
-      if (awaitingText === readAbbeyRole) awaitText(); // set in the panel: no need to type it
+      if (awaitingText === readAbbeyRole) { chatTextarea.value = ''; awaitText(); } // set in the panel: no need to type it, so nothing half-typed stays
       queueMicrotask(() => appendItems(stepItems('abbeyRoleSetInPanel')));
     }
   });

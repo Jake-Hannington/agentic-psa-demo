@@ -7580,7 +7580,6 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       return [
         `Staff the SOW’s roles: ${listOf(this.roles)}`,
         `Cap ${capped.name} at ${capped.hours}h. More needs a change order.`,
-        'Supervised AI delivery agents can do first-pass drafting.',
         'Data migration is out of scope.',
       ];
     },
@@ -7680,14 +7679,20 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     if (!sowSetup) return items;
     return items.map((item) => (item.type === 'optionSet' ? { ...item, options: item.options.map((o) => ({ ...o, next: 'askSowAgents' })) } : item));
   };
-  DYNAMIC_STEPS.askSowAgents = () => {
+  function sowAgentsOptions() {
     const after = STEPS.askCostPriority.find((item) => item.type === 'optionSet').options[0]; // where the staffing question went next
     const reply = (label, row, value) => ({ label, row, card: 'people', icon: 'idCard', rowId: 'askSowAgents', pending: after.pending, next: after.next, setup: { key: 'useAgents', value } });
-    return [
-      { type: 'remiMessage', html: '<p>Some of the SOW’s work, like first-pass drafting, has been delivered by delivery agents on similar projects. Do you want to leverage delivery agents in this project?</p>' },
-      { type: 'optionSet', options: [reply('Yes, use delivery agents', 'Use delivery agents where they’ve delivered similar work', true), reply('No, I’ll decide later', 'Don’t plan delivery agents for now', false)] },
-    ];
-  };
+    return [reply('Yes, use delivery agents', 'Use delivery agents where they’ve delivered similar work', true), reply('No, I’ll decide later', 'Don’t plan delivery agents for now', false)];
+  }
+  DYNAMIC_STEPS.askSowAgents = () => [
+    { type: 'remiMessage', html: '<p>Some of the SOW’s work, like first-pass drafting, has been delivered by delivery agents on similar projects. Do you want to use delivery agents in this project?</p>' },
+    { type: 'optionSet', options: [{ label: '✨ What are delivery agents?', next: 'sowAgentsExplained' }, ...sowAgentsOptions()] },
+  ];
+  // The explainer, then the question's own two answers again
+  DYNAMIC_STEPS.sowAgentsExplained = () => [
+    { type: 'remiMessage', html: '<p>Delivery agents are AI teammates that take on repeatable work, like drafting or assessments, with a person reviewing what they produce. They’re costed like any team member, so you can see their effect on margin.</p>' },
+    { type: 'optionSet', options: sowAgentsOptions() },
+  ];
 
   // Budget: read from the SOW as the project's budget is read in the 006 route, then the one value it doesn't give
   STEPS.sowBudget = [

@@ -5180,7 +5180,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // Role → the group the plan reports it under. Roles not listed report under their own name
   const ROLE_GROUPS = {
     Designer: 'Design', 'Product Designer': 'Design', 'Visual Designer': 'Design',
-    'Motion Designer': 'Motion design',
+    'Motion Designer': 'Motion design', 'Change Manager': 'Motion design', // Change Manager: the SOW route's name for the role Abbey's row asks for
     Developer: 'Development', 'Frontend Developer': 'Development', 'Backend developer': 'Development',
     'Product manager': 'Product management',
     Researcher: 'Research', 'UX Researcher': 'Research', 'Accessibility Specialist': 'Research',
@@ -6893,6 +6893,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     });
   }
   function roleWorkings(person) {
+    if (person.suggestion.why) return { type: 'remiMessage', html: `<p><strong>Why I suggested ${person.suggestion.role} for ${person.name.split(' ')[0]}</strong></p><p>${person.suggestion.why}</p>` };
     const first = person.name.split(' ')[0];
     const { role, details } = person.suggestion;
     const taskCount = details.reduce((n, d) => n + d.tasks.length, 0);
@@ -7718,6 +7719,45 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     { type: 'remiMessage', html: '<p>Great, I’m ready to build your plan. Check everything on the right, and select ‘Generate plan’ when you’re happy.</p>' },
     ...STEPS.budgetDone.slice(2),
   ] : STEPS.budgetDone);
+
+  // ══ Gap filling in the SOW route: only "People missing a role", with TSIA's team. Elena's row is 006's Abbey (the role that
+  //    needs approval), renamed with her new role, so approving it does exactly what approving Abbey does. Priya, Tom and Sam
+  //    are display-only: they aren't on 006's team, so the plan stays 006's. 006's other people keep their applied suggestions ══
+  const SOW_ROLE_PEOPLE = [
+    { id: 'sow-priya', name: 'Priya Raman', avatar: { initials: 'PR', background: '#e3dcfb', color: '#4b3aa8' }, role: 'Engagement Partner', work: 'engagement leadership tasks',
+      reason: 'Led engagements and business cases on 8 tasks across 3 projects', evidence: ['8 Engagement and business case tasks', '3 Projects with similar work'],
+      why: 'Priya’s recent work is engagement leadership, use-case discovery and business cases, which is Engagement Partner work. The SOW makes the Engagement Partner accountable for the engagement and the steering committee sign-off.' },
+    { id: 'abbey', name: 'Elena Marsh', avatar: { initials: 'EM', background: '#fbd0e6', color: '#9d1c5c' }, role: 'Change Manager', work: 'governance and change tasks',
+      reason: 'Led governance and change work on 6 tasks across 3 projects', evidence: ['6 governance and change tasks', '3 projects with similar work'],
+      why: 'Elena’s recent work is mostly acceptable-use policies, champion programmes and launch communication, which is change management work. The SOW’s Governance & Enablement and Rollout & Adoption phases need exactly that, so a Change Manager role lets me plan her there.' },
+    { id: 'sow-tom', name: 'Tom Okafor', avatar: { initials: 'TO', background: '#d6e4fd', color: '#1f4f8a' }, role: 'Senior Consultant', work: 'interview, roadmap and review tasks',
+      reason: 'Led interviews, roadmaps and technical reviews on 9 tasks across 3 projects', evidence: ['9 Interview, roadmap and review tasks', '3 Projects with similar work'],
+      why: 'Tom’s recent work is stakeholder interviews, transformation roadmaps and technical reviews, which is Senior Consultant work. The SOW has the Senior Consultant leading the interviews, the roadmap and the technical reviews.' },
+    { id: 'sow-sam', name: 'Sam Delaney', avatar: { initials: 'SD', background: '#d7f0dc', color: '#1f6b35' }, role: 'Junior Consultant', work: 'assessment, analysis and modelling tasks',
+      reason: 'Delivered assessments, analysis and modelling on 12 tasks across 4 projects', evidence: ['12 Assessment and modelling tasks', '4 Projects with similar work'],
+      why: 'Sam’s recent work is assessments, analysis, modelling and dashboards, which is Junior Consultant work. The SOW gives the Junior Consultant the assessment, modelling, curriculum and dashboard work.' },
+  ];
+  let sowGapPeople = null; // the rows "People missing a role" shows in the SOW route, built once when the SOW is read
+  function sowGapRows() {
+    if (sowGapPeople) return sowGapPeople;
+    const asSuggestion = (p, isNewRole) => ({
+      role: p.role, isNewRole, reason: p.reason, evidence: p.evidence, work: p.work, why: p.why,
+      summary: `Remi suggests ${isNewRole ? 'creating ' : ''}${/^[AEIOU]/i.test(p.role) ? 'an' : 'a'} ${p.role} role for ${p.name.split(' ')[0]} based on ${p.name.split(' ')[0] === 'Elena' ? 'her' : 'their'} project work`,
+      createReason: isNewRole ? `Create a ${p.role} role for ${p.name.split(' ')[0]} based on 6 tasks across 3 projects.` : undefined,
+    });
+    // Elena: Abbey's row, renamed, with the role she and the task that shares it need renamed together, so they still match
+    const elena = SOW_ROLE_PEOPLE.find((p) => p.id === 'abbey');
+    const oldRole = ABBEY.suggestion.role;
+    Object.assign(ABBEY, { name: elena.name, avatar: elena.avatar, suggestion: { ...ABBEY.suggestion, ...asSuggestion(elena, true) } });
+    if (ABBEY.role === oldRole) ABBEY.role = elena.role;
+    for (const t of ALL_TASKS.filter((x) => x.roleSuggestion?.role === oldRole)) {
+      Object.assign(t.roleSuggestion, { role: elena.role, createReason: `Create a ${elena.role} role based on ${t.roleSuggestion.details?.length ?? 3} similar tasks across your projects.` });
+      if (t.role === oldRole) t.role = elena.role;
+    }
+    sowGapPeople = SOW_ROLE_PEOPLE.map((p) => (p.id === 'abbey' ? ABBEY : { id: p.id, name: p.name, avatar: p.avatar, status: 'suggested', role: p.role, suggestion: { ...asSuggestion(p, false), details: [] } }));
+    return sowGapPeople;
+  }
+  const sowFirst = (person) => person.name.split(' ')[0];
 
   // ── The composer's attachment: one file at a time; it unlocks the text box until it's sent or removed ──
   const attachButton = chatInput.querySelector('.cv-attach');
@@ -9653,9 +9693,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // Continue with details still missing: Remi says what she'll leave out before building the plan
   const gapsDialog = document.getElementById('gaps-dialog');
   function confirmGapsLeft() {
-    const people = PEOPLE.filter((p) => !isRoleResolved(p)).length;
-    const tasks = ALL_TASKS.filter((t) => !isTaskComplete(t)).length;
-    const rates = RATE_GAPS.filter((p) => !isRateComplete(p)).length;
+    const people = (sowSetup ? sowGapRows() : PEOPLE).filter((p) => !isRoleResolved(p)).length;
+    const tasks = sowSetup ? 0 : ALL_TASKS.filter((t) => !isTaskComplete(t)).length; // the SOW route shows people only
+    const rates = sowSetup ? 0 : RATE_GAPS.filter((p) => !isRateComplete(p)).length;
     if (!people && !tasks && !rates) { enterPlan(); return; }
     const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
     const parts = [(people || rates) && count(people + rates, 'person', 'people'), tasks && count(tasks, 'task', 'tasks')].filter(Boolean);
@@ -12344,6 +12384,57 @@ The client needs to sign off designs before development starts.`;
   });
   PANEL_ACTIONS.budgetChangeStart = () => { changing = { field: null, resume: 'budgetConfirm' }; };
   PANEL_ACTIONS.budgetDatesReset = () => { SETUP.budgetDates = null; };
+
+  // Gap filling in the SOW route: the same steps as 006, with Elena in Abbey's place and no rates or tasks to talk about
+  const SOW_GAP_STEPS = {
+    gapsOpening: () => {
+      const [options, panel] = STEPS.gapsOpening.slice(1);
+      const peopleGap = panel.gaps.find((g) => g.id === 'people-missing-role');
+      return [
+        { type: 'remiMessage', html: '<p>I’ve found a few people on this project without a role. I’ve suggested roles for three of them from their past work. One needs your approval, because it’s a new role on your account. What would you like to do?</p>' },
+        options,
+        { ...panel, gaps: [{ ...peopleGap, people: sowGapRows() }] },
+      ];
+    },
+    whyRoles: () => [
+      { type: 'remiMessage', html: '<p>Roles tell me what each person does, so I can match them to the SOW’s work. Without one, I can’t plan someone onto the right phases. If I need to create something new, like a role, I’ll always ask you first.</p>' },
+      STEPS.whyRoles[1],
+    ],
+    peopleReview: () => {
+      if (ABBEY.status !== 'needsReview') return [{ type: 'remiMessage', html: '<p>Nothing needs approval now. Hit Continue when you’re ready.</p>' }];
+      const first = sowFirst(ABBEY);
+      return [
+        { type: 'remiMessage', html: `<p>${ABBEY.name} doesn’t have a role. She’s led governance and change work on 6 tasks across 3 projects, but your account doesn’t have a ${ABBEY.suggestion.role} role yet. Without it, I can’t match ${first === 'Elena' ? 'her' : first} to the SOW’s governance and rollout work. Should I create it?</p>` },
+        { type: 'panelAction', action: 'highlightAbbey' },
+        { type: 'optionSet', options: [
+          { label: `Approve ${ABBEY.suggestion.role} role`, action: 'approveAbbey', next: 'abbeyApproved' },
+          { label: 'Choose another role', next: 'chooseAnotherRole' },
+          { label: 'Skip', next: 'abbeySkipped' },
+        ] },
+      ];
+    },
+    reviewSummary: () => {
+      const suggested = sowGapRows().filter((p) => p !== ABBEY);
+      const pending = ABBEY.status === 'needsReview';
+      return [
+        { type: 'remiMessage', html: `<p><strong>${suggested.length} people have suggested roles</strong><br>${listOf(suggested.map((p) => `${p.name} as ${p.role}`))}, from their past work.</p>
+          ${pending ? `<p><strong>1 person is missing a role</strong><br>${ABBEY.name} needs a new role, so I need your approval.</p><p>What would you like to do?</p>` : '<p>Everything’s ready. Hit Continue when you’re ready.</p>'}` },
+        ...(pending ? [{ type: 'optionSet', options: [{ label: 'Show me what needs approval', next: 'peopleReview' }] }] : []),
+      ];
+    },
+    abbeyApproved: () => [{ type: 'remiMessage', html: `<p>Done, I’ll create the ${ABBEY.suggestion.role} role when you confirm the plan. That’s everything that needed you. Hit Continue when you’re ready.</p>` }],
+    chooseAnotherRole: () => [
+      { type: 'remiMessage', html: `<p>Sure thing, you can change the role manually or tell me what role you want to give ${sowFirst(ABBEY)} and I can do it for you.</p>` },
+      { type: 'panelAction', action: 'awaitAbbeyRole' },
+    ],
+    abbeySkipped: () => [{ type: 'remiMessage', html: `<p>No problem, I’ll leave ${sowFirst(ABBEY)} out of the plan for now. You can set her role any time. Hit Continue when you’re ready.</p>` }],
+    abbeyRoleChosen: () => [{ type: 'remiMessage', html: `<p><strong>${sowFirst(ABBEY)}’s role is set to ${ABBEY.role}</strong><br>That’s everything that needed you. Hit Continue when you’re ready.</p>` }],
+    abbeyRoleSetInPanel: () => [{ type: 'remiMessage', html: `<p><strong>${ABBEY.status === 'suggested' ? `✅ ${ABBEY.role} approved for ${sowFirst(ABBEY)}` : `${sowFirst(ABBEY)}’s role is set to ${ABBEY.role}`}</strong><br>That’s everything that needed you. Hit Continue when you’re ready.</p>` }],
+  };
+  for (const [name, sowStep] of Object.entries(SOW_GAP_STEPS)) {
+    const routeStep = DYNAMIC_STEPS[name];
+    DYNAMIC_STEPS[name] = () => (sowSetup ? sowStep() : routeStep?.());
+  }
 
   // The SOW brings a new budget, so it isn't read from the project (set last, over the other routes' own readBudget)
   const projectReadBudget = DYNAMIC_STEPS.readBudget;

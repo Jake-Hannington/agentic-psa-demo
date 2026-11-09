@@ -7604,6 +7604,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     Object.assign(ORIGINAL_BUDGET, PROJECT.budget);
     BUDGET = sow.fee;
     TARGET_MARGIN = sow.targetMargin;
+    const placeholder = PEOPLE_DATA.find((p) => p.id === 'fe-placeholder');
+    if (placeholder) placeholder.name = 'New hire or contractor'; // the summary's placeholder: someone to hire or contract in, not 006's front-end developer
     if (sowRatesScaled) return;
     sowRatesScaled = true;
     const scale = (n) => (n == null ? n : Math.round(n * (sow.fee / DEMO_006.fee)));
@@ -7616,12 +7618,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     }
   }
   const SOW_KEY = 'remiSow';
-  function saveSowPlan() {
-    try { sessionStorage.setItem(SOW_KEY, JSON.stringify({ costPriority: SETUP.costPriority, useAgents: SETUP.useAgents, targetMargin: PROJECT.budget.targetMargin })); } catch { /* storage unavailable */ }
+  function saveSowPlan(extra = {}) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SOW_KEY) || '{}');
+      sessionStorage.setItem(SOW_KEY, JSON.stringify({ ...saved, costPriority: SETUP.costPriority, useAgents: SETUP.useAgents, targetMargin: PROJECT.budget.targetMargin, ...extra }));
+    } catch { /* storage unavailable */ }
   }
   // Everything the SOW answers is set now, before the setup reads it, the way a pasted plan's values are
   function applySow(sow) {
     sowSetup = true;
+    delete SUGGESTION_OPTIONS['front-end'].olivia; // 006's front-end developer: the SOW route offers the placeholder only
     applySowPlan(sow);
     SETUP.instructions.push(...sow.instructions.map((text) => ({ text })));
     saveSowPlan();
@@ -9734,6 +9740,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     resetAftercare();
     recordActivity({ job: 'Create resource plan', project: PROJECT.name, at: planCreatedAt.toISOString(), ms: FLOW_TIMING.toastDelay + FLOW_TIMING.planReadyDelay });
     try { sessionStorage.setItem('remiPlanCreated', JSON.stringify({ project: PROJECT.name, at: planCreatedAt.toISOString() })); } catch { /* storage unavailable */ }
+    if (sowSetup) saveSowPlan({ committed });
     if (!askAiShown) renderAskAiTeammates(); // Ask AI now offers to view the plan
     setSuggestionsOpen(false);
     canvas.close();
@@ -9774,7 +9781,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const { kind } = planToast.dataset;
     const ready = PROTOTYPE.afterCreatePlan && kind === 'ready';
     hideToast();
-    if (ready) showView('timeline');
+    if (ready && sowSetup) location.href = '/tsia/#stage=5'; // the SOW route goes on in TSIA: Enterprise AI Rollout's Project · Schedule
+    else if (ready) showView('timeline');
   });
 
   function setActionsEmpty(empty) {
@@ -9939,6 +9947,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function frontEndNote(built) {
     const gap = unplannedWork(built).filter((t) => groupOf(t.role) === 'Development');
     if (!gap.length) return null;
+    if (sowSetup) return sowGapStatement(gap);
     const limit = SETUP.capacity.mode === 'limit' ? `your ${SETUP.capacity.value}% capacity limit` : 'their billable targets';
     const keptOff = SETUP.instructions.filter((i) => i.exclude === 'Development').map((i) => personById(i.person).name);
     return `${taskCount(gap).replace(/tasks? /, (m) => `front-end ${m}`)} can’t be planned yet. The front-end developers on this project are at ${limit}${keptOff.length ? `, and you asked me not to give ${listOf(keptOff)} development work` : ''}.`;
@@ -9958,6 +9967,28 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       },
     });
   }
+  try { // the SOW route's created plan, after a reload (see saveSowPlan); here, once 006's options exist
+    const sow = JSON.parse(sessionStorage.getItem(SOW_KEY) || 'null');
+    if (sow?.committed && PROJECT.happyPath && location.hash !== '#start') committed = Object.fromEntries(Object.entries(sow.committed).filter(([actionId, optionId]) => SUGGESTION_OPTIONS[actionId]?.[optionId]));
+  } catch { /* storage unavailable */ }
+  // The SOW route words 006's front-end suggestion for the SOW: the same unplanned work and hours, a placeholder to hire or
+  // contract in, and no front-end wording. The note says "in the second half" only when every task is in the last two phases
+  const sowFrontEnd = { ...ACTIONS['front-end'] };
+  function sowGapWhen(gap) {
+    const secondHalf = PHASES.slice(Math.ceil(PHASES.length / 2)).map((p) => p.id);
+    return gap.every((t) => secondHalf.includes(t.phase)) ? { where: 'in the second half of the project', span: 'for the second half' } : { where: 'later in the project', span: 'for later in the project' };
+  }
+  const sowGapStatement = (gap) => `${taskCount(gap)} ${sowGapWhen(gap).where} ${gap.length === 1 ? 'has' : 'have'} no one to do ${gap.length === 1 ? 'it' : 'them'}. Nobody with the right role is free from ${PHASES[Math.ceil(PHASES.length / 2)].name} onwards.`;
+  const SOW_PLACEHOLDER_ROLE = 'Hire or contract in later';
+  Object.assign(ACTIONS['front-end'], {
+    desc: (gap) => (sowSetup ? [`${gap.length} ${plural(gap.length, 'task', 'tasks')}`, formatHours(gap.reduce((sum, t) => sum + t.estimate, 0)), 'No one free with the right role'] : sowFrontEnd.desc(gap)),
+    note: (view) => (sowSetup ? `${sowGapStatement(ACTIONS['front-end'].gap(view))} Should I add a placeholder you can hire or contract for later?` : sowFrontEnd.note(view)),
+    title: (option) => (sowSetup && personById(option.person).placeholder ? `Add a placeholder ${sowGapWhen(ACTIONS['front-end'].gap(currentPlan)).span}` : sowFrontEnd.title(option)),
+    done(option, gap) {
+      if (!sowSetup) return sowFrontEnd.done(option, gap);
+      return `I’ve booked ${formatHours(gap.reduce((sum, t) => sum + t.estimate, 0))} for a new placeholder and assigned the ${gap.length} ${plural(gap.length, 'task', 'tasks')} to it, so everything in the plan now has someone on it. You can hire or contract in for it later.`;
+    },
+  });
   // An option's delivery date and margin, against the plan on screen
   function optionImpact(actionId, optionId) {
     const plan = planFor({ ...committed, [actionId]: optionId });
@@ -9998,7 +10029,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     };
   }
   function actionDetail(actionId) {
-    const options = Object.entries(SUGGESTION_OPTIONS[actionId]).map(([id, option]) => ({ id, title: ACTIONS[actionId].title(option), ...optionImpact(actionId, id) }));
+    const options = Object.entries(SUGGESTION_OPTIONS[actionId]).map(([id, option]) => ({ id, title: ACTIONS[actionId].title(option), ...optionImpact(actionId, id) }))
+      .map((o) => (sowSetup && personById(SUGGESTION_OPTIONS[actionId][o.id].person).placeholder ? { ...o, role: SOW_PLACEHOLDER_ROLE } : o));
     return { note: ACTIONS[actionId].note(currentPlan), options };
   }
   // Each card shows while its work is unplanned in this plan; returns whether any card is showing
@@ -10011,6 +10043,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       const card = actionCard(id);
       card.hidden = !gap.length;
       if (gap.length) card.querySelector('.pl-action-desc').innerHTML = [].concat(action.desc(gap)).join('<span class="pl-dot-sep" aria-hidden="true"></span>');
+      if (id === 'front-end') card.querySelector('.pl-action-title').textContent = sowSetup ? 'Tasks with no one to do them' : 'Front-end development tasks';
       any ||= gap.length > 0;
       if (gap.length) count += 1;
     }

@@ -5520,7 +5520,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     if (!deadline || !completion) return null;
     const late = daysBetween(deadline.due, completion);
     const days = `${late} ${late === 1 ? 'day' : 'days'}`;
-    if (late < 0) return { tone: 'good', text: `↑ +${-late} ${late === -1 ? 'day' : 'days'} earlier` };
+    if (late < 0) return { tone: 'good', text: `↑ ${sowSetup ? '' : '+'}${-late} ${late === -1 ? 'day' : 'days'} earlier` }; // the SOW route drops the +
     if (late === 0) return { tone: 'good', text: '✓ On time' };
     return { tone: completion <= deadline.latest ? 'warn' : 'bad', text: `↓ ${days} later` }; // amber while it's within the flexibility
   }
@@ -7745,16 +7745,19 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     BUDGET = sow.fee;
     TARGET_MARGIN = sow.targetMargin;
     const placeholder = PEOPLE_DATA.find((p) => p.id === 'fe-placeholder');
-    if (placeholder) placeholder.name = 'New hire or contractor'; // the summary's placeholder: someone to hire or contract in, not 006's front-end developer
+    if (placeholder) placeholder.name = 'Developer placeholder'; // the summary's placeholder, not 006's front-end developer
     // Elena Marsh is 006's Abbey under TSIA's name (see SOW_ROLE_PEOPLE): the same person everywhere the plan shows her
     const elena = PEOPLE_DATA.find((p) => p.id === 'abbey');
     if (elena) Object.assign(elena, { name: 'Elena Marsh', avatar: { initials: 'EM', background: '#fbd0e6', color: '#9d1c5c' } });
     if (sowRatesScaled) return;
     sowRatesScaled = true;
-    // Rates scale so the summary's plan, once the placeholder is added, costs what TSIA's project does: $97,200 on $150,000
-    // (35.2%). That plan costs SOW_006_PLAN_COST at 006's own rates; rounding to whole dollars leaves SOW_RATE_TOP_UP to add back
-    const scale = (n) => (n == null ? n : Math.round((n * sow.fee * (1 - sow.targetMargin / 100)) / SOW_006_PLAN_COST));
+    // The summary's plan, once the developer placeholder is added, costs what TSIA's project does: $97,200 on $150,000 (35.2%).
+    // The placeholder is a fixed $110/h, so everyone else scales to cover the rest: SOW_006_PLAN_COST is the plan before the
+    // placeholder at 006's own rates, and rounding to whole dollars leaves SOW_RATE_TOP_UP to add back
+    const others = sow.fee * (1 - sow.targetMargin / 100) - SOW_PLACEHOLDER_RATE * SOW_PLACEHOLDER_HOURS;
+    const scale = (n) => (n == null ? n : Math.round((n * others) / SOW_006_PLAN_COST));
     for (const p of PEOPLE_DATA) for (const key of ['costRate', 'billableRate']) p[key] = scale(p[key]);
+    if (placeholder) placeholder.costRate = SOW_PLACEHOLDER_RATE;
     for (const [id, dollars] of Object.entries(SOW_RATE_TOP_UP)) PEOPLE_DATA.find((p) => p.id === id).costRate += dollars;
     for (const gap of RATE_GAPS) {
       for (const rate of [gap.billable, gap.cost]) {
@@ -7763,10 +7766,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       }
     }
   }
-  const SOW_006_PLAN_COST = 22140; // 006's plan with the placeholder, at 006's rates (window.check006: $22,140)
-  // +$1/h for people with 38h, 12h, 8h and 16h in that plan: the $74 the rounding leaves. None of them is a conflict's option,
-  // so the options keep their order (Barry and Emily still share a rate; Ryan stays cheaper than Hannah)
-  const SOW_RATE_TOP_UP = { priya: 1, wakaz: 1, abbey: 1, olivia: 1 };
+  const SOW_006_PLAN_COST = 20860; // 006's plan before the placeholder, at 006's rates ($22,140 with it, less its 16h at $80/h)
+  const SOW_PLACEHOLDER_RATE = 110; // the developer placeholder's cost rate on the SOW route
+  const SOW_PLACEHOLDER_HOURS = 16; // the unplanned work it takes on
+  // +$1/h for Hannah, who has 14h in that plan: the $14 the rounding leaves. Ryan stays cheaper than her, and Barry and
+  // Emily still share a rate, so the conflicts' options keep their order
+  const SOW_RATE_TOP_UP = { hannah: 1 };
   const SOW_KEY = 'remiSow';
   // What the timeline needs to rebuild the created plan: the setup answers and every gap-filling answer (Elena's role included)
   function sowPlanState() {
@@ -10155,14 +10160,14 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const sowFrontEnd = { ...ACTIONS['front-end'] };
   function sowGapWhen(gap) {
     const secondHalf = PHASES.slice(Math.ceil(PHASES.length / 2)).map((p) => p.id);
-    return gap.every((t) => secondHalf.includes(t.phase)) ? { where: 'in the second half of the project', span: 'for the second half' } : { where: 'later in the project', span: 'for later in the project' };
+    return gap.every((t) => secondHalf.includes(t.phase)) ? { where: 'in the second half of the project' } : { where: 'later in the project' };
   }
   const sowGapStatement = (gap) => `${taskCount(gap)} ${sowGapWhen(gap).where} ${gap.length === 1 ? 'has' : 'have'} no one to do ${gap.length === 1 ? 'it' : 'them'}. Nobody with the right role is free from ${PHASES[Math.ceil(PHASES.length / 2)].name} onwards.`;
-  const SOW_PLACEHOLDER_ROLE = 'Hire or contract in later';
+  const SOW_PLACEHOLDER_ROLE = 'Developer';
   Object.assign(ACTIONS['front-end'], {
     desc: (gap) => (sowSetup ? [`${gap.length} ${plural(gap.length, 'task', 'tasks')}`, formatHours(gap.reduce((sum, t) => sum + t.estimate, 0)), 'No one free with the right role'] : sowFrontEnd.desc(gap)),
     note: (view) => (sowSetup ? `${sowGapStatement(ACTIONS['front-end'].gap(view))} Should I add a placeholder you can hire or contract for later?` : sowFrontEnd.note(view)),
-    title: (option) => (sowSetup && personById(option.person).placeholder ? `Add a placeholder ${sowGapWhen(ACTIONS['front-end'].gap(currentPlan)).span}` : sowFrontEnd.title(option)),
+    title: (option) => (sowSetup && personById(option.person).placeholder ? 'Add a developer placeholder' : sowFrontEnd.title(option)),
     done(option, gap) {
       if (!sowSetup) return sowFrontEnd.done(option, gap);
       return `I’ve booked ${formatHours(gap.reduce((sum, t) => sum + t.estimate, 0))} for a new placeholder and assigned the ${gap.length} ${plural(gap.length, 'task', 'tasks')} to it, so everything in the plan now has someone on it. You can hire or contract in for it later.`;
@@ -10209,7 +10214,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   }
   function actionDetail(actionId) {
     const options = Object.entries(SUGGESTION_OPTIONS[actionId]).map(([id, option]) => ({ id, title: ACTIONS[actionId].title(option), ...optionImpact(actionId, id) }))
-      .map((o) => (sowSetup && personById(SUGGESTION_OPTIONS[actionId][o.id].person).placeholder ? { ...o, role: SOW_PLACEHOLDER_ROLE } : o));
+      .map((o) => (sowSetup && personById(SUGGESTION_OPTIONS[actionId][o.id].person).placeholder ? { ...o, role: SOW_PLACEHOLDER_ROLE, util: null } : o)); // the SOW's placeholder has no Utilisation row
     return { note: ACTIONS[actionId].note(currentPlan), options };
   }
   // Each card shows while its work is unplanned in this plan; returns whether any card is showing

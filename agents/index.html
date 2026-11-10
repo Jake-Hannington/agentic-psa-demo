@@ -950,8 +950,6 @@ body {
 .jobs-section { margin-bottom: var(--spacing-8); }
 .jobs-section-label { font-size: 15px; font-weight: 700; color: var(--color-text-default); margin-bottom: var(--spacing-4); }
 .jobs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-4); }
-/* Recommended for you: one featured template above the categories */
-.jobs-section-recommended .jobs-section-label { margin-bottom: 2px; }
 /* Margin Watcher alert card */
 .mw-card { margin-top: 8px; border: var(--border-width-1) solid var(--color-border-separator); border-radius: var(--border-rounded-lg); background: var(--color-background-default); overflow: hidden; font-size: 13px; }
 .mw-sec { padding: 12px 14px; border-top: var(--border-width-1) solid var(--color-border-separator); }
@@ -986,7 +984,6 @@ body {
 .mw-done { margin-top: 10px; font-weight: 600; }
 .act-text .nt-btn.sm { margin-left: 6px; vertical-align: middle; }
 .ag-out-cause { margin-top: 2px; color: var(--color-text-subtle); }
-.jobs-section-sub { font-size: 13px; color: var(--color-text-subtle); margin-bottom: var(--spacing-4); }
 .job-card-tag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 8px; border-radius: 100px; background: var(--palette-indigo-10); color: var(--palette-indigo-40); white-space: nowrap; }
 
 /* Hero card — spans 2 columns */
@@ -17706,7 +17703,7 @@ openNotif = function (i) {
    opening a builder that's already filled in ══════════════════════════ */
 const MARGIN_WATCHER_TEMPLATE = {
   slug: 'margin-watcher', name: 'Margin Watcher',
-  desc: 'Watches estimate at completion against budget on your fixed-fee projects and recommends fixes before margin is lost.',
+  desc: 'Watches margin on your projects and recommends fixes before it’s lost.',
   skills: ['project-budget', 'find-overrun-budgets', 'custom-budget-variance', 'report-time'],
   triggerType: 'Scheduled', trigger: 'Daily at 09:00',
 };
@@ -17714,27 +17711,33 @@ AB_GLYPH.evBudget = '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.
 AB_EVENT_PRESETS.push({ key: 'project.budget_changed', when: 'a project budget changes', icon: 'evBudget', name: 'A project budget changes', desc: 'Runs when a project’s budget is changed' });
 
 const _mwGallery0 = renderJobsGallery;
+// Templates shown again in the Recommended row, left of Margin Watcher. They keep their place in their categories.
+const _MW_RECOMMENDED = ['Missing Time Agent', 'Task Progress Agent', 'Status Report Agent'];
+function _mwCardHTML(tag) {
+  const t = MARGIN_WATCHER_TEMPLATE;
+  return `<div class="job-card" data-slug="${t.slug}" onclick="openMarginWatcher()">
+      <div class="job-card-top">
+        <div class="job-card-icon">${jobIcon(t.name)}</div>
+        ${tag ? '<span class="job-card-tag">Recommended</span>' : ''}
+      </div>
+      <div class="job-card-title">${t.name}</div>
+      <div class="job-card-desc">${t.desc}</div>
+      <div class="job-card-foot">${t.skills.filter(id => skillsData.some(k => k.id === id)).map(agentSkillIcon).join('')}</div>
+    </div>`;
+}
 renderJobsGallery = function () {
   _mwGallery0();
   const el = document.getElementById('jobsSections');
   if (!el) return;
-  const t = MARGIN_WATCHER_TEMPLATE;
+  // The same cards as in their categories, so they look and open exactly the same
+  const copies = _MW_RECOMMENDED.map(n => [...el.querySelectorAll('.job-card')].find(c => c.querySelector('.job-card-title')?.textContent === n)).filter(Boolean).map(c => c.outerHTML);
   el.insertAdjacentHTML('afterbegin', `
     <section class="jobs-section jobs-section-recommended" id="job-cat-recommended">
       <div class="jobs-section-label">Recommended for you</div>
-      <div class="jobs-section-sub">Suggested because you run fixed-fee projects</div>
-      <div class="jobs-grid">
-        <div class="job-card" data-slug="${t.slug}" onclick="openMarginWatcher()">
-          <div class="job-card-top">
-            <div class="job-card-icon">${jobIcon(t.name)}</div>
-            <span class="job-card-tag">Recommended</span>
-          </div>
-          <div class="job-card-title">${t.name}</div>
-          <div class="job-card-desc">${t.desc}</div>
-          <div class="job-card-foot">${t.skills.filter(id => skillsData.some(k => k.id === id)).map(agentSkillIcon).join('')}</div>
-        </div>
-      </div>
+      <div class="jobs-grid">${copies.join('')}${_mwCardHTML(true)}</div>
     </section>`);
+  // Margin Watcher also sits first in Budgets & financials, after the hero
+  el.querySelector('#job-cat-budgets .job-hero')?.insertAdjacentHTML('afterend', _mwCardHTML(false));
 };
 // Margin Watcher's own face: one no seeded agent uses (the name hash gave Budget Watch Agent's)
 const _mwAvIndex0 = _tplAvIndex;

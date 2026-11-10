@@ -17751,9 +17751,9 @@ _abPromptHTML = function (p) {
 
 function _mwPrompt() {
   return [
-    'Role', 'You watch margin on active fixed-fee projects.', '',
+    'Role', 'You watch margin on your active projects.', '',
     'Objective', 'Compare each project’s estimate at completion (EAC) with its cost budget, and catch margin loss before it happens.', '',
-    'Focus', '• Active fixed-fee projects: Depot Network Review, Enterprise AI Rollout.', '',
+    'Focus', '• Active projects: Depot Network Review, Enterprise AI Rollout.', '• Fixed-fee projects first, where every extra hour comes out of margin.', '• On retainers, watch hours used against the fee. On time and materials, watch write-offs and discounts.', '',
     'Output', 'Warn when EAC reaches 90% of the cost budget (Approaching). Alert when it goes over (Exceeded). Explain the cause in one or two lines, recommend up to three actions with the margin each recovers, and propose the changes for approval.', '',
     'Rules', '• Never change a project without approval.', '• Lead with the $ impact, then the margin %.', '',
     'Notify', `• ${PEOPLE.dana.name} (${PEOPLE.dana.roleLabel}) and the project’s PM.`, '',
@@ -17772,7 +17772,7 @@ function openMarginWatcher() {
     return { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key, enabled: true };
   });
   a.triggers.splice(at, 0, ...ev);
-  // Focus is picked in the chat; its options suggest the Halcyon fixed-fee projects
+  // Focus is picked in the chat; its options suggest the Halcyon projects
   a._suggestProjects = ['Depot Network Review', 'Enterprise AI Rollout'];
   a._offerFirstRun = true;
   _setMode(a, 'draft');   // changes wait for approval, unlike the Act default for new agents
@@ -17820,7 +17820,7 @@ toggleAgentActive = function () {
    cost budget and the forecast margin with the target. ═══════════════════ */
 const _mwKind0 = _agentKind;
 _agentKind = function (a) { return /margin/i.test(a.name) ? 'margin' : _mwKind0(a); };
-Object.assign(_AB_KIND_COPY, { margin: { topic: 'margin on fixed-fee projects', qs: ['Which projects are losing margin?', 'How is Depot Network Review tracking?', 'What’s driving the overrun?'] } });
+Object.assign(_AB_KIND_COPY, { margin: { topic: 'margin on your projects', qs: ['Which projects are losing margin?', 'How is Depot Network Review tracking?', 'What’s driving the overrun?'] } });
 _jobIconName['Margin Watcher'] = 'flame';
 // The cause the agent gives under a project it flags
 PROJECTS.find(p => p.id === 'p6').marginCause = 'Senior hours on integration design are running over estimate, and depot data migration work has started that isn’t in the SOW.';

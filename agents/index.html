@@ -17898,8 +17898,8 @@ Object.assign(PROJECTS.find(p => p.id === 'p6'), {
   },
   // Remaining work the fixes act on: move it to a cheaper rate, or bill it
   marginWork: [
-    { kind: 'move', task: 'Integration design', hours: 24, from: 'senior', to: 'junior' },
-    { kind: 'move', task: 'Network data documentation', hours: 22, from: 'junior', to: 'agent' },
+    { kind: 'move', task: 'Integration design', hours: 40, from: 'senior', to: 'junior' },
+    { kind: 'move', task: 'Network data documentation', hours: 36, from: 'junior', to: 'agent' },
     { kind: 'bill', task: 'Depot system data migration', hours: 16 },
   ],
 });
@@ -17911,7 +17911,7 @@ function _mwFixes(p) {
   return p.marginWork.map((w, i) => {
     const save = w.kind === 'move' ? w.hours * (R[w.from].rate - R[w.to].rate) : 0;
     const fee = w.kind === 'bill' ? w.hours * R.bill : 0;
-    const eac = base.eac - save, f = p.fee + fee;
+    const eac = base.eac - save, f = p.fee + fee;   // margin points don't depend on the budget
     const pts = (f - eac) / f * 100 - base.margin;
     const task = w.task.charAt(0).toLowerCase() + w.task.slice(1);
     const text = w.kind === 'bill' ? `Raise a change request for the ${task} (${w.hours}h, not in the SOW)`
@@ -18052,6 +18052,7 @@ _applyChange = function (d, text) {
   const p = ch.project, f = ch.fix;
   p.marginSaved = (p.marginSaved || 0) + f.save;
   p.fee += f.fee;
+  p.budget = Math.round(p.fee * (1 - p.targetMargin / 100));   // a change request raises the cost budget with the fee
   p.marginFixed = true;
   d.status = 'done';
   if (AGENTS.includes(a)) logActivity({ type: 'approval', person: ME, agent: a.id, verb: `approved a margin fix from ${a.name}`, title: f.text, ctx: `Project: ${p.name}`, project: p.name });

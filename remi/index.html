@@ -7769,9 +7769,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const SOW_006_PLAN_COST = 20860; // 006's plan before the placeholder, at 006's rates ($22,140 with it, less its 16h at $80/h)
   const SOW_PLACEHOLDER_RATE = 110; // the developer placeholder's cost rate on the SOW route
   const SOW_PLACEHOLDER_HOURS = 16; // the unplanned work it takes on
-  // +$1/h for Hannah, who has 14h in that plan: the $14 the rounding leaves. Ryan stays cheaper than her, and Barry and
-  // Emily still share a rate, so the conflicts' options keep their order
-  const SOW_RATE_TOP_UP = { hannah: 1 };
+  // The $14 the rounding leaves, in whole dollars per hour of the plan: Jessica +$1 (10h), so moving her work to Emily costs
+  // $220 on the timeline, Waka +$1 (12h) and Elena -$1 (8h). Barry and Emily still share a rate and Ryan stays cheaper than
+  // Hannah, so the conflicts' options keep their order
+  const SOW_RATE_TOP_UP = { jessica: 1, wakaz: 1, abbey: -1 };
   const SOW_KEY = 'remiSow';
   // What the timeline needs to rebuild the created plan: the setup answers and every gap-filling answer (Elena's role included)
   function sowPlanState() {

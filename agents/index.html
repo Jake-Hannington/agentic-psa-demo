@@ -952,6 +952,39 @@ body {
 .jobs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-4); }
 /* Recommended for you: one featured template above the categories */
 .jobs-section-recommended .jobs-section-label { margin-bottom: 2px; }
+/* Margin Watcher alert card */
+.mw-card { margin-top: 8px; border: var(--border-width-1) solid var(--color-border-separator); border-radius: var(--border-rounded-lg); background: var(--color-background-default); overflow: hidden; font-size: 13px; }
+.mw-sec { padding: 12px 14px; border-top: var(--border-width-1) solid var(--color-border-separator); }
+.mw-sec:first-child { border-top: none; }
+.mw-sec-label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-subtle); margin-bottom: 8px; }
+.mw-signal-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.mw-signal-head b { font-size: 15px; }
+.mw-signal-head .mw-client { color: var(--color-text-subtle); }
+.mw-pill { margin-left: auto; padding: 2px 10px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+.mw-pill.exceeded { background: var(--palette-red-10); color: var(--palette-red-60); }
+.mw-pill.approaching { background: var(--palette-yellow-20); color: #8a5a00; }
+.mw-pill.ok { background: var(--palette-green-20); color: var(--palette-green-70); }
+.mw-bar { position: relative; height: 10px; border-radius: 100px; background: var(--palette-neutral-10, #edeff5); margin: 6px 0 8px; }
+.mw-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 100px; }
+.mw-bar-fill.exceeded { background: var(--palette-red-50); }
+.mw-bar-fill.approaching { background: var(--palette-yellow-40); }
+.mw-bar-fill.ok { background: var(--palette-green-50); }
+.mw-bar-line { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--color-text-default); }
+.mw-figs { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.mw-figs .mw-over { color: var(--palette-red-60); font-weight: 600; }
+.mw-margin { margin-top: 4px; color: var(--color-text-subtle); }
+.mw-fixes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.mw-gain { display: block; font-weight: 600; color: var(--palette-green-60, #1e7d4f); }
+.mw-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.mw-card .dc-card { margin-top: 8px; }
+.mw-ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.mw-ba-col { border: var(--border-width-1) solid var(--color-border-separator); border-radius: var(--border-rounded-md); padding: 10px 12px; }
+.mw-ba-col .mw-sec-label { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 6px; }
+.mw-ba-col .mw-pill { margin-left: 0; text-transform: none; letter-spacing: 0; }
+.mw-ba-eac { font-size: 18px; font-weight: 700; }
+.mw-ba-arrow { color: var(--color-text-subtle); font-size: 18px; }
+.mw-done { margin-top: 10px; font-weight: 600; }
+.act-text .nt-btn.sm { margin-left: 6px; vertical-align: middle; }
 .ag-out-cause { margin-top: 2px; color: var(--color-text-subtle); }
 .jobs-section-sub { font-size: 13px; color: var(--color-text-subtle); margin-bottom: var(--spacing-4); }
 .job-card-tag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 8px; border-radius: 100px; background: var(--palette-indigo-10); color: var(--palette-indigo-40); white-space: nowrap; }
@@ -17703,6 +17736,9 @@ renderJobsGallery = function () {
       </div>
     </section>`);
 };
+// Margin Watcher's own face: one no seeded agent uses (the name hash gave Budget Watch Agent's)
+const _mwAvIndex0 = _tplAvIndex;
+_tplAvIndex = function (name) { return name === MARGIN_WATCHER_TEMPLATE.name ? 10 : _mwAvIndex0(name); };
 // The gallery was first drawn before this override existed
 if (_teammatesTab === 'jobs') renderJobsGallery();
 
@@ -17789,7 +17825,7 @@ _jobIconName['Margin Watcher'] = 'flame';
 PROJECTS.find(p => p.id === 'p6').marginCause = 'Senior hours on integration design are running over estimate, and depot data migration work has started that isn’t in the SOW.';
 const _mwPct = n => `${+n.toFixed(1)}%`;
 function _mwMargin(p) {
-  const eac = p.progress ? p.spent / p.progress * 100 : p.spent;
+  const eac = (p.progress ? p.spent / p.progress * 100 : p.spent) - (p.marginSaved || 0);
   const used = eac / p.budget, margin = (p.fee - eac) / p.fee * 100;
   const state = eac > p.budget ? 'exceeded' : used >= 0.9 ? 'approaching' : 'ok';
   return { eac, used, margin, over: eac - p.budget, state };
@@ -17802,7 +17838,7 @@ _projectLine = function (kind, p) {
   const text = m.state === 'ok'
     ? `EAC ${_eur(m.eac)} against a ${_eur(p.budget)} cost budget (${Math.round(m.used * 100)}%). ${target} On track.`
     : `EAC ${_eur(m.eac)} against a ${_eur(p.budget)} cost budget: ${m.over > 0 ? `${_eur(m.over)} (${Math.round(m.over / p.budget * 100)}%) over` : `${Math.round(m.used * 100)}% used`}. ${target}`;
-  return { flag, title: p.name, text, cause: m.state === 'ok' ? '' : p.marginCause || '' };
+  return { flag, title: p.name, text, cause: m.state === 'ok' || p.marginFixed ? '' : p.marginCause || '' };
 };
 // The same checks and wording as the live agentReport, with margin figures, a cause line and its own head
 const _mwReport0 = agentReport;
@@ -17847,8 +17883,202 @@ const _mwWithChange0 = _withChange;
 _withChange = function (a, p, task) {
   if (_agentKind(a) !== 'margin') return _mwWithChange0(a, p, task);
   const flagged = _agentScopeFor(a).shown.some(x => x.fee && _mwMargin(x).state !== 'ok');
+  if (flagged && typeof _mwRaiseAlert === 'function') _mwRaiseAlert(a);
   return flagged ? `<p>I’ll alert ${PEOPLE.dana.short} and the PM with fixes that recover the margin, ready for approval.</p>` : '';
 };
+/* ══ Margin Watcher, phase 3: the alert (bell, Updates, Activity), three fixes
+   with the margin each recovers, Accept, and EAC before → after ════════════ */
+// What the fixes need, as data on Depot Network Review
+Object.assign(PROJECTS.find(p => p.id === 'p6'), {
+  rates: {
+    senior: { who: 'sam', title: 'Senior Consultant', rate: 150 },
+    junior: { who: 'aoife', title: 'Junior Consultant', rate: 90 },
+    agent: { name: 'Junior Consultant Agent', title: 'Junior Consultant Agent', rate: 10 },
+    bill: 150,
+  },
+  // Remaining work the fixes act on: move it to a cheaper rate, or bill it
+  marginWork: [
+    { kind: 'move', task: 'Integration design', hours: 24, from: 'senior', to: 'junior' },
+    { kind: 'move', task: 'Network data documentation', hours: 22, from: 'junior', to: 'agent' },
+    { kind: 'bill', task: 'Depot system data migration', hours: 16 },
+  ],
+});
+const _mwP6 = () => PROJECTS.find(p => p.id === 'p6');
+const _mwWho = r => r.who ? PEOPLE[r.who].name : r.name;
+// One fix per piece of work: what it says, the cost it saves or the fee it adds, and the margin points it recovers
+function _mwFixes(p) {
+  const base = _mwMargin(p), R = p.rates;
+  return p.marginWork.map((w, i) => {
+    const save = w.kind === 'move' ? w.hours * (R[w.from].rate - R[w.to].rate) : 0;
+    const fee = w.kind === 'bill' ? w.hours * R.bill : 0;
+    const eac = base.eac - save, f = p.fee + fee;
+    const pts = (f - eac) / f * 100 - base.margin;
+    const task = w.task.charAt(0).toLowerCase() + w.task.slice(1);
+    const text = w.kind === 'bill' ? `Raise a change request for the ${task} (${w.hours}h, not in the SOW)`
+      : w.to === 'agent' ? `Assign the ${R.agent.name} to ${task} (${w.hours}h)`
+      : `Move the remaining ${w.hours}h of ${task} to ${_mwWho(R[w.to])}, ${R[w.to].title}, with ${_mwWho(R[w.from])} reviewing`;
+    const gain = `${save ? `saves ${_eur(save)}` : `+${_eur(fee)} fee`} · +${pts.toFixed(1)} pts`;
+    return { i, w, save, fee, pts, text, gain };
+  });
+}
+const _MW_STATE = { exceeded: 'Exceeded', approaching: 'Approaching', ok: 'On track' };
+function _mwSnap(p) { const m = _mwMargin(p); return { eac: m.eac, budget: p.budget, fee: p.fee, margin: m.margin, over: m.over, used: m.used, state: m.state }; }
+function _mwBar(s) {
+  const max = Math.max(s.eac, s.budget) * 1.12;
+  return `<div class="mw-bar" role="img" aria-label="EAC ${_eur(s.eac)} against a ${_eur(s.budget)} budget"><div class="mw-bar-fill ${s.state}" style="width:${(s.eac / max * 100).toFixed(1)}%"></div><div class="mw-bar-line" style="left:${(s.budget / max * 100).toFixed(1)}%"></div></div>`;
+}
+function _mwSignal(p, s) {
+  const over = s.over > 0 ? `<span class="mw-over">${_eur(s.over)} (${Math.round(s.over / s.budget * 100)}%) over</span>` : `<span>${Math.round(s.used * 100)}% of budget</span>`;
+  return `<div class="mw-signal-head"><b>${_ntEsc(p.name)}</b><span class="mw-client">${_ntEsc(p.client)}</span><span class="mw-pill ${s.state}">${_MW_STATE[s.state]}</span></div>
+    ${_mwBar(s)}
+    <div class="mw-figs"><span>EAC <b>${_eur(s.eac)}</b></span><span>·</span><span>Budget <b>${_eur(s.budget)}</b></span><span>·</span>${over}</div>
+    <div class="mw-margin">Forecast margin ${_mwPct(s.margin)} against a ${_mwPct(p.targetMargin)} target.</div>`;
+}
+function _mwFixList(fixes) {
+  return `<ol class="mw-fixes">${fixes.map(f => `<li>${_ntEsc(f.text)}<span class="mw-gain">${_ntEsc(f.gain)}</span></li>`).join('')}</ol>`;
+}
+// The alert's state: one per session, raised by the first run that flags Depot
+const _MW = { raised: false, agentId: null, before: null, fixes: [], ids: [], mode: null, msg: null, done: false };
+function _mwRaiseAlert(a) {
+  if (_MW.raised || !AGENTS.includes(a) || a.status !== 'active') return;
+  const p = _mwP6();
+  if (!_agentScopeFor(a).shown.includes(p) || _mwMargin(p).state === 'ok') return;
+  const s = _mwSnap(p);
+  Object.assign(_MW, { raised: true, agentId: a.id, before: s, fixes: _mwFixes(p) });
+  _MW.ids = _MW.fixes.map(f => {
+    const id = 'dc' + Math.random().toString(36).slice(2, 8);
+    _DC[id] = { a, ch: { type: 'margin', project: p, fix: f, title: f.text }, mode: 'draft', status: 'pending' };
+    return id;
+  });
+  (NOTIFS.dana = NOTIFS.dana || []).unshift({ type: 'approval', agent: a.id, title: `${p.name} is over budget`, line: `Margin at risk: EAC ${_eur(s.eac)} against a ${_eur(s.budget)} cost budget`,
+    meta: `${_MW_STATE[s.state]} · ${_MW.fixes.length} fixes ready for approval`, time: 'Just now', unread: true, open: 'marginAlert', project: p.name });
+  _renderBellBadge();
+  scoutUpdates.unshift({ id: 109, type: 'health', agentName: a.name, title: `${p.name}: margin at risk`, preview: a.name, time: 'Just now', content: { time: 'Just now', intro: '', body: '' } });
+  _mwSyncUpdate();
+  logActivity({ type: 'approval', agent: a.id, verb: `flagged margin at risk and drafted ${_MW.fixes.length} fixes for approval`, title: `${p.name} is over budget`, ctx: `Project: ${p.name}`, project: p.name, waitingOn: ME, pending: true, _dc: true, open: 'marginAlert' });
+}
+// The Updates item: the same signal, cause and fixes, with a way into the card
+function _mwSyncUpdate() {
+  const u = scoutUpdates.find(x => x.id === 109); if (!u) return;
+  const p = _mwP6(), now = _mwSnap(p);
+  u.content.intro = _MW.done ? `<strong>${_ntEsc(p.name)}</strong>: the margin fixes have been decided.` : `<strong>${_ntEsc(p.name)}</strong> is over its cost budget. I’ve drafted fixes that recover the margin.`;
+  u.content.body = `<div class="mw-card"><div class="mw-sec">${_mwSignal(p, _MW.done ? now : _MW.before)}</div>
+    <div class="mw-sec"><div class="mw-sec-label">Cause</div>${_ntEsc(p.marginCause)}</div>
+    <div class="mw-sec"><div class="mw-sec-label">Recommended fixes</div>${_mwFixList(_MW.fixes)}</div></div>
+    <p style="margin-top:12px">${_MW.done ? `Resolved. ${_mwDecidedLine()}` : ''}</p>
+    <button class="nt-btn primary sm" onclick="openMarginAlert()">${_MW.done ? 'View fixes' : 'Review fixes'}</button>`;
+}
+// Open the alert's card from anywhere: the notification if there is one, else straight to the chat
+function openMarginAlert() {
+  const list = NOTIFS[ME] || [], i = list.findIndex(n => n.open === 'marginAlert');
+  if (i > -1) return openNotif(i);
+  const a = AGENTS.find(x => x.id === _MW.agentId); if (!a) return;
+  _mwOpenChat(a, `${_mwP6().name} is over budget`);
+}
+function _mwOpenChat(a, title) {
+  openAgentChat(a, { title, kind: 'run', html: _mwMessage() });
+  _MW.msg = _abThread[_abThread.length - 1];
+  return _abCurChat();
+}
+const _mwOpenNotif0 = openNotif;
+openNotif = function (i) {
+  const n = (NOTIFS[ME] || [])[i];
+  if (!n || n.open !== 'marginAlert' || n.chat) return _mwOpenNotif0(i);
+  n.unread = false; _renderBellBadge(); closeNotifDrawer();
+  const a = AGENTS.find(x => x.id === n.agent);
+  if (!a || !_access(a)) return showToast('That agent isn’t available to you any more');
+  n.chat = _mwOpenChat(a, n.title);
+};
+// The Updates item names the agent that sent it
+const _mwAgentName0 = updateAgentName;
+updateAgentName = function (u) { return (u && u.agentName) || _mwAgentName0(u); };
+// The Activity entry opens the same card
+const _mwActText0 = _actText;
+_actText = function (e) { return _mwActText0(e) + (e.open === 'marginAlert' ? ` <button class="nt-btn sm" onclick="openMarginAlert()">${_MW.done ? 'View fixes' : 'Review fixes'}</button>` : ''); };
+
+/* The card in the agent's chat */
+function _mwFixCard(id, f) {
+  const d = _DC[id], p = d.ch.project;
+  const foot = d.status === 'pending'
+    ? `<div class="dc-actions"><button class="nt-btn primary sm" onclick="mwDecide('${id}', true)">Approve</button><button class="nt-btn ghost sm" onclick="mwDecide('${id}', false)">Discard</button></div>`
+    : `<div class="dc-status ${d.status === 'done' ? '' : 'dc-fail'}">${d.status === 'done' ? `${_shIcon.check} Approved — ${_ntEsc(f.gain.split(' · ')[0])}` : 'Discarded — nothing was changed'}</div>`;
+  return `<div class="dc-card" data-dc="${id}">
+    <div class="dc-head"><span class="dc-kind">Draft · Margin fix ${f.i + 1} of ${_MW.fixes.length}</span>${d.status === 'pending' ? '<span class="dc-need">Needs your approval</span>' : ''}<span class="dc-where">${_ntEsc(p.name)}</span></div>
+    <div class="dc-body"><div class="dc-title">${_ntEsc(f.text)}</div><div class="mw-gain">${_ntEsc(f.gain)}</div></div>
+    ${foot}</div>`;
+}
+function _mwDecidedLine() {
+  const ok = _MW.ids.filter(id => _DC[id].status === 'done').length;
+  return ok ? `${ok} of ${_MW.ids.length} fixes accepted.` : 'No fixes accepted, so nothing changed.';
+}
+function _mwCard() {
+  const p = _mwP6(), b = _MW.before, pending = _MW.ids.filter(id => _DC[id].status === 'pending');
+  const cards = _MW.mode === 'one' && pending.length ? [pending[0]] : _MW.ids;
+  const group = pending.length && _MW.mode !== 'one' ? `<div class="mw-group">
+      <button class="nt-btn primary sm" onclick="mwAcceptAll()">Accept all</button>
+      <button class="nt-btn sm" onclick="mwOneAtATime()">One at a time</button>
+      <button class="nt-btn ghost sm" onclick="mwDismiss()">Dismiss</button></div>` : '';
+  let closing = '';
+  if (!pending.length) {
+    const a = _mwSnap(p);
+    const col = (label, s) => `<div class="mw-ba-col"><div class="mw-sec-label">${label}<span class="mw-pill ${s.state}">${_MW_STATE[s.state]}</span></div>
+      <div class="mw-ba-eac">${_eur(s.eac)}</div><div>EAC against a ${_eur(s.budget)} budget</div>${_mwBar(s)}<div>Forecast margin <b>${_mwPct(s.margin)}</b></div></div>`;
+    closing = `<div class="mw-sec"><div class="mw-sec-label">Before and after</div>
+      <div class="mw-ba">${col('Before', b)}<span class="mw-ba-arrow" aria-hidden="true">→</span>${col('After', a)}</div>
+      <div class="mw-done">${_mwDecidedLine()} ${a.eac < b.eac || a.fee > b.fee ? `EAC ${_eur(b.eac)} → ${_eur(a.eac)}, forecast margin ${_mwPct(b.margin)} → ${_mwPct(a.margin)}.` : ''}</div></div>`;
+  }
+  return `<div class="mw-card" data-mw-card>
+    <div class="mw-sec">${_mwSignal(p, b)}</div>
+    <div class="mw-sec"><div class="mw-sec-label">Cause</div>${_ntEsc(p.marginCause)}</div>
+    <div class="mw-sec"><div class="mw-sec-label">Recommended fixes</div>${_mwFixList(_MW.fixes)}</div>
+    <div class="mw-sec"><div class="mw-sec-label">Proposed changes</div>${group}${cards.map(id => _mwFixCard(id, _DC[id].ch.fix)).join('')}</div>
+    ${closing}</div>`;
+}
+function _mwMessage() { return `<p>${_ntEsc(_mwP6().name)} has gone over its cost budget. Here’s why, and three fixes that recover the margin. Nothing changes until you approve.</p>` + _mwCard(); }
+function _mwRefresh() {
+  const html = _mwMessage();
+  if (_MW.msg) _MW.msg.html = html;
+  document.querySelectorAll('[data-mw-card]').forEach(el => { el.outerHTML = _mwCard(); });
+  _mwSyncUpdate();
+  if (_teammatesTab === 'activity') renderCombinedActivity();
+}
+
+/* A 'margin' change: saves cost on the remaining work or adds fee, so EAC and margin recalculate */
+const _mwApply0 = _applyChange;
+_applyChange = function (d, text) {
+  const { a, ch } = d;
+  if (ch.type !== 'margin') return _mwApply0(d, text);
+  if (_isClient() || !(_isAdmin() || _canSeeProject(ch.project.name))) return '';
+  const p = ch.project, f = ch.fix;
+  p.marginSaved = (p.marginSaved || 0) + f.save;
+  p.fee += f.fee;
+  p.marginFixed = true;
+  d.status = 'done';
+  if (AGENTS.includes(a)) logActivity({ type: 'approval', person: ME, agent: a.id, verb: `approved a margin fix from ${a.name}`, title: f.text, ctx: `Project: ${p.name}`, project: p.name });
+  return `${f.gain.split(' · ')[0]} on ${p.name}`;
+};
+function mwDecide(id, ok) {
+  const d = _DC[id]; if (!d || d.status !== 'pending') return;
+  if (ok) { if (!_applyChange(d, '')) return showToast('You can’t make changes in that project'); }
+  else d.status = 'discarded';
+  _mwAfterDecision();
+}
+function mwAcceptAll() { _MW.ids.forEach(id => { if (_DC[id].status === 'pending') _applyChange(_DC[id], ''); }); _mwAfterDecision(); }
+function mwDismiss() { _MW.ids.forEach(id => { if (_DC[id].status === 'pending') _DC[id].status = 'discarded'; }); _mwAfterDecision(); }
+function mwOneAtATime() { _MW.mode = 'one'; _mwRefresh(); }
+function _mwAfterDecision() {
+  const left = _MW.ids.some(id => _DC[id].status === 'pending');
+  if (!left && !_MW.done) {
+    _MW.done = true;
+    const p = _mwP6(), a = AGENTS.find(x => x.id === _MW.agentId), s = _mwSnap(p);
+    ACTIVITY.forEach(e => { if (e.open === 'marginAlert') e.pending = false; });
+    (NOTIFS.dana || []).forEach(n => { if (n.open === 'marginAlert') n.meta = `Resolved · ${_mwDecidedLine().replace(/\.$/, '')}`; });
+    const u = scoutUpdates.find(x => x.id === 109); if (u) u.title = `${p.name}: margin ${_MW.ids.some(id => _DC[id].status === 'done') ? 'fixes applied' : 'alert dismissed'}`;
+    if (_MW.ids.some(id => _DC[id].status === 'done')) showSuccessToast(a ? a.name : 'Margin Watcher', `${p.name}: EAC ${_eur(s.eac)}, forecast margin ${_mwPct(s.margin)}`);
+    else showToast('Fixes dismissed. Nothing was changed.');
+  }
+  _mwRefresh();
+}
 /* Dana runs Olivia's seeded agents on the same projects Olivia picked */
 AGENTS.forEach(a => { if (a._scopes && !a._scopes.dana) a._scopes.dana = [...(a._scopes[a.ownerId] || [])]; });
 </script>

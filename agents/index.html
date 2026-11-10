@@ -952,6 +952,7 @@ body {
 .jobs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-4); }
 /* Recommended for you: one featured template above the categories */
 .jobs-section-recommended .jobs-section-label { margin-bottom: 2px; }
+.ag-out-cause { margin-top: 2px; color: var(--color-text-subtle); }
 .jobs-section-sub { font-size: 13px; color: var(--color-text-subtle); margin-bottom: var(--spacing-4); }
 .job-card-tag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 8px; border-radius: 100px; background: var(--palette-indigo-10); color: var(--palette-indigo-40); white-space: nowrap; }
 
@@ -17764,6 +17765,11 @@ function _mwOfferFirstRun() {
 let _mwInReply = false;
 const _mwReply0 = abBuilderReply;
 abBuilderReply = function (text) {
+  // The first-run chip gives the same result as the Run now button
+  if (_abAwaiting === 'firstRun' && agentDraft && _agentKind(agentDraft) === 'margin' && !/^(not now|no|skip|later)/i.test(text.trim())) {
+    _abAwaiting = null;
+    return runAgentNow();
+  }
   _mwInReply = true;
   try { return _mwReply0(text); } finally { _mwInReply = false; _mwOfferFirstRun(); }
 };
@@ -17772,6 +17778,76 @@ toggleAgentActive = function () {
   const r = _mwToggle0.apply(this, arguments);
   if (!_mwInReply) _mwOfferFirstRun();
   return r;
+};
+/* ══ Margin Watcher, phase 2: a 'margin' kind. Run now compares EAC with the
+   cost budget and the forecast margin with the target. ═══════════════════ */
+const _mwKind0 = _agentKind;
+_agentKind = function (a) { return /margin/i.test(a.name) ? 'margin' : _mwKind0(a); };
+Object.assign(_AB_KIND_COPY, { margin: { topic: 'margin on fixed-fee projects', qs: ['Which projects are losing margin?', 'How is Depot Network Review tracking?', 'What’s driving the overrun?'] } });
+_jobIconName['Margin Watcher'] = 'flame';
+// The cause the agent gives under a project it flags
+PROJECTS.find(p => p.id === 'p6').marginCause = 'Senior hours on integration design are running over estimate, and depot data migration work has started that isn’t in the SOW.';
+const _mwPct = n => `${+n.toFixed(1)}%`;
+function _mwMargin(p) {
+  const eac = p.progress ? p.spent / p.progress * 100 : p.spent;
+  const used = eac / p.budget, margin = (p.fee - eac) / p.fee * 100;
+  const state = eac > p.budget ? 'exceeded' : used >= 0.9 ? 'approaching' : 'ok';
+  return { eac, used, margin, over: eac - p.budget, state };
+}
+const _mwLine0 = _projectLine;
+_projectLine = function (kind, p) {
+  if (kind !== 'margin') return _mwLine0(kind, p);
+  const m = _mwMargin(p), target = `Forecast margin ${_mwPct(m.margin)} against a ${_mwPct(p.targetMargin)} target.`;
+  const flag = { exceeded: '🔴', approaching: '🟠', ok: '🟢' }[m.state];
+  const text = m.state === 'ok'
+    ? `EAC ${_eur(m.eac)} against a ${_eur(p.budget)} cost budget (${Math.round(m.used * 100)}%). ${target} On track.`
+    : `EAC ${_eur(m.eac)} against a ${_eur(p.budget)} cost budget: ${m.over > 0 ? `${_eur(m.over)} (${Math.round(m.over / p.budget * 100)}%) over` : `${Math.round(m.used * 100)}% used`}. ${target}`;
+  return { flag, title: p.name, text, cause: m.state === 'ok' ? '' : p.marginCause || '' };
+};
+// The same checks and wording as the live agentReport, with margin figures, a cause line and its own head
+const _mwReport0 = agentReport;
+agentReport = function (a, opts) {
+  if (_agentKind(a) !== 'margin') return _mwReport0(a, opts);
+  const { who = ME, question = '', project = null, text = false, hideFin = false } = opts || {};
+  const me = PEOPLE[who];
+  const { scope, shown, hidden } = _agentScopeFor(a, who);
+  const asked = project || _mentionedProject(question);
+  const notes = [];
+  let rows = shown;
+  if (asked) {
+    if (!_isAdmin(who) && !_canSeeProject(asked.name, who)) return _fmt(text, `${me.short} doesn’t have access to that project, so I can’t report on it.`);
+    if (!scope.includes(asked)) return _fmt(text, `${asked.name} isn’t one of ${a.ownerId === who ? 'my' : `${me.short}’s`} projects for this agent. Add it under Focus in the agent’s settings, then ask again.`);
+    rows = [asked];
+  } else if (!scope.length) {
+    return _fmt(text, `${me.short} hasn’t picked any projects for this agent yet. Open it and set its focus under Focus. Projects aren’t shared from ${PEOPLE[a.ownerId].short}.`);
+  } else if (hidden) {
+    notes.push(`🔒 ${hidden} of ${me.short}’s projects for this agent ${hidden > 1 ? 'aren’t' : 'isn’t'} shown because ${me.short} no longer has access.`);
+  }
+  if (!rows.length) return _fmt(text, `None of ${me.short}’s projects for this agent are ones ${me.short} can access, so there’s nothing to show.`);
+  const noFin = !me.financials || hideFin;
+  if (noFin) notes.push(me.financials ? 'Margin figures are left out because not everyone on this task can see them. Ask me in Ask AI for the full numbers.' : `${me.short} doesn’t have access to budget and cost figures, so I can’t show them.`);
+  const head = noFin ? 'Progress check' : 'Margin check';
+  const lines = rows.map(p => noFin ? { flag: '⚪', title: p.name, text: `${p.progress}% of the work done.` } : _projectLine('margin', p));
+  if (text) return [`${head} — ${rows.length} project${rows.length > 1 ? 's' : ''} (run for ${me.short}):`, ...lines.map(l => `${l.flag} ${l.title}: ${l.text}${l.cause ? ` ${l.cause}` : ''}`), ...notes].join('\n');
+  return `<div class="ag-out"><div class="ag-out-head">${head} · ${rows.length} project${rows.length > 1 ? 's' : ''}<span>Run for ${_ntEsc(me.name)}</span></div>
+    ${lines.map(l => `<div class="ag-out-row"><span class="ag-flag">${l.flag}</span><div><b>${_ntEsc(l.title)}</b><div>${_ntEsc(l.text)}</div>${l.cause ? `<div class="ag-out-cause">${_ntEsc(l.cause)}</div>` : ''}</div></div>`).join('')}
+    ${notes.map(n => `<div class="ag-out-note">${_ntEsc(n)}</div>`).join('')}</div>`;
+};
+// Margin figures are financial, like budget figures
+const _mwPB0 = _postBlockers;
+_postBlockers = function (a, topic, here, who = ME) {
+  const out = _mwPB0(a, topic, here, who);
+  if (_agentKind(a) === 'margin' && PEOPLE[who].financials) out.push(..._taskAudience(here).filter(id => !PEOPLE[id].financials));
+  return [...new Set(out)];
+};
+// No change cards in a margin run: the fixes come with the alert
+const _mwPropose0 = _proposeChange;
+_proposeChange = function (a, p, task) { return _agentKind(a) === 'margin' ? null : _mwPropose0(a, p, task); };
+const _mwWithChange0 = _withChange;
+_withChange = function (a, p, task) {
+  if (_agentKind(a) !== 'margin') return _mwWithChange0(a, p, task);
+  const flagged = _agentScopeFor(a).shown.some(x => x.fee && _mwMargin(x).state !== 'ok');
+  return flagged ? `<p>I’ll alert ${PEOPLE.dana.short} and the PM with fixes that recover the margin, ready for approval.</p>` : '';
 };
 /* Dana runs Olivia's seeded agents on the same projects Olivia picked */
 AGENTS.forEach(a => { if (a._scopes && !a._scopes.dana) a._scopes.dana = [...(a._scopes[a.ownerId] || [])]; });

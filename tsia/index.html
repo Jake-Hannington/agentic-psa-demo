@@ -11264,7 +11264,7 @@ function renderRemi() {
           <div class="remi-rec-grid">
             ${REMI_RECS.map((r, i) => `
               <button class="remi-rec-card" onclick="openRemiRec(${i})">
-                <span class="remi-rec-eyebrow">${_remiSpark} ${r.tag}</span>
+                <span class="remi-rec-eyebrow">${_remiSpark} ${r.tag}${_remiApproved.has(i) ? ' · Approved' : ''}</span>
                 <span class="remi-rec-title">${r.headline}</span>
                 <span class="remi-rec-text">${r.card}</span>
                 <span class="remi-rec-chips">${_remiTags(r.chips)}</span>
@@ -11334,7 +11334,7 @@ function renderRemi() {
           </div>
           <div class="remi-opt-rows">${r.plan.rows.map(_remiRow).join('')}</div>
           <div class="remi-opt-foot">${_remiMetrics(r.plan.metrics, r.plan.deltas)}</div>
-          <button class="remi-approve" id="remiApprove" onclick="approveRemiRec(${i})">Approve suggestion</button>
+          <button class="remi-approve" id="remiApprove" onclick="approveRemiRec(${i})"${_remiApproved.has(i) ? ' disabled>Approved' : '>Approve suggestion'}</button>
         </div>
       </div>
 
@@ -11347,6 +11347,24 @@ function renderRemi() {
    the whole prototype: the task's assignee and allocations, the bars on
    the Schedule, and the plan the Budgets page reports against. */
 let _remiApplied = false;
+const _remiApproved = new Set();   // recommendations approved, so their cards stay approved
+
+/* The demo's progress survives leaving TSIA (Remi's timeline is another page). Each completed step is
+   kept for this tab, in order, and replayed silently on load: no toasts, no agent animation. A step is
+   saved once it has finished, so a reload mid-step lands on the last finished one. The start page's
+   "Start full flow" clears it. */
+const TSIA_DEMO_KEY = 'tsiaDemo';
+let _demoReplaying = false;
+function _demoSteps() {
+  try { return JSON.parse(sessionStorage.getItem(TSIA_DEMO_KEY) || '[]'); } catch { return []; }
+}
+function _demoSave(step) {
+  if (_demoReplaying) return;
+  const steps = _demoSteps();
+  if (steps.some(x => JSON.stringify(x) === JSON.stringify(step))) return;   // each step once
+  steps.push(step);
+  try { sessionStorage.setItem(TSIA_DEMO_KEY, JSON.stringify(steps)); } catch { /* storage unavailable: this visit only */ }
+}
 
 function _applyRemiSuggestion() {
   if (_remiApplied) return;
@@ -11389,10 +11407,13 @@ function _applyRemiSuggestion() {
 }
 
 function approveRemiRec(i) {
+  if (_remiApproved.has(i)) return;
   const btn = document.getElementById('remiApprove');
   btn.textContent = 'Approved';
   btn.disabled = true;
+  _remiApproved.add(i);
   if (i === 0) _applyRemiSuggestion();
+  _demoSave({ step: 'remi', i });
   setTimeout(() => {
     closeRemiModal();
     if (i === 0) {
@@ -13101,7 +13122,22 @@ function agentFilesReceived() {
   if (t) t.tag = { label: 'In progress', dot: 'var(--palette-blue-40)', bg: 'var(--palette-blue-10)', color: 'var(--palette-blue-50)' };
   _agentSay(`Got them — <strong>${files.length} file${files.length === 1 ? '' : 's'}</strong> from Google Drive.
     I've started on the assessment and I'll tick the subtasks off as I go.`);
-  _agentWorkSubtasks();
+  _demoSave({ step: 'files', ids: files.filter(f => !f.isDoc).map(f => f.id) });
+  if (_demoReplaying) _agentFinishSubtasks();
+  else _agentWorkSubtasks();
+}
+/* Replay: every subtask done and logged, then the draft, as the live run leaves them */
+function _agentFinishSubtasks() {
+  const t = _agentTask();
+  if (!t) return;
+  const alloc = (t.allocations || []).find(a => a.initials === 'JA');
+  const each = alloc ? alloc.hours / t.subtasks.length : 50;
+  t.subtasks.forEach((st, i) => {
+    st.working = false;
+    st.done = true;
+    _logTime(ASSESS_TASK, 'JA', st.name, AGENT_LOG_DATES[i] || AGENT_LOG_DATES[0], '09:00', each);
+  });
+  agentDeliverDraft();
 }
 
 /* The agent's 200 planned hours spread evenly across its four subtasks,
@@ -13278,6 +13314,7 @@ function renderMarginReport() {
 }
 function saveMarginReport() {
   _mrSaved = true;
+  _demoSave({ step: 'report' });
   renderMarginReport();
   setTimeout(() => {
     closeMarginReport();
@@ -13609,6 +13646,16 @@ function _docChatHTML() {
 }
 const _docAsked = new Set();
 
+/* Tom's governance edit, as it changes the document */
+function _applyGovernanceEdit() {
+  _docAsked.add('governance');
+  const d = ASSESS_DOC.dims.find(x => x.name === 'Governance & risk');
+  d.score = 2;
+  d.note = 'A draft acceptable-use note was circulated by IT in August but never ratified, and nobody owns the decision on new tools.';
+  d.evidence = 'Interview notes — IT & security; draft AUP (Aug 2026)';
+  _demoSave({ step: 'governance' });
+}
+
 /* Tom's edits. Each one changes the document, not just the conversation. */
 function docChip(kind) {
   _docAsked.add(kind);
@@ -13616,10 +13663,7 @@ function docChip(kind) {
     _docChat.push({ who: 'TO', text: 'Governance should be a 2, not a 1 — IT circulated a draft acceptable-use note in August.' });
     renderDocModal();
     setTimeout(() => {
-      const d = ASSESS_DOC.dims.find(x => x.name === 'Governance & risk');
-      d.score = 2;
-      d.note = 'A draft acceptable-use note was circulated by IT in August but never ratified, and nobody owns the decision on new tools.';
-      d.evidence = 'Interview notes — IT & security; draft AUP (Aug 2026)';
+      _applyGovernanceEdit();
       _docChat.push({ text: `Updated. <strong>Governance &amp; risk</strong> moves from <strong>1</strong> to <strong>2</strong>,
         I've cited the August draft as evidence and reworded the finding. Overall readiness is now
         <strong>${_docScore()}</strong> out of 5.` });
@@ -13651,9 +13695,17 @@ function docSend(el) {
 function docKey(e, el) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); docSend(el); } }
 
 function docApprove() {
+  if (ASSESS_DOC.approved) return;
+  _approveAssessment();
+  renderDocModal();
+  setTimeout(() => {
+    closeAssessDoc();
+    _checkPhaseComplete(0);   // raises the Phase 1 milestone invoice
+  }, 1100);
+}
+function _approveAssessment() {
   ASSESS_DOC.approved = true;
   agentStage = 'approved';
-  renderDocModal();
   const t = _agentTask();
   const DONE = { label: 'Done', dot: 'var(--palette-green-40)', bg: 'var(--palette-green-10)', color: 'var(--palette-green-60)' };
   const review = (t && (t.allocations || []).find(a => a.initials === 'TO'));
@@ -13666,11 +13718,7 @@ function docApprove() {
      deliverables ran alongside it and land with the sign-off. */
   projectTaskLists[0].tasks.forEach(task => { task.tag = DONE; });
   if (projectTab === 'list') renderProjectBody();
-
-  setTimeout(() => {
-    closeAssessDoc();
-    _checkPhaseComplete(0);   // raises the Phase 1 milestone invoice
-  }, 1100);
+  _demoSave({ step: 'approved' });
 }
 
 function _docPreviewHTML() {
@@ -18344,6 +18392,29 @@ function openStageFromHash() {
   if (n !== null && n < DEMO_STAGES.length) goToStage(n);
 }
 window.addEventListener('hashchange', openStageFromHash);
+
+/* Replay the demo's saved progress before the first screen draws (see TSIA_DEMO_KEY) */
+(function replayDemo() {
+  const steps = _demoSteps();
+  if (!steps.length) return;
+  const replay = {
+    remi: ({ i }) => { _remiApproved.add(i); if (i === 0) _applyRemiSuggestion(); },
+    files: ({ ids }) => {
+      if (agentStage !== 'awaiting-files') return;
+      taskFiles[ASSESS_TASK] = GD_FILES.filter(f => ids.includes(f.id));
+      agentFilesReceived();
+    },
+    governance: () => _applyGovernanceEdit(),
+    approved: () => { if (agentStage !== 'review') return; _approveAssessment(); _checkPhaseComplete(0); },
+    report: () => { _mrSaved = true; },
+  };
+  const toast = showToast, actionToast = showActionToast;
+  showToast = () => {};
+  showActionToast = () => {};
+  _demoReplaying = true;
+  try { steps.forEach(st => replay[st.step] && replay[st.step](st)); }
+  finally { _demoReplaying = false; showToast = toast; showActionToast = actionToast; }
+})();
 openStageFromHash();
 </script>
 </body>

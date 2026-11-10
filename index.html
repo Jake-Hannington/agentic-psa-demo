@@ -66,7 +66,7 @@
     <div class="flow-head">
       <div class="body"><div class="flow-title" id="flow-title">Full flow</div>
         <div class="desc">The whole demo in order, from quote to margin.</div></div>
-      <a class="start" href="tsia/#stage=2">Start full flow <span aria-hidden="true">→</span></a>
+      <a class="start" href="tsia/#stage=2" onclick="clearDemoState()">Start full flow <span aria-hidden="true">→</span></a>
     </div>
     <ol class="steps">
       <li><a class="step" href="tsia/#stage=2"><span class="step-text">Quote with the Quoting Agent</span></a></li>
@@ -119,5 +119,13 @@
 
   <footer>Prototype for demonstration only. All names and figures are illustrative.</footer>
 </main>
+<script>
+  /* Start full flow begins clean: TSIA's and Remi's saved demo progress for this tab goes */
+  function clearDemoState() {
+    try {
+      for (const key of Object.keys(sessionStorage)) if (/^(tsia|remi)/.test(key) || key === 'mcpBannerDismissed') sessionStorage.removeItem(key);
+    } catch { /* storage unavailable: nothing saved */ }
+  }
+</script>
 </body>
 </html>

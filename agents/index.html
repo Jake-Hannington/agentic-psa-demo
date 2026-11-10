@@ -6726,7 +6726,7 @@ const COMPANY_NAME = 'Acme Agency';
 const PEOPLE = {
   dana:    { id: 'dana', name: 'Dana Whitfield', short: 'Dana', initials: 'DW', color: '#4461d7', role: 'site_admin', roleLabel: 'Ops Manager', projects: 'all', financials: true, blurb: 'Ops Manager · site admin · all projects' },
   olivia:  { id: 'olivia', name: 'Ops Manager Olivia', short: 'Olivia', initials: 'OO', color: '#6848bd', role: 'site_admin', roleLabel: 'Site admin', projects: 'all', blurb: 'Site admin · all projects' },
-  paula:   { id: 'paula', name: 'PM Paula', short: 'Paula', initials: 'PP', color: '#d6247f', role: 'project_admin', roleLabel: 'Project admin', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Q4 Marketing Campaign', 'Depot Network Review', 'Enterprise AI Rollout'], blurb: 'Project admin · 5 projects' },
+  paula:   { id: 'paula', name: 'PM Paula', short: 'Paula', initials: 'PP', color: '#d6247f', role: 'project_admin', roleLabel: 'Project admin', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Q4 Marketing Campaign', 'Depot Network Review', 'AI Adoption Campaign'], blurb: 'Project admin · 5 projects' },
   william: { id: 'william', name: 'WB William', short: 'William', initials: 'WB', color: '#1e8e5a', role: 'standard', roleLabel: 'Standard user', projects: ['Brightline Brand Refresh', 'Q4 Marketing Campaign'], blurb: 'Standard user · 2 projects' },
   colin:   { id: 'colin', name: 'Client Colin', short: 'Colin', initials: 'CC', color: '#64697d', role: 'client', roleLabel: 'Client user · Northwind Traders', company: 'Northwind Traders', projects: ['Northwind Website Redesign', 'Northwind Mobile App'], blurb: 'Client user · Northwind Traders · no AI' },
   sam:     { id: 'sam', name: 'Sam Rivera', short: 'Sam', initials: 'SR', color: '#3578bb', role: 'standard', roleLabel: 'Standard user', projects: ['Northwind Website Redesign', 'Northwind Mobile App', 'Brightline Brand Refresh', 'Contoso CRM Migration'] },
@@ -11229,7 +11229,7 @@ const AB_PROJECT_DATA = [
   { name: 'Contoso CRM Migration',      client: 'Contoso' },
   { name: 'Q4 Marketing Campaign',      client: 'Acme Agency' },
   { name: 'Depot Network Review',       client: 'Halcyon Logistics' },
-  { name: 'Enterprise AI Rollout',      client: 'Halcyon Logistics' },
+  { name: 'AI Adoption Campaign',      client: 'Halcyon Logistics' },
 ];
 const AB_PROJECTS = AB_PROJECT_DATA.map(p => p.name);
 
@@ -15369,7 +15369,7 @@ const PROJECTS = [
         _T('Network optimisation report', 'paula', 'todo', 'Mon, 23 Nov 2026', 'Fri, 11 Dec 2026', 'high', 0, 20, 'Recommend depot changes with cost and service impact for each.', []),
       ] },
     ] },
-  { id: 'p7', name: 'Enterprise AI Rollout', client: 'Halcyon Logistics', owner: 'paula', start: '5 Oct 2026', end: '25 Dec 2026', health: 'Good', fee: 150000, targetMargin: 35.2, budget: 97200, spent: 33528, progress: 40,
+  { id: 'p7', name: 'AI Adoption Campaign', client: 'Halcyon Logistics', owner: 'paula', start: '5 Oct 2026', end: '25 Dec 2026', health: 'Good', fee: 150000, targetMargin: 35.2, budget: 97200, spent: 33528, progress: 40,
     risk: 'The ROI business case depends on Halcyon’s finance data arriving on time.',
     lists: [
       { name: 'Discovery & Readiness', tasks: [
@@ -15566,7 +15566,7 @@ function _projectLine(kind, p) {
 }
 function _mentionedProject(q) {
   const t = (q || '').toLowerCase();
-  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['enterprise', 'rollout'] };
+  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['ai adoption', 'adoption campaign'] };
   return PROJECTS.find(p => t.includes(p.name.toLowerCase()) || keys[p.id].some(k => t.includes(k))) || null;
 }
 /* Full answer (HTML for chat and Run now; plain text for task comments) */
@@ -15743,8 +15743,13 @@ Object.assign(PEOPLE.sam, { financials: true });
 /* Word-level project matching, so "approve" doesn't mean the Mobile App */
 function _mentionedProject(q) {
   const t = (q || '').toLowerCase();
-  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['enterprise', 'rollout'] };
-  return PROJECTS.find(p => t.includes(p.name.toLowerCase()) || keys[p.id].some(k => new RegExp(`\\b${k}\\b`).test(t))) || null;
+  const keys = { p1: ['website'], p2: ['mobile', 'app'], p3: ['brightline', 'brand'], p4: ['contoso', 'crm'], p5: ['q4', 'marketing', 'campaign'], p6: ['depot'], p7: ['ai adoption', 'adoption campaign'] };
+  const named = PROJECTS.find(p => t.includes(p.name.toLowerCase()));
+  if (named) return named;
+  // The longest matching key wins, so "adoption campaign" means AI Adoption Campaign, not Q4's "campaign"
+  let best = null, len = 0;
+  for (const p of PROJECTS) for (const k of keys[p.id] || []) if (k.length > len && new RegExp(`\\b${k}\\b`).test(t)) { best = p; len = k.length; }
+  return best;
 }
 
 /* Runs use the runner's own picks (SH-07), filtered by their access (SC-04, EX-01) */
@@ -17763,7 +17768,7 @@ function _mwPrompt() {
   return [
     'Role', 'You watch margin on your active projects.', '',
     'Objective', 'Compare each project’s estimate at completion (EAC) with its cost budget, and catch margin loss before it happens.', '',
-    'Focus', '• Active projects: Depot Network Review, Enterprise AI Rollout.', '• Fixed-fee projects first, where every extra hour comes out of margin.', '• On retainers, watch hours used against the fee. On time and materials, watch write-offs and discounts.', '',
+    'Focus', '• Active projects: Depot Network Review, AI Adoption Campaign.', '• Fixed-fee projects first, where every extra hour comes out of margin.', '• On retainers, watch hours used against the fee. On time and materials, watch write-offs and discounts.', '',
     'Output', 'Warn when EAC reaches 90% of the cost budget (Approaching). Alert when it goes over (Exceeded). Explain the cause in one or two lines, recommend up to three actions with the margin each recovers, and propose the changes for approval.', '',
     'Rules', '• Never change a project without approval.', '• Lead with the $ impact, then the margin %.', '',
     'Notify', `• ${PEOPLE.dana.name} (${PEOPLE.dana.roleLabel}) and the project’s PM.`, '',
@@ -17782,7 +17787,7 @@ function openMarginWatcher() {
   a.triggers.splice(at, 0, { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key,
     filters, summary: `${_evSummary(key, filters)} · Runs with your access`, enabled: true });
   // Focus is picked in the chat; its options suggest the Halcyon projects
-  a._suggestProjects = ['Depot Network Review', 'Enterprise AI Rollout'];
+  a._suggestProjects = ['Depot Network Review', 'AI Adoption Campaign'];
   a._offerFirstRun = true;
   _setMode(a, 'draft');   // changes wait for approval, unlike the Act default for new agents
   // Greet again now the mode is set, so the next question fits

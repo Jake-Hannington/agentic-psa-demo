@@ -5309,7 +5309,7 @@ button.al-task:hover { background: var(--color-background-hover); }
  * ─────────────────────────────────────────────────────────────────
  * 🧩 Client — Halcyon Logistics
  * Overview widget board, Quotes list, and a quote detail whose
- * numbers are the Enterprise AI Rollout engagement.
+ * numbers are the AI Adoption Campaign engagement.
  * ─────────────────────────────────────────────────────────────────
  */
 .client-page { display: none; flex: 1; min-height: 0; flex-direction: column; }
@@ -7012,7 +7012,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
         <span class="breadcrumb-sep">/</span>
         <a href="#" onclick="return false;">Projects</a>
         <span class="breadcrumb-sep">/</span>
-        <a href="#" onclick="return false;">Enterprise AI Rollout</a>
+        <a href="#" onclick="return false;">AI Adoption Campaign</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current" id="projectCrumbTab">List</span>
       </div>
@@ -7080,7 +7080,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
       <div class="project-head">
         <div class="project-title-row">
           <div class="project-avatar">H</div>
-          <div class="project-name">Enterprise AI Rollout</div>
+          <div class="project-name">AI Adoption Campaign</div>
           <button class="project-head-icon" title="Favourite">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </button>
@@ -7446,7 +7446,7 @@ textarea.cv-input { height: auto; min-height: 84px; padding: var(--spacing-3); l
       </svg>
     </div>
     <div class="ai-drawer-context-text">
-      <div class="ai-drawer-context-label" id="aiDrawerContextLabel">Working in <strong id="aiDrawerContextName">Enterprise AI Rollout</strong></div>
+      <div class="ai-drawer-context-label" id="aiDrawerContextLabel">Working in <strong id="aiDrawerContextName">AI Adoption Campaign</strong></div>
       <div class="ai-drawer-context-sub" id="aiDrawerContextSub">Answers are scoped to this project</div>
     </div>
     <button class="ai-drawer-context-all" onclick="askAiAllProjects()">Ask across all projects</button>
@@ -9054,7 +9054,7 @@ function showProject() {
   _syncRemiButton(projectTab);
 }
 
-/* Engagement data — Enterprise AI Rollout for Halcyon Logistics,
+/* Engagement data — AI Adoption Campaign for Halcyon Logistics,
    delivered by Meridian Transformation Partners. Fixed fee $150,000,
    12 weeks (Mon 5 Oct – Fri 25 Dec 2026), 820 planned hours.
    One task list per phase, one task per billable deliverable.
@@ -9282,7 +9282,7 @@ function renderProjectBody() {
 /* ─────────────────────────────────────────────────────────────────
  * 🧩 Client — Halcyon Logistics
  * Overview widgets, a quotes list, and the accepted quote behind the
- * Enterprise AI Rollout engagement. The quote's line items are the
+ * AI Adoption Campaign engagement. The quote's line items are the
  * four phases at the team's cost and billable rates, so it totals the
  * same $150,000 fee / $97,200 cost / 35.2% margin as the project.
  * ───────────────────────────────────────────────────────────────── */
@@ -9326,7 +9326,7 @@ const QUOTE_SECTIONS = [
 
 const CLIENT_QUOTES = [
   { id: 'QTE-014-15-09-2026', issued: '15 Sept 2026', valid: '15 Oct 2026', by: 'PR',
-    note: 'Enterprise AI Rollout — 12-week fixed fee', status: 'open', total: 150000, open: true },
+    note: 'AI Adoption Campaign — 12-week fixed fee', status: 'open', total: 150000, open: true },
   { id: 'QTE-013-02-09-2026', issued: '2 Sept 2026', valid: '2 Oct 2026', by: 'TO',
     note: 'Depot Network Review — phase 2 extension', status: 'open', total: 48500 },
   { id: 'QTE-011-18-07-2026', issued: '18 July 2026', valid: '17 Aug 2026', by: 'PR',
@@ -9958,7 +9958,7 @@ function _renderQuotesList() {
       </tr></thead>
       <tbody>
         ${CLIENT_QUOTES.map(q => `
-          <tr class="q-row" onclick="${q.open ? `openQuote('${q.id}')` : `showToast('Only the Enterprise AI Rollout quote is built out in this prototype')`}">
+          <tr class="q-row" onclick="${q.open ? `openQuote('${q.id}')` : `showToast('Only the AI Adoption Campaign quote is built out in this prototype')`}">
             <td class="q-no">${q.id}</td>
             <td>${q.issued}</td>
             <td class="${q.expired ? 'q-expired' : ''}">${q.valid}</td>
@@ -10216,7 +10216,7 @@ function _renderQuoteDetail() {
  * 🧩 Convert quote to project — three steps
  * ref: figma.com/design/4XFgZGSEN0NnkGk2rk9L1z node 44-26758
  * Every field is pre-filled from the quote, so the project it creates
- * is the Enterprise AI Rollout already in the prototype.
+ * is the AI Adoption Campaign already in the prototype.
  * ───────────────────────────────────────────────────────────────── */
 let cvStep = 1;
 let cvKind = 'confirmed';     /* tentative | confirmed */
@@ -10283,7 +10283,7 @@ function renderConvert() {
         </button>
       </div>
       <div class="cv-field"><label>Project name</label>
-        <input class="cv-input" value="Enterprise AI Rollout"></div>
+        <input class="cv-input" value="AI Adoption Campaign"></div>
       <div class="cv-row">
         <div class="cv-field"><label>Client</label>
           <div class="cv-input"><span class="grow">Halcyon Logistics</span><span class="caret">${caret}</span></div></div>
@@ -10417,7 +10417,7 @@ function cvCreateProject() {
   closeConvertDialog();
   showActionToast(
     'Project created',
-    'Enterprise AI Rollout is set up for Halcyon Logistics with 11 tasks across 4 phases and a $150,000 fixed-fee budget.',
+    'AI Adoption Campaign is set up for Halcyon Logistics with 11 tasks across 4 phases and a $150,000 fixed-fee budget.',
     'Open project', () => {
       switchProjectTab('schedule', _projectTabBtn('schedule'));
       showProject();
@@ -10455,7 +10455,7 @@ function hideActionToast() {
 const DEMO_STAGES = [
   ['Client · Overview',      () => showClient('overview')],
   ['Client · Quotes',        () => showClient('quotes')],
-  ['Quote · Enterprise AI Rollout', () => { showClient('quotes'); openQuote('QTE-014-15-09-2026'); }],
+  ['Quote · AI Adoption Campaign', () => { showClient('quotes'); openQuote('QTE-014-15-09-2026'); }],
   ['Client · Role rates',    () => showClient('rates')],
   ['Project · List',         () => { showProject(); switchProjectTab('list', _projectTabBtn('list')); }],
   ['Project · Schedule',     () => { showProject(); switchProjectTab('schedule', _projectTabBtn('schedule')); }],
@@ -10469,11 +10469,11 @@ const DEMO_STAGES = [
    #stage=N links still work. A number is a DEMO_STAGES index; a word is a Remi screen, linked as /remi/#word.
    Remi's top bar has the same menu: keep STAGE_MENU the same in remi/index.html. */
 const STAGE_MENU = [
-  ['Client', [['Overview', 0], ['Quotes', 1], ['Enterprise AI Rollout quote', 2], ['Role rates', 3]]],
+  ['Client', [['Overview', 0], ['Quotes', 1], ['AI Adoption Campaign quote', 2], ['Role rates', 3]]],
   ['Project', [['List', 4], ['Schedule', 5], ['Finance', 6]]],
   ['Reporting', [['AI margin report', 7]]],
   ['Teamwork AI', [['AI Agents', 8], ['AI Skills', 9]]],
-  ['Remi', [['Projects list', 'projects'], ['Enterprise AI Rollout project', 'project'], ['Start Remi on the project', 'start']]],
+  ['Remi', [['Projects list', 'projects'], ['AI Adoption Campaign project', 'project'], ['Start Remi on the project', 'start']]],
 ];
 function toggleStageMenu(e) {
   e.stopPropagation();
@@ -10851,7 +10851,7 @@ function openAllocation(key) {
     ].join('') : '<div class="al-empty">No tasks are linked to this allocation.</div>';
 
   document.getElementById('allocDrawerBody').innerHTML = `
-    <div class="al-crumb">${CLIENT.name} <span class="sep">/</span> Enterprise AI Rollout</div>
+    <div class="al-crumb">${CLIENT.name} <span class="sep">/</span> AI Adoption Campaign</div>
     <div class="al-title">${a.name}</div>
     <div class="al-desc">${f.tasks && f.tasks.task.description ? f.tasks.task.description : '<span class="al-desc-ph">Description</span>'}</div>
 
@@ -10980,7 +10980,7 @@ function _schedProjectRows(days) {
         <button class="sched-caret${open ? ' open' : ''}" onclick="schedToggleRow('${key}')">${caret}</button>
         <span class="sched-avatar" style="background:var(--palette-yellow-45);color:var(--palette-neutral-60)">H</span>
         <div class="sched-person-meta">
-          <div class="sched-person-name">Enterprise AI Rollout</div>
+          <div class="sched-person-name">AI Adoption Campaign</div>
           <div class="sched-person-role">Halcyon Logistics &middot; ${schedPeople.length} resources</div>
         </div>
         <div class="sched-person-hours">${_schedHrs(Math.max(0, cap - alloc))}<span class="sep">|</span><b>${_schedHrs(alloc)}</b></div>
@@ -12132,9 +12132,9 @@ function askAiAboutProject() {
   const drawer = document.getElementById('aiDrawer');
   if (!drawer.classList.contains('open')) toggleAiDrawer();
   activeChat = 'drawer';
-  setProjectContext('Enterprise AI Rollout');
+  setProjectContext('AI Adoption Campaign');
   const input = document.getElementById('aiDrawerInput');
-  input.value = "What’s the status of Enterprise AI Rollout? Summarise progress, blockers and what needs my attention.";
+  input.value = "What’s the status of AI Adoption Campaign? Summarise progress, blockers and what needs my attention.";
   aiAutoResize(input);
   setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 260);
 }
@@ -12148,7 +12148,7 @@ const _projAiIcons = {
   users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
 };
 const projectAiSuggestions = {
-  'Enterprise AI Rollout': [
+  'AI Adoption Campaign': [
     { q: 'Will we hit the next milestone?',        icon: 'trend' },
     { q: 'How is margin tracking on this fee?',     icon: 'trend' },
     { q: 'What are the current blockers?',          icon: 'alert' },
@@ -12183,7 +12183,7 @@ function setProjectContext(projectName) {
     if (introTitle) introTitle.textContent = 'Ask Teamwork';
     if (introText)  introText.textContent = `Ask about ${projectName} — its tasks, time and team — or anything across your projects.`;
 
-    const items = projectAiSuggestions[projectName] || projectAiSuggestions['Enterprise AI Rollout'];
+    const items = projectAiSuggestions[projectName] || projectAiSuggestions['AI Adoption Campaign'];
     if (suggestions) {
       suggestions.classList.add('scoped');
       suggestions.style.display = '';
@@ -12358,7 +12358,7 @@ function askAiAllProjects() {
   setProjectContext(null);
   const input = document.getElementById('aiDrawerInput');
   if (input) {
-    const scoped = "What’s the status of Enterprise AI Rollout? Summarise progress, blockers and what needs my attention.";
+    const scoped = "What’s the status of AI Adoption Campaign? Summarise progress, blockers and what needs my attention.";
     if (input.value.trim() === scoped) {
       input.value = 'Catch me up across all my projects — progress, blockers and what needs my attention.';
       aiAutoResize(input);
@@ -12378,11 +12378,11 @@ function openProjectCatchup() {
   activeChat = 'drawer';
   _drawerUpdateScope = null;         // route through catch-up intent, not update-scoped Q&A
   _currentTask = null;
-  setProjectContext('Enterprise AI Rollout');
+  setProjectContext('AI Adoption Campaign');
   // Let the open transition begin, then post the catch-up as a chat response
   setTimeout(() => {
     activeChat = 'drawer';
-    aiSendSuggestion('Give me a catch-up on Enterprise AI Rollout');
+    aiSendSuggestion('Give me a catch-up on AI Adoption Campaign');
   }, wasOpen ? 0 : 280);
 }
 
@@ -12589,7 +12589,7 @@ function runJobFromComment(teammateName, jobType) {
   _savedSelectedTeammate = prev ? prev.name : null;
   teammates.forEach(t => t.selected = (t.name === teammateName));
   _pendingJobType = jobType;
-  _pendingJobProject = 'Enterprise AI Rollout';
+  _pendingJobProject = 'AI Adoption Campaign';
   openAddJobDialog();
 }
 
@@ -12770,7 +12770,7 @@ function renderTaskDrawerBody(t, list, listIdx, taskIdx) {
 
   return `
     <div class="task-breadcrumb">
-      <span>Enterprise AI Rollout</span><span class="sep">/</span>
+      <span>AI Adoption Campaign</span><span class="sep">/</span>
       <span>${list.name}</span><span class="sep">/</span>
       <span class="crumb-id">${taskNum}</span>
     </div>
@@ -13241,7 +13241,7 @@ function _mrRows() {
     const h = a ? a.hours : 50;
     AGENT_LOG_DATES.forEach(d => { weeks[_mrWeek(d)] += h / AGENT_LOG_DATES.length; });
   }
-  const rows = [{ project: 'Enterprise AI Rollout', client: CLIENT.name, weeks, live: true }, ...MR_OTHER];
+  const rows = [{ project: 'AI Adoption Campaign', client: CLIENT.name, weeks, live: true }, ...MR_OTHER];
   return rows.map(r => {
     const hours = r.weeks.reduce((a, b) => a + b, 0);
     return { ...r, hours,
@@ -14737,7 +14737,7 @@ function addRecurringJob(tm, type) {
   _savedSelectedTeammate = (teammates.find(t => t.selected) || {}).name || null;
   teammates.forEach(t => t.selected = (t.name === tm));
   _pendingJobType = type;
-  _pendingJobProject = 'Enterprise AI Rollout';
+  _pendingJobProject = 'AI Adoption Campaign';
   _pendingJobRecurring = true;
   closeAiDrawer();
   openAddJobDialog();
@@ -14791,7 +14791,7 @@ function _tasksCreatedReply(pending) {
    action via the matching Teamwork MCP write/read operation. */
 function _actionFlowReply(kind, u) {
   const haystack = `${(u.content && u.content.body) || ''} ${u.title || ''}`;
-  const proj = /Enterprise AI Rollout/i.test(haystack) ? 'Enterprise AI Rollout'
+  const proj = /AI Adoption Campaign|AI Adoption|adoption campaign/i.test(haystack) ? 'AI Adoption Campaign'
     : (u.title && u.title.split(/[:—]/)[0].trim()) || 'the project';
   switch (kind) {
     case 'create_task':
@@ -15532,7 +15532,7 @@ function openJobTypeMenu(event, jobType) {
 /* ── Project picker ─────────────────────────────────────────────── */
 const pickerProjects = [
   { id: 'halcyon',  client: 'Halcyon Logistics', projects: [
-    { id: 'a1', name: 'Enterprise AI Rollout',   recent: true,  starred: true,  owned: true  },
+    { id: 'a1', name: 'AI Adoption Campaign',   recent: true,  starred: true,  owned: true  },
     { id: 'a2', name: 'Depot Network Review',    recent: true,  starred: false, owned: false },
     { id: 'a3', name: 'TMS Data Migration',      recent: false, starred: false, owned: false },
   ]},
@@ -16445,7 +16445,7 @@ function _firstMentionedTeammate(text) {
 
 /* A teammate's conversational reply when @mentioned in the Ask AI drawer */
 function _drawerTeammateReply(name, q) {
-  const proj = document.getElementById('projectPage')?.classList.contains('visible') ? 'Enterprise AI Rollout' : 'your projects';
+  const proj = document.getElementById('projectPage')?.classList.contains('visible') ? 'AI Adoption Campaign' : 'your projects';
   const map = {
     Flo:   `Sure — I'll review ${proj}, check progress, dependencies and blockers, and post a short summary of what needs your attention.`,
     Scout: `On it. I'll pull the latest activity and notifications across ${proj} and surface anything important.`,
@@ -16458,7 +16458,7 @@ function _drawerTeammateReply(name, q) {
 }
 
 /* ── Selection → Create task(s) ─────────────────────────────────── */
-const _attProjects = ['Enterprise AI Rollout', 'CRM Migration', 'Mobile App Launch', 'Q3 Marketing Campaign', 'Infrastructure Upgrade'];
+const _attProjects = ['AI Adoption Campaign', 'CRM Migration', 'Mobile App Launch', 'Q3 Marketing Campaign', 'Infrastructure Upgrade'];
 const _attLists = ['Discovery & planning', 'Design', 'Development', 'Design work', 'QA & testing', 'Backlog'];
 const _teammateOutputSel = '.chat-msg.ai, .chat-msg.teammate, .ai-content, .task-comment-item.from-ai, .chat-job-preview-body';
 let _selTaskText = '';
@@ -16511,7 +16511,7 @@ function _attMatchName(text, names) {
 }
 function _attPrefill(text) {
   let project = _attMatchName(text, _attProjects);
-  if (!project && document.getElementById('projectPage')?.classList.contains('visible')) project = 'Enterprise AI Rollout';
+  if (!project && document.getElementById('projectPage')?.classList.contains('visible')) project = 'AI Adoption Campaign';
   const list = _attMatchName(text, _attLists);
   return { project, list };
 }
@@ -16594,7 +16594,7 @@ function _projectScopedReply(text) {
   const q = text.toLowerCase();
 
   if (q.includes('milestone') || q.includes('hit the next')) {
-    return `<p>The first milestone for <strong>Enterprise AI Rollout</strong> is <strong>Phase 1 sign-off</strong>, due <strong>Fri 23 Oct</strong> — three weeks out.</p>
+    return `<p>The first milestone for <strong>AI Adoption Campaign</strong> is <strong>Phase 1 sign-off</strong>, due <strong>Fri 23 Oct</strong> — three weeks out.</p>
 <p>Nothing has started yet, and one thing in the plan is worth resolving before it does:</p>
 <ul>
   <li><strong>Stakeholder interviews</strong> and <strong>use-case discovery</strong> overlap from 12 Oct, and both sit with Sam Delaney at 8h/day — 16 hours a day across that week.</li>
@@ -16625,7 +16625,7 @@ function _projectScopedReply(text) {
   }
 
   if ((q.includes('margin') || q.includes('profit')) && !q.includes('planned')) {
-    return `<p><strong>Enterprise AI Rollout</strong> is fixed fee at <strong>$150,000</strong> over 820 planned hours. Nothing is logged yet, so this is all plan:</p>
+    return `<p><strong>AI Adoption Campaign</strong> is fixed fee at <strong>$150,000</strong> over 820 planned hours. Nothing is logged yet, so this is all plan:</p>
 <ul>
   <li><strong>Planned cost to serve:</strong> $97,200</li>
   <li><strong>Planned margin:</strong> $52,800 — <strong>35.2%</strong></li>
@@ -16635,7 +16635,7 @@ function _projectScopedReply(text) {
   }
 
   if (q.includes('summarise') || q.includes('summarize') || q.includes('progress')) {
-    return `<p><strong>Enterprise AI Rollout</strong> hasn't started — here's the shape of it:</p>
+    return `<p><strong>AI Adoption Campaign</strong> hasn't started — here's the shape of it:</p>
 <ul>
   <li>📋 <strong>11 deliverables across 4 phases</strong>, all planned, none started</li>
   <li>📅 <strong>12 weeks</strong>, Mon 5 Oct to Fri 25 Dec 2026</li>
@@ -16674,7 +16674,7 @@ function _financeReply(text) {
     const margin = BUD.marginTarget.toFixed(1);
 
     if (!bill.invoiced || bill.invoiced <= 30000) {
-      return `<p><strong>Enterprise AI Rollout</strong> hasn't delivered a phase yet, so there is nothing to track against plan.</p>
+      return `<p><strong>AI Adoption Campaign</strong> hasn't delivered a phase yet, so there is nothing to track against plan.</p>
 <p>The plan stands at <strong>${_budMoney(BUD.costTarget)}</strong> of cost against the $150,000 fee — a
 <strong>${margin}%</strong> margin over ${BUD.hoursBudget} hours. Only the deposit has been invoiced.</p>`;
     }
@@ -16696,7 +16696,7 @@ ${agent ? `<p>Phase 1 came in at <strong>${_budMoney(spent)}</strong> against th
 
   if (q.includes('planned margin') || (q.includes('margin') && q.includes('this project'))) {
     _plannedMarginChecked = true;
-    return `<p><strong>Enterprise AI Rollout</strong> is fixed fee at <strong>$150,000</strong> over <strong>820 planned hours</strong>. Planned cost to serve at the team's cost rates:</p>
+    return `<p><strong>AI Adoption Campaign</strong> is fixed fee at <strong>$150,000</strong> over <strong>820 planned hours</strong>. Planned cost to serve at the team's cost rates:</p>
 <ul>
   <li>Engagement Partner — 60h × $200 = <strong>$12,000</strong></li>
   <li>Senior Consultant — 200h × $150 = <strong>$30,000</strong></li>
@@ -16729,14 +16729,14 @@ ${_remiApplied ? `<p><strong>Since you approved Remi's suggestion</strong>, the 
   <li><strong>Depot Network Review</strong> (Halcyon Logistics) — 24.1% against 32% planned. 118h over plan with two weeks left; the overage is all senior time.</li>
   <li><strong>CRM Migration</strong> (Blue Horizon) — 27.6% against 34% planned. Scope added in August was never re-quoted.</li>
 </ul>
-<p><strong>Enterprise AI Rollout</strong> hasn't started, so it isn't drifting yet — but it is the one to watch. Phase 1 assumes a single junior consultant can deliver 200 hours in three weeks, and covering that overflow at senior rates would take it from 35.2% to 33.8% before any work lands.</p>`;
+<p><strong>AI Adoption Campaign</strong> hasn't started, so it isn't drifting yet — but it is the one to watch. Phase 1 assumes a single junior consultant can deliver 200 hours in three weeks, and covering that overflow at senior rates would take it from 35.2% to 33.8% before any work lands.</p>`;
   }
 
   if (q.includes('unbilled')) {
     return `<p>There's <strong>$63,600 of unbilled time</strong> across the portfolio right now, <strong>$31,900</strong> of it more than 30 days old.</p>
 <ul>
   <li><strong>Blue Horizon</strong> — $38,400 across CRM Migration and Client Portal v2. Both are time and materials; nothing has been invoiced since 31 Aug.</li>
-  <li><strong>Halcyon Logistics</strong> — $9,100, all on Depot Network Review. Enterprise AI Rollout is fixed fee and hasn't started, so nothing there is billable yet.</li>
+  <li><strong>Halcyon Logistics</strong> — $9,100, all on Depot Network Review. AI Adoption Campaign is fixed fee and hasn't started, so nothing there is billable yet.</li>
   <li><strong>Global Media</strong> — $16,100, all within terms.</li>
 </ul>
 <p>The oldest item is <strong>$12,300 on CRM Migration</strong>. Want me to draft the invoice schedule for Blue Horizon before month-end?</p>`;
@@ -16747,7 +16747,7 @@ ${_remiApplied ? `<p><strong>Since you approved Remi's suggestion</strong>, the 
 <ul>
   <li>🔴 <strong>Depot Network Review</strong> — 94% of budget consumed, 3 weeks of work left. Will breach in early November.</li>
   <li>🟠 <strong>CRM Migration</strong> — 88% consumed with the UAT phase not started.</li>
-  <li>🟢 <strong>Enterprise AI Rollout</strong> — starts 5 Oct, nothing consumed of the 820 hours yet.</li>
+  <li>🟢 <strong>AI Adoption Campaign</strong> — starts 5 Oct, nothing consumed of the 820 hours yet.</li>
   <li>🟢 <strong>8 other projects</strong> tracking at or under plan.</li>
 </ul>
 <p>Two need a conversation before the month closes: <strong>Depot Network Review</strong> needs a change request, and <strong>CRM Migration</strong> needs the August scope re-quoted.</p>`;
@@ -16757,10 +16757,10 @@ ${_remiApplied ? `<p><strong>Since you approved Remi's suggestion</strong>, the 
     return `<p>Client profitability for the quarter to date, by realised margin:</p>
 <ul>
   <li><strong>Global Media</strong> — $71,400 on $198,000 billed, <strong>36.1%</strong>. Consistently the cleanest delivery; almost no write-offs.</li>
-  <li><strong>Halcyon Logistics</strong> — $64,900 on $205,000 billed, <strong>31.7%</strong>. Depot Network Review is dragging it down; Enterprise AI Rollout starts 5 Oct at a planned 35.2%.</li>
+  <li><strong>Halcyon Logistics</strong> — $64,900 on $205,000 billed, <strong>31.7%</strong>. Depot Network Review is dragging it down; AI Adoption Campaign starts 5 Oct at a planned 35.2%.</li>
   <li><strong>Blue Horizon</strong> — $38,200 on $164,000 billed, <strong>23.3%</strong>. Two projects over plan and the slowest to invoice.</li>
 </ul>
-<p>Halcyon is the account to watch — it's the largest by revenue, and Enterprise AI Rollout is the engagement to get right, particularly the agent resource model.</p>`;
+<p>Halcyon is the account to watch — it's the largest by revenue, and AI Adoption Campaign is the engagement to get right, particularly the agent resource model.</p>`;
   }
 
   return null;
@@ -17214,7 +17214,7 @@ function _appendJobPreviewWithTime(intent, timeStr) {
  * every section and the chat all read and write it.
  * ───────────────────────────────────────────────────────────────── */
 
-const AB_PROJECTS = ['Enterprise AI Rollout', 'CRM Migration', 'Brand Refresh', 'Client Portal v2', 'Annual Report Design'];
+const AB_PROJECTS = ['AI Adoption Campaign', 'CRM Migration', 'Brand Refresh', 'Client Portal v2', 'Annual Report Design'];
 
 /* An agent shows the same job icon the gallery cards use. Named agents
    reuse the gallery's mapping; anything else is matched on keywords. */

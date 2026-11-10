@@ -5111,13 +5111,13 @@
     });
   }
 
-  // ══ Enterprise AI Rollout, from 006 (the demo's happy path): its own data; the user pastes the plan into the chat.
+  // ══ AI Adoption Campaign, from 006 (the demo's happy path): its own data; the user pastes the plan into the chat.
   //    Its phases and task names are the SOW's work (TSIA's QUOTE_SECTIONS); the people, hours and assignments are 006's.
   //    Everything 006 shows reads from here; 001–005 never do. The 004 team, plus Olivia Grant (front-end, at the 80% limit),
   //    Brad Frost (front-end, free, kept off development by the planning instruction) and Ryan Giles (developer, no rates) ══
   const t6 = (id, name, phase, role, estimate, assignee = null) => ({ id, name, phase, role, estimate, assignee });
   const DEMO_006 = {
-    name: 'Enterprise AI Rollout',
+    name: 'AI Adoption Campaign',
     fee: 35000, // the fixed fee in the pasted plan (C0: about 40% margin before the front-end work, 35–37% after)
     get budget() { return { type: 'Fixed fee', amount: this.fee - 5000, targetMargin: 40, repeat: 'Never', start: '2026-10-13' }; }, // the original quote; the pasted plan changes it
     get samplePlan() {
@@ -7688,7 +7688,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   //    Phase 2 adds people, rates and tasks from TSIA's quote to this object ══
   const DEMO_SOW = {
     client: 'Halcyon Logistics',
-    project: 'Enterprise AI Rollout',
+    project: 'AI Adoption Campaign',
     fee: 150000,
     budgetType: 'Fixed fee',
     start: '2026-10-05',
@@ -7724,7 +7724,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   const escapeHtml = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let sowSetup = false; // the SOW route: its answers are set, and its budget, margin and instructions steps replace the project's
   // The plan side of the SOW: its dates, Remi's usual answers, its budget, and rates scaled to its fee. Applied when the SOW is
-  // read, and again when the page reloads mid-demo (sessionStorage 'remiSow'), so the timeline keeps Enterprise AI Rollout's figures
+  // read, and again when the page reloads mid-demo (sessionStorage 'remiSow'), so the timeline keeps AI Adoption Campaign's figures
   let sowRatesScaled = false;
   function applySowPlan(sow) {
     setProjectDates({ start: sow.start, end: sow.end });
@@ -9953,7 +9953,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const { kind } = planToast.dataset;
     const ready = PROTOTYPE.afterCreatePlan && kind === 'ready';
     hideToast();
-    if (ready && sowSetup) location.href = '/tsia/#stage=5'; // the SOW route goes on in TSIA: Enterprise AI Rollout's Project · Schedule
+    if (ready && sowSetup) location.href = '/tsia/#stage=5'; // the SOW route goes on in TSIA: AI Adoption Campaign's Project · Schedule
     else if (ready) showView('timeline');
   });
 
@@ -10955,14 +10955,14 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     <li><strong>Depot Network Review</strong> (Halcyon Logistics) — 24.1% against 32% planned. 118h over plan with two weeks left; the overage is all senior time.</li>
     <li><strong>CRM Migration</strong> (Blue Horizon) — 27.6% against 34% planned. Scope added in August was never re-quoted.</li>
   </ul>
-  <p><strong>Enterprise AI Rollout</strong> hasn't started, so it isn't drifting yet — but it is the one to watch. Phase 1 assumes a single junior consultant can deliver 200 hours in three weeks, and covering that overflow at senior rates would take it from 35.2% to 33.8% before any work lands.</p>`;
+  <p><strong>AI Adoption Campaign</strong> hasn't started, so it isn't drifting yet — but it is the one to watch. Phase 1 assumes a single junior consultant can deliver 200 hours in three weeks, and covering that overflow at senior rates would take it from 35.2% to 33.8% before any work lands.</p>`;
     }
 
     if (q.includes('unbilled')) {
       return `<p>There's <strong>$63,600 of unbilled time</strong> across the portfolio right now, <strong>$31,900</strong> of it more than 30 days old.</p>
   <ul>
     <li><strong>Blue Horizon</strong> — $38,400 across CRM Migration and Client Portal v2. Both are time and materials; nothing has been invoiced since 31 Aug.</li>
-    <li><strong>Halcyon Logistics</strong> — $9,100, all on Depot Network Review. Enterprise AI Rollout is fixed fee and hasn't started, so nothing there is billable yet.</li>
+    <li><strong>Halcyon Logistics</strong> — $9,100, all on Depot Network Review. AI Adoption Campaign is fixed fee and hasn't started, so nothing there is billable yet.</li>
     <li><strong>Global Media</strong> — $16,100, all within terms.</li>
   </ul>
   <p>The oldest item is <strong>$12,300 on CRM Migration</strong>. Want me to draft the invoice schedule for Blue Horizon before month-end?</p>`;
@@ -10973,7 +10973,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   <ul>
     <li>🔴 <strong>Depot Network Review</strong> — 94% of budget consumed, 3 weeks of work left. Will breach in early November.</li>
     <li>🟠 <strong>CRM Migration</strong> — 88% consumed with the UAT phase not started.</li>
-    <li>🟢 <strong>Enterprise AI Rollout</strong> — starts 5 Oct, nothing consumed of the 820 hours yet.</li>
+    <li>🟢 <strong>AI Adoption Campaign</strong> — starts 5 Oct, nothing consumed of the 820 hours yet.</li>
     <li>🟢 <strong>8 other projects</strong> tracking at or under plan.</li>
   </ul>
   <p>Two need a conversation before the month closes: <strong>Depot Network Review</strong> needs a change request, and <strong>CRM Migration</strong> needs the August scope re-quoted.</p>`;
@@ -10983,10 +10983,10 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       return `<p>Client profitability for the quarter to date, by realised margin:</p>
   <ul>
     <li><strong>Global Media</strong> — $71,400 on $198,000 billed, <strong>36.1%</strong>. Consistently the cleanest delivery; almost no write-offs.</li>
-    <li><strong>Halcyon Logistics</strong> — $64,900 on $205,000 billed, <strong>31.7%</strong>. Depot Network Review is dragging it down; Enterprise AI Rollout starts 5 Oct at a planned 35.2%.</li>
+    <li><strong>Halcyon Logistics</strong> — $64,900 on $205,000 billed, <strong>31.7%</strong>. Depot Network Review is dragging it down; AI Adoption Campaign starts 5 Oct at a planned 35.2%.</li>
     <li><strong>Blue Horizon</strong> — $38,200 on $164,000 billed, <strong>23.3%</strong>. Two projects over plan and the slowest to invoice.</li>
   </ul>
-  <p>Halcyon is the account to watch — it's the largest by revenue, and Enterprise AI Rollout is the engagement to get right, particularly the agent resource model.</p>`;
+  <p>Halcyon is the account to watch — it's the largest by revenue, and AI Adoption Campaign is the engagement to get right, particularly the agent resource model.</p>`;
     }
 
     return null;
@@ -12002,12 +12002,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   // Resource-plan dialog
   const PROJECTS = {
     recent: [
-      ['Enterprise AI Rollout'], ['Customer Onboarding Flow', true], ['Data Warehouse Migration'], ['Billing Portal Revamp'],
+      ['AI Adoption Campaign'], ['Customer Onboarding Flow', true], ['Data Warehouse Migration'], ['Billing Portal Revamp'],
       ['Helpdesk Automation', true], ['Mobile App Refresh'], ['Store Locator Rebuild'], ['Pricing Page Experiments'],
       ['Q4 Brand Campaign', true], ['Internal Tooling'], ['Lumen Design System'], ['Partner Webinar Series'], ['Year-end Reporting'],
     ],
     all: [
-      ['Enterprise AI Rollout'], ['Atlas Rebrand', true], ['Billing Portal Revamp'], ['Customer Onboarding Flow', true],
+      ['AI Adoption Campaign'], ['Atlas Rebrand', true], ['Billing Portal Revamp'], ['Customer Onboarding Flow', true],
       ['Data Warehouse Migration'], ['Helpdesk Automation', true], ['Holiday Gift Guide'], ['Internal Tooling'],
       ['Lumen Design System'], ['Mobile App Refresh'], ['Partner Webinar Series'], ['Pricing Page Experiments'],
       ['Q4 Brand Campaign', true], ['Store Locator Rebuild'], ['Warehouse Analytics Dashboard'], ['Year-end Reporting'],
@@ -12367,11 +12367,11 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   //    /tsia/#stage=N; a word is a Remi screen, opened here. Keep STAGE_MENU the same in tsia/index.html ──
   const TSIA_STAGE_LINKS = { 8: '/agents/' }; // as tsia/index.html STAGE_LINKS: AI Agents is the agents prototype
   const STAGE_MENU = [
-    ['Client', [['Overview', 0], ['Quotes', 1], ['Enterprise AI Rollout quote', 2], ['Role rates', 3]]],
+    ['Client', [['Overview', 0], ['Quotes', 1], ['AI Adoption Campaign quote', 2], ['Role rates', 3]]],
     ['Project', [['List', 4], ['Schedule', 5], ['Finance', 6]]],
     ['Reporting', [['AI margin report', 7]]],
     ['Teamwork AI', [['AI Agents', 8], ['AI Skills', 9]]],
-    ['Remi', [['Projects list', 'projects'], ['Enterprise AI Rollout project', 'project'], ['Start Remi on the project', 'start']]],
+    ['Remi', [['Projects list', 'projects'], ['AI Adoption Campaign project', 'project'], ['Start Remi on the project', 'start']]],
   ];
   const REMI_STAGES = { projects: () => showView('projects'), project: () => openDashboard(HAPPY_PROJECT), start: startRemiOnDemoProject };
   const stageMenu = document.getElementById('stageMenu');

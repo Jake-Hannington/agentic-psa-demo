@@ -17707,7 +17707,7 @@ openNotif = function (i) {
 /* ══ Margin Watcher, phase 1: a featured template above the categories,
    opening a builder that's already filled in ══════════════════════════ */
 const MARGIN_WATCHER_TEMPLATE = {
-  slug: 'margin-watcher', name: 'Margin Watcher',
+  slug: 'margin-watcher', name: 'Margin Watcher Agent',
   desc: 'Watches margin on your projects and recommends fixes before it’s lost.',
   skills: ['project-budget', 'find-overrun-budgets', 'custom-budget-variance', 'report-time'],
   triggerType: 'Scheduled', trigger: 'Daily at 09:00',
@@ -17735,8 +17735,13 @@ function _mwCardHTML() {
       </div>
       <div class="job-card-title">${t.name}</div>
       <div class="job-card-desc">${t.desc}</div>
-      <div class="job-card-foot">${t.skills.filter(id => skillsData.some(k => k.id === id)).map(agentSkillIcon).join('')}</div>
+      <div class="job-card-foot">${_mwSkillIcons(t.skills)}</div>
     </div>`;
+}
+function _mwSkillIcons(ids) {
+  const byCat = new Map();
+  ids.map(id => skillsData.find(k => k.id === id)).filter(Boolean).forEach(sk => byCat.set(sk.category, [...(byCat.get(sk.category) || []), sk.name]));
+  return [...byCat].map(([cat, names]) => `<span class="job-card-pip skill skill-card-icon ${cat.toLowerCase()}" data-tooltip="${names.join(', ')}">${skillCatIcon(cat)}</span>`).join('');
 }
 renderJobsGallery = function () {
   _mwGallery0();
@@ -17835,7 +17840,7 @@ toggleAgentActive = function () {
 const _mwKind0 = _agentKind;
 _agentKind = function (a) { return /margin/i.test(a.name) ? 'margin' : _mwKind0(a); };
 Object.assign(_AB_KIND_COPY, { margin: { topic: 'margin on your projects', qs: ['Which projects are losing margin?', 'How is Depot Network Review tracking?', 'What’s driving the overrun?'] } });
-_jobIconName['Margin Watcher'] = 'flame';
+_jobIconName[MARGIN_WATCHER_TEMPLATE.name] = 'flame';
 // The cause the agent gives under a project it flags
 PROJECTS.find(p => p.id === 'p6').marginCause = 'Documentation and data prep are running over estimate, and depot data migration work has started that isn’t in the SOW.';
 const _mwPct = n => `${+n.toFixed(1)}%`;
@@ -18123,7 +18128,7 @@ function _mwAfterDecision() {
     ACTIVITY.forEach(e => { if (e.open === 'marginAlert') e.pending = false; });
     (NOTIFS.dana || []).forEach(n => { if (n.open === 'marginAlert') n.meta = `Resolved · ${_mwDecidedLine().replace(/\.$/, '')}`; });
     const u = scoutUpdates.find(x => x.id === 109); if (u) u.title = `${p.name}: margin ${_MW.ids.some(id => _DC[id].status === 'done') ? 'fixes applied' : 'alert dismissed'}`;
-    if (_MW.ids.some(id => _DC[id].status === 'done')) showSuccessToast(a ? a.name : 'Margin Watcher', `${p.name}: EAC ${_eur(s.eac)}, forecast margin ${_mwPct(s.margin)}`);
+    if (_MW.ids.some(id => _DC[id].status === 'done')) showSuccessToast(a ? a.name : MARGIN_WATCHER_TEMPLATE.name, `${p.name}: EAC ${_eur(s.eac)}, forecast margin ${_mwPct(s.margin)}`);
     else showToast('Fixes dismissed. Nothing was changed.');
   }
   _mwRefresh();

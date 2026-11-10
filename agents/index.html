@@ -17709,6 +17709,15 @@ const MARGIN_WATCHER_TEMPLATE = {
 };
 AB_GLYPH.evBudget = '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>';
 AB_EVENT_PRESETS.push({ key: 'project.budget_changed', when: 'a project budget changes', icon: 'evBudget', name: 'A project budget changes', desc: 'Runs when a project’s budget is changed' });
+AB_EVENT_PRESETS.push({ key: 'project.eac_over_budget', when: 'a project’s EAC goes over its cost budget', icon: 'evBudget', name: 'Project EAC exceeds budget', desc: 'Runs when a project’s estimate at completion goes over its cost budget' });
+AB_EVENT_FIELDS['project.eac_over_budget'] = [['reach', 'When EAC reaches', () => [['100', 'Over the cost budget'], ['90', '90% of the cost budget']]]];
+// The Add a trigger menu marks an automated trigger the agent already has, as the older picker did
+const _mwTrigMenu0 = _abTriggerMenuHTML;
+_abTriggerMenuHTML = function () {
+  let html = _mwTrigMenu0();
+  AB_EVENT_PRESETS.forEach(e => { if (agentDraft && agentDraft.triggers.some(t => t.eventKey === e.key)) html = html.replace(`<span class="ab-menu-name">${e.name}</span>`, `<span class="ab-menu-name">${e.name} · added</span>`); });
+  return html;
+};
 
 const _mwGallery0 = renderJobsGallery;
 // Templates shown again in the Recommended row, left of Margin Watcher. They keep their place in their categories.
@@ -17766,13 +17775,12 @@ function openMarginWatcher() {
   openAgentBuilder({ template: t });
   const a = agentDraft;
   a.instructions.prompt = _mwPrompt();
-  // Daily at 09:00 comes from the template; add the two events after it
+  // Daily at 09:00 comes from the template; the EAC event goes after it, at its default setting
   const at = a.triggers.findIndex(x => x.group === 'scheduled') + 1;
-  const ev = ['task.logged_time', 'project.budget_changed'].map(key => {
-    const e = AB_EVENT_PRESETS.find(x => x.key === key);
-    return { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key, enabled: true };
-  });
-  a.triggers.splice(at, 0, ...ev);
+  const key = 'project.eac_over_budget', e = AB_EVENT_PRESETS.find(x => x.key === key);
+  const filters = Object.fromEntries(AB_EVENT_FIELDS[key].map(([k, , opts]) => [k, opts()[0][0]]));
+  a.triggers.splice(at, 0, { id: 'tg-' + Math.random().toString(36).slice(2, 8), group: 'events', icon: e.icon, name: e.name, desc: e.desc, eventKey: key,
+    filters, summary: `${_evSummary(key, filters)} · Runs with your access`, enabled: true });
   // Focus is picked in the chat; its options suggest the Halcyon projects
   a._suggestProjects = ['Depot Network Review', 'Enterprise AI Rollout'];
   a._offerFirstRun = true;

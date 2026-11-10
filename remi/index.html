@@ -2798,18 +2798,6 @@
   .pj-add { display: flex; justify-content: center; color: var(--text-2); }
 
   /* ── Project › Timeline: where the created plan lands ── */
-  .tl-head { flex: none; height: 64px; padding: 0 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
-  .tl-avatar { width: 36px; height: 36px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: #a5eef6; color: #0f5b66; font-size: 15px; font-weight: 700; }
-  .tl-head h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.2px; white-space: nowrap; }
-  .tl-star { color: #6b7280; }
-  .tl-client { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; background: #f3f4f7; font-size: 14px; color: var(--text); white-space: nowrap; }
-  .tl-status { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d5d9e1; flex: none; }
-  .tl-tabs { margin-left: 16px; display: flex; align-self: stretch; gap: 2px; overflow: hidden; }
-  .tl-tab { display: flex; align-items: center; padding: 0 14px; font-size: 16px; color: var(--text-2); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
-  .tl-tab.active { color: var(--blue); font-weight: 600; border-bottom-color: var(--blue); }
-  a.tl-tab { text-decoration: none; cursor: pointer; } /* the project's other tabs are TSIA's */
-  a.tl-tab:hover { color: var(--text); }
-  a.tl-tab:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; border-radius: 4px; }
   .tl-toolbar { min-height: 64px; padding: 12px 18px 12px 22px; }
   .tl-date { color: var(--text); font-weight: 500; }
   .tl-scroll { flex: 1; min-height: 0; overflow: auto; --tl-day: 44px; --tl-left: 340px; }
@@ -2819,6 +2807,106 @@
   .tl-track { position: relative; flex: none; width: calc(49 * var(--tl-day));
     background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px var(--tl-day)),
       repeating-linear-gradient(90deg, transparent 0 calc(5 * var(--tl-day)), #f6f7f9 calc(5 * var(--tl-day)) calc(7 * var(--tl-day))); }
+  /* Timeline project header: TSIA's project header (tsia/index.html), scoped to this view. TSIA is the source of truth */
+  #view-timeline {
+    --border-width-2: 2px; --color-text-info: #4592df; --palette-yellow-40: #ffc63c; --palette-green-60: #318160;
+  }
+  /* TSIA's page text, and its buttons on the browser's own font (TSIA doesn't set one on buttons) */
+  #view-timeline :is(.breadcrumb-row, .project-head) {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    font-size: 13px; line-height: 1.5; -webkit-font-smoothing: auto; color: var(--color-text-default);
+  }
+  #view-timeline :is(.breadcrumb-row, .project-head) button { font-family: revert; line-height: revert; }
+  #view-timeline .breadcrumb-row {
+    display: flex; align-items: center; flex-shrink: 0;
+    padding: 0 var(--spacing-5); height: 36px;
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+    background: var(--color-background-default);
+  }
+  #view-timeline .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-subtle); }
+  #view-timeline .breadcrumb a { color: var(--color-text-subtle); text-decoration: none; }
+  #view-timeline .breadcrumb a:hover { color: var(--color-text-default); }
+  #view-timeline .breadcrumb-sep { color: var(--color-text-disabled); font-size: 11px; }
+  #view-timeline .breadcrumb-current { color: var(--color-text-default); font-weight: 500; }
+  #view-timeline .send-feedback-btn {
+    margin-left: auto; font-size: 12px; color: var(--color-text-info);
+    background: none; border: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; gap: var(--spacing-1);
+  }
+  #view-timeline .send-feedback-btn:hover { text-decoration: underline; }
+  #view-timeline .send-feedback-btn svg { width: 13px; height: 13px; }
+  #view-timeline .project-head { flex-shrink: 0; padding: var(--spacing-4) var(--spacing-6) 0; }
+  #view-timeline .project-title-row { display: flex; align-items: center; gap: var(--spacing-3); }
+  #view-timeline .project-avatar {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-full);
+    background: var(--palette-yellow-40); color: var(--palette-neutral-60);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  #view-timeline .project-name { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-default); }
+  #view-timeline .project-head-icon {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-md);
+    border: none; background: transparent; color: var(--color-text-subtle);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
+  }
+  #view-timeline .project-head-icon:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  #view-timeline .project-head-icon svg { width: 16px; height: 16px; }
+  #view-timeline .project-head-right { margin-left: auto; display: flex; align-items: center; gap: var(--spacing-2); }
+  #view-timeline .project-automate-btn {
+    display: flex; align-items: center; gap: var(--spacing-2);
+    height: 32px; padding: 0 var(--spacing-3);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--border-rounded-md); background: var(--color-background-default);
+    font-size: 13px; font-weight: 600; color: var(--color-text-default); cursor: pointer;
+  }
+  #view-timeline .project-automate-btn:hover { background: var(--color-background-hover); }
+  #view-timeline .project-automate-btn svg { width: 14px; height: 14px; }
+  #view-timeline .project-automate-split { width: 1px; height: 18px; background: var(--color-border-default); }
+  #view-timeline .project-ai-wrap { position: relative; }
+  #view-timeline .project-ai-btn {
+    width: 28px; height: 28px; border-radius: var(--border-rounded-md);
+    cursor: pointer; flex-shrink: 0; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: transparent;
+  }
+  #view-timeline .project-ai-btn:hover { background: var(--color-surface-emphasis-default); }
+  #view-timeline .project-ai-btn svg { width: 20px; height: 20px; }
+  #view-timeline .ask-remi-wrap { position: relative; display: none; }
+  #view-timeline .ask-remi-wrap.show { display: block; }
+  #view-timeline .ask-remi-btn {
+    display: flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 var(--spacing-3) 0 3px;
+    border: 1.5px solid transparent; border-radius: var(--border-rounded-full);
+    background:
+      linear-gradient(var(--palette-white), var(--palette-white)) padding-box,
+      linear-gradient(100deg, #4da2f8 12%, #ff22b1 70%, #ff7641 100%) border-box;
+    font-size: 13px; font-weight: 600; color: var(--palette-purple-50);
+    cursor: pointer; white-space: nowrap;
+  }
+  #view-timeline .ask-remi-btn:hover { filter: brightness(0.99); box-shadow: 0 1px 6px rgba(137,94,247,0.22); }
+  #view-timeline .ask-remi-btn img { width: 24px; height: 24px; border-radius: var(--border-rounded-full); object-fit: cover; flex-shrink: 0; }
+  #view-timeline .project-tabs {
+    display: flex; align-items: center; gap: var(--spacing-1);
+    margin-top: var(--spacing-3);
+    border-bottom: var(--border-width-1) solid var(--color-border-separator);
+  }
+  #view-timeline .project-tab {
+    padding: var(--spacing-2) var(--spacing-3); font-size: 13px; font-weight: 500;
+    color: var(--color-text-subtle); background: none; border: none; cursor: pointer;
+    border-bottom: var(--border-width-2) solid transparent; margin-bottom: -1px;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  #view-timeline .project-tab svg { width: 0; height: 0; } /* TSIA's + beside the last NEW renders at no size, so only the badge shows */
+  #view-timeline .project-tab:hover { color: var(--color-text-default); }
+  #view-timeline .project-tab.active { color: var(--color-text-primary); border-bottom-color: var(--palette-indigo-40); font-weight: 600; }
+  #view-timeline .project-tab-new {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+    color: var(--palette-green-60); background: var(--palette-green-20);
+    padding: 1px 5px; border-radius: var(--border-rounded-sm);
+  }
+  #view-timeline .project-tabs-reports { margin-left: auto; color: var(--color-text-primary); font-weight: 600; }
+  #view-timeline .project-tab:disabled { color: var(--color-text-disabled); cursor: not-allowed; background: none; }
+  #view-timeline .project-tab:disabled .project-tab-new { opacity: 0.5; }
   .tl-headrow { position: sticky; top: 0; z-index: 3; background: #fff; }
   .tl-headrow .tl-left { z-index: 4; justify-content: space-between; color: var(--text-2); }
   .tl-months { height: 26px; display: flex; font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: var(--text-3); }
@@ -4179,30 +4267,69 @@
   </main>
 
   <main class="main view" id="view-timeline" hidden>
-    <div class="crumbs">
-      <ol>
-        <li><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9H4z"/></svg>Home</li>
-        <li class="sep">›</li>
-        <li><a href="#projects">Projects</a></li>
-        <li class="sep">›</li>
-        <li class="tl-project-name"></li>
-        <li class="sep">›</li>
-        <li class="current">Timeline</li>
-      </ol>
-      <div class="crumbs-right">
-        <span><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.7 0 8.5 3.1 8.5 7s-3.8 7-8.5 7c-1 0-2-.1-2.9-.4L4.5 20l1.2-3.6C4.3 15 3.5 13.1 3.5 11c0-3.9 3.8-7 8.5-7z"/></svg>Feedback</span>
+    <!-- Project header: the same as TSIA's project page (tsia/index.html .project-head), which is the source of truth -->
+    <div class="breadcrumb-row">
+      <div class="breadcrumb">
+        <svg style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <a href="#" onclick="return false;">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#projects">Projects</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#" onclick="return false;" class="tl-project-name"></a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Timeline</span>
       </div>
+      <button type="button" class="send-feedback-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+        Send feedback
+      </button>
     </div>
-    <div class="tl-head">
-      <span class="tl-avatar" aria-hidden="true">E</span>
-      <h1 class="tl-project-name"></h1>
-      <svg class="i tl-star" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 4.5 2.3 4.7 5.2.8-3.8 3.6.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg>
-      <span class="tl-client"><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="1.5"/><path d="M9 8h2M13 8h2M9 12h2M13 12h2M10.5 20v-3h3v3"/></svg>Halcyon Logistics</span>
-      <span class="tl-status" aria-hidden="true"></span>
-      <span class="kebab"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor;stroke:none" aria-hidden="true"><circle cx="12" cy="5.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="18.5" r="1.6"/></svg></span>
-      <nav class="tl-tabs" aria-label="Project views">
-        <span class="tl-tab">Dashboard</span><a class="tl-tab" href="/tsia/#stage=4">List</a><span class="tl-tab">Board</span><span class="tl-tab">Table</span>
-        <span class="tl-tab active" aria-current="page">Timeline</span><span class="tl-tab">Time</span><a class="tl-tab" href="/tsia/#stage=6">Finance</a><a class="tl-tab" href="/tsia/#stage=5">Schedule</a><span class="tl-tab">Reports</span><span class="tl-tab">More…</span>
+    <div class="project-head">
+      <div class="project-title-row">
+        <div class="project-avatar">H</div>
+        <h1 class="project-name tl-project-name"></h1>
+        <button type="button" class="project-head-icon" title="Favourite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button type="button" class="project-head-icon" title="More">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>
+        </button>
+        <div class="project-ai-wrap">
+          <button type="button" class="project-ai-btn" title="Teamwork AI">
+            <svg class="ai-spark" viewBox="0 0 16 16"><use href="#aiSparkIcon"/></svg>
+          </button>
+        </div>
+        <div class="project-head-right">
+          <div class="ask-remi-wrap show">
+            <button type="button" class="ask-remi-btn" id="tlAskRemi"><img alt="">Ask Remi</button>
+          </div>
+          <button type="button" class="project-automate-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            Automate
+            <span class="project-automate-split"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button type="button" class="project-head-icon" title="Collapse header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </button>
+        </div>
+      </div>
+      <nav class="project-tabs" aria-label="Project views">
+        <button type="button" class="project-tab" disabled title="Not part of this prototype">Dashboard</button>
+        <button type="button" class="project-tab" onclick="location.href = '/tsia/#stage=4'">List</button>
+        <button type="button" class="project-tab" disabled title="Not part of this prototype">Board</button>
+        <button type="button" class="project-tab" disabled title="Not part of this prototype">Table</button>
+        <button type="button" class="project-tab active" aria-current="page">Timeline</button>
+        <button type="button" class="project-tab" disabled title="Not part of this prototype">Time</button>
+        <button type="button" class="project-tab" onclick="location.href = '/tsia/#stage=6'">Finance</button>
+        <button type="button" class="project-tab" onclick="location.href = '/tsia/#stage=5'">Schedule <span class="project-tab-new">NEW</span></button>
+        <button type="button" class="project-tab" disabled title="Not part of this prototype">More…</button>
+        <button type="button" class="project-tab" disabled title="Not part of this prototype"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> <span class="project-tab-new">NEW</span></button>
+        <button type="button" class="project-tab project-tabs-reports" disabled title="Not part of this prototype">Reports</button>
       </nav>
     </div>
     <div class="workspace">
@@ -11725,7 +11852,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     setAskAiOpen(false);
     askAiBtn.focus();
   });
-  for (const tab of document.querySelectorAll('#view-timeline a.tl-tab')) tab.addEventListener('click', () => { setAskAiOpen(false); setDrawerOpen(false); });
+  // The project's other tabs are TSIA's (their onclick goes there)
+  for (const tab of document.querySelectorAll('#view-timeline .project-tab[onclick]')) tab.addEventListener('click', () => { setAskAiOpen(false); setDrawerOpen(false); });
+  // Ask Remi in the header does what View resource plan does, with Remi's face
+  const tlAskRemi = document.getElementById('tlAskRemi');
+  tlAskRemi.querySelector('img').src = document.querySelector('.greet-avatar').src;
+  tlAskRemi.addEventListener('click', () => document.querySelector('#view-timeline .remi-view-plan').click());
   document.querySelector('#view-timeline .remi').addEventListener('click', () => {
     // 006: aftercare is two weeks after the plan was confirmed; the events since then apply from here on
     if (PROJECT.happyPath && planCreated && !aftercare.fastForwarded) { aftercare.fastForwarded = true; saveAftercare(); acRefreshTimeline(); }

@@ -5981,12 +5981,12 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     opening: [
       {
         type: 'remiMessage', animateOnMount: true,
-        html: `<p>Hi 👋 Let’s plan <strong>${PROJECT.name} project</strong>. Tell me as much or as little as you know, and I’ll take it from there. If you’re not sure where to start, I can guide you through it.</p>`,
+        html: `<p>Hi 👋 Let’s plan <strong>the ${PROJECT.name} project</strong>. Tell me as much or as little as you know, and I’ll take it from there. If you’re not sure where to start, I can guide you through it.</p>`,
       },
       {
         type: 'optionSet', animateOnMount: true,
         options: [
-          { label: '✨ I’m new, tell me how me how this works', next: 'prepareExplainer' },
+          { label: '✨ I’m new, tell me how this works', next: 'prepareExplainer' },
           { label: 'Take a look at the project and guide me', next: 'lookAtProject' },
           { label: 'I have a statement of work. I’ll attach it', next: 'askForSow' },
         ],
@@ -9402,7 +9402,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       row.querySelector('.pl-target-value').textContent = person.cap != null ? `${person.cap}%` : person.target == null ? '-' : `${person.target}%`;
       row.querySelector('.pl-target-inline').classList.toggle('is-capped', person.cap != null);
       row.querySelector('.pl-name').textContent = person.name;
-      row.querySelector('.pl-role').textContent = person.placeholder ? 'Placeholder' : person.role ?? 'No role';
+      row.querySelector('.pl-role').textContent = sowSetup ? (person.placeholder ? 'Developer' : SOW_ROLE_LABELS[person.role] ?? person.role ?? 'No role')
+        : person.placeholder ? 'Placeholder' : person.role ?? 'No role';
       row.querySelectorAll('.pl-cell').forEach((cell, index) => {
         const value = person.utilisation[index];
         const [cls, label] = utilisationState(value, target);
@@ -9805,7 +9806,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       donut.querySelector('svg').setAttribute('aria-label', `${Math.round((covered / total) * 100)}% of ${total} task hours covered: ${covered}h covered, ${notCovered}h not covered`);
     }
     for (const body of region.querySelectorAll('[data-bind-time]')) renderResourcing(body, plan);
-    for (const list of region.querySelectorAll('[data-bind-roles]')) renderRoles(list, roleStats(plan), previous && roleStats(previous));
+    for (const list of region.querySelectorAll('[data-bind-roles]')) renderRoles(list, sowRoleRows(roleStats(plan)), previous && sowRoleRows(roleStats(previous)));
     for (const slot of region.querySelectorAll('[data-note]')) {
       const text = slot.querySelector('.pl-note-text');
       text.innerHTML = plan[slot.dataset.note]; // trusted flow copy
@@ -9819,6 +9820,21 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     return left ? { tone: 'free', text: `+${left}h` } : { tone: 'even', text: '0h' };
   }
   const PL_WARN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.2 2.6 17.6A2 2 0 0 0 4.3 20.6h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4.5M12 17.2v.1"/></svg>';
+  // SOW route: the role rows in the SOW's consulting roles. Rows that map to the same role are summed, so the totals don't move
+  function sowRoleRows(roles) {
+    if (!sowSetup) return roles;
+    const merged = new Map();
+    for (const role of roles) {
+      const name = SOW_ROLE_LABELS[role.name] ?? role.name;
+      const row = merged.get(name);
+      if (!row) { merged.set(name, { ...role, name }); continue; }
+      for (const key of ['needed', 'available', 'tasks', 'unplannedTasks', 'unstaffed', 'people', 'onPlaceholder', 'placeholders']) row[key] = (row[key] ?? 0) + (role[key] ?? 0);
+    }
+    return [...merged.values()].map((role) => ({
+      ...role,
+      headcount: [role.people && `${role.people} ${plural(role.people, 'person', 'people')}`, role.placeholders && `${role.placeholders} ${plural(role.placeholders, 'placeholder', 'placeholders')}`].filter(Boolean).join(' · ') || 'No people',
+    }));
+  }
   function renderRoles(list, roles, previousRoles) {
     const was = Boolean(previousRoles);
     const existing = new Map([...list.children].map((row) => [row.dataset.role, row]));
@@ -9941,7 +9957,9 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     creating: PROTOTYPE.afterCreatePlan
       ? { title: 'Remi is creating your plan', body: 'I’ll let you know as soon as your plan is ready for the <strong class="plan-toast-project"></strong>', button: 'Got it' }
       : { title: 'Remi is creating your plan', body: '', button: 'Got it' },
-    ready: { title: 'Your plan is ready', body: 'I’ve finished planning <strong class="plan-toast-project"></strong>. Take a look on the timeline.', button: 'View plan' },
+    get ready() { // the SOW route's View plan opens TSIA's Schedule
+      return { title: 'Your plan is ready', body: `I’ve finished planning <strong class="plan-toast-project"></strong>. Take a look on the ${sowSetup ? 'schedule' : 'timeline'}.`, button: 'View plan' };
+    },
   };
   function showToast(kind) {
     const toast = TOASTS[kind];
@@ -9984,6 +10002,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   function settleInto(plan) {
     const previous = currentPlan;
     currentPlan = plan;
+    if (canvas.dataset.planTab === 'budgets') renderBudgetTab(plan);
     const widgets = [...canvas.querySelectorAll('.pl-widgets > .pl-widget')];
     const regions = [...widgets, canvas.querySelector('.pl-util'), canvas.querySelector('.pl-time'), canvas.querySelector('.pl-roles'), canvas.querySelector('.pl-actions')];
     regions.forEach((region, index) => {
@@ -10806,7 +10825,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
             <h3 class="bw-card-title"><span class="bw-card-icon">${BW_ICONS.chart}</span>Profitability</h3>
             <div class="bw-pair">
               <div><div class="bw-label">Profit (planned) ${BW_ICONS.info}</div><div class="bw-value">${money(profit)}</div>${targetProfit != null ? `<div class="bw-sub">Target ${money(targetProfit)}</div>` : ''}</div>
-              <div><div class="bw-label">Profit margin (planned) ${BW_ICONS.info}</div><div class="bw-value">${margin}%</div>${budget.margin != null ? `<div class="bw-sub">Target ${Math.round(budget.margin)}%</div>` : ''}</div>
+              <div><div class="bw-label">Profit margin (planned) ${BW_ICONS.info}</div><div class="bw-value">${margin}%</div>${budget.margin != null ? `<div class="bw-sub">Target ${PROJECT.happyPath ? trimNumber(budget.margin) : Math.round(budget.margin)}%</div>` : ''}</div>
             </div>
           </article>
           <article class="bw-card">
@@ -10859,7 +10878,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       PROJECT.budget.targetMargin !== ORIGINAL_BUDGET.targetMargin && `a ${PROJECT.budget.targetMargin}% target margin`,
     ].filter(Boolean);
     if (changed.length) kept.push(`I’ve used ${listOf(changed)}, as you asked.`);
-    if (SETUP.budgetStart === 'keep') kept.push(`The budget still starts on ${budgetStartText()}, as you asked; the work itself starts on ${workStarts}.`);
+    if (SETUP.budgetStart === 'keep' && !sowSetup) kept.push(`The budget still starts on ${budgetStartText()}, as you asked; the work itself starts on ${workStarts}.`); // the SOW sets both dates
     return `${timingEcho()}, ${capacity}.${kept.length ? ` ${kept.join(' ')}` : ''}`;
   }
   DYNAMIC_STEPS.planOpening = () => {
@@ -11369,7 +11388,16 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   }
   const acWeekLabel = (weeks) => `${acWeekRange(weeks)} <span class="ac-dim">(week ${weeks[0] + 1}${weeks.length > 1 ? `–${weeks.at(-1) + 1}` : ''})</span>`;
   // SOW route: the conflicts' people shown in the SOW's consulting roles; their 006 roles still drive who can take the work
-  const SOW_ROLE_LABELS = { Developer: 'Junior Consultant', Designer: 'Senior Consultant' };
+  const SOW_ROLE_LABELS = {
+    // 006's roles, and the summary's role groups, in the SOW's consulting roles (display only: planning still uses 006's)
+    'Product manager': 'Engagement Partner', 'Product management': 'Engagement Partner',
+    Designer: 'Senior Consultant', Design: 'Senior Consultant',
+    'UX Researcher': 'Senior Consultant', Researcher: 'Senior Consultant', Research: 'Senior Consultant',
+    'QA Engineer': 'Senior Consultant', QA: 'Senior Consultant',
+    Developer: 'Junior Consultant', Development: 'Junior Consultant',
+    'Motion Designer': 'Change Manager', 'Motion design': 'Change Manager', 'Change Manager': 'Change Manager',
+    'Frontend Developer': 'Developer',
+  };
   const acRoleLabel = (role) => (sowTimeline ? SOW_ROLE_LABELS[role] ?? role : role);
   function acAddWorkdays(date, n) {
     let d = new Date(date);
@@ -11530,7 +11558,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       s.openConflicts.length && `${s.openConflicts.length} staffing ${plural(s.openConflicts.length, 'conflict', 'conflicts')}`,
       s.openTasks.length && `${s.openTasks.length} unplanned ${plural(s.openTasks.length, 'task', 'tasks')}`,
     ].filter(Boolean);
-    if (!issues.length) return `<p>Your plan for <strong>${PROJECT.name}</strong> is back on track. ${s.delay ? `Delivery is ${acDays(s.delay)} later than agreed` : 'Delivery is on the agreed date'}${s.costDelta > 0 ? ` and costs are ${budgetMoney(Math.round(s.costDelta))} higher, from the choices you made` : ''}.</p>`;
+    if (!issues.length) return `<p>Your plan for <strong>${PROJECT.name}</strong> is back on track. ${s.delay ? `Delivery is ${acDays(s.delay)} later than agreed` : 'Delivery is on the agreed date'}${s.costDelta > 0 ? ` and costs are ${budgetMoney(Math.round(s.costDelta))} higher${sowTimeline ? '' : ', from the choices you made'}` : ''}.</p>`;
     const cost = s.costDelta > 0 ? ` Forecast costs are up ${budgetMoney(Math.round(s.costDelta))}${BUDGET && TARGET_MARGIN > Math.round(((BUDGET - s.plan.cost - s.costDelta) / BUDGET) * 100) ? ', reducing margin below its target' : ''}.` : '';
     if (sowTimeline && s.openConflicts.length && !s.openTasks.length) return `<p>Here’s the project health for <strong>${PROJECT.name}</strong>. I’ve checked your resource plan against the latest project information. ${s.openConflicts.length} ${plural(s.openConflicts.length, 'person is', 'people are')} over capacity in the coming weeks.${cost}</p>`;
     return `<p>Here’s the project health for <strong>${PROJECT.name}</strong>. I’ve checked your resource plan against the latest project information. ${listOf(issues).replace(/^./, (c) => c.toUpperCase())} ${s.openConflicts.length + s.openTasks.length > 1 ? 'are' : 'is'} ${s.delay ? `contributing to a ${acDays(s.delay).replace(' ', '-').replace('days', 'day')} delay` : 'still to sort out'}.${cost}</p>`;
@@ -11635,6 +11663,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const first = (p) => p.name.split(' ')[0];
     const load = (p, w) => { const m = now.built.team.find((x) => x.id === p.id) ?? p; return Math.round(((m.other[w] + m.hours[w]) / HOURS_PER_WEEK) * 100); };
     const money = (n) => `$${Math.abs(n).toLocaleString('en-US')}`;
+    const limit = (p) => targetFor(p, SETUP) ?? PLANNING_FALLBACK_TARGET;   // the capacity limit the conflict is measured against
     const rows = picks.map(({ c, best }) => [acWho(c.person), acWho(best.person), `${best.cost >= 0 ? '+' : '−'}${money(best.cost)}`]);
     const lines = picks.map(({ c, best }) => {
       const to = best.person, w = c.week;
@@ -11643,8 +11672,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
       const rate = best.cost === 0 ? 'and on the same rate, so it costs nothing extra'
         : best.cost > 0 ? `${first(to)}’s rate is a little higher, so it adds ${money(best.cost)}` : `${first(to)}’s rate is lower, so it saves ${money(best.cost)}`;
       return best.cost === 0
-        ? `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% in ${acWeekRange([w])}. ${first(to)}’s at ${load(to, w)}% ${rate}.`
-        : `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% that week. ${first(to)} has the hours${before ? ` and has worked on ${phase.name} before` : ''}. ${rate}.`;
+        ? `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% in ${acWeekRange([w])}, over the ${limit(c.person)}% limit. ${first(to)}’s at ${load(to, w)}% ${rate}.`
+        : `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% that week, over the ${limit(c.person)}% limit. ${first(to)} has the hours${before ? ` and has worked on ${phase.name} before` : ''}. ${rate}.`;
     });
     const cost = plan.cost + costDelta, added = picks.reduce((sum, { best }) => sum + best.cost, 0);
     const from = ((BUDGET - cost) / BUDGET) * 100, to = ((BUDGET - cost - added) / BUDGET) * 100;

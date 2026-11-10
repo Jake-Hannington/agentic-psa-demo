@@ -4053,6 +4053,12 @@ body.ai-task-split .ai-drawer-overlay { background: transparent; }
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700; color: var(--palette-white);
 }
+.sched-avatar.placeholder {
+  background: var(--color-surface-default); color: var(--color-text-subtle);
+  border: var(--border-width-1) dashed var(--color-border-default);
+}
+.sched-avatar.placeholder svg { width: 14px; height: 14px; }
+.sched-bar.display-only { cursor: default; }
 .sched-person-meta { min-width: 0; }
 .sched-person-name {
   font-size: 13px; font-weight: 600; color: var(--color-text-default);
@@ -10587,6 +10593,79 @@ const schedUnavailable = [
   { person: 'EM', name: 'Training',                   start: '2026-12-03', end: '2026-12-04' },
 ];
 
+/* The rest of the team Remi's SOW plan books (remi/index.html, AI Adoption Campaign, after the Developer placeholder
+   is approved), snapshotted with the consulting roles Remi's summary shows. Priya, Tom, Elena and Sam keep their own
+   rows above (Remi's Priya Shah and Tom Higgins are other people). Display only: these rows draw on the People view
+   and count in the Insights' hours, and nothing else reads them, so no rate, budget, invoice, report or Ask AI answer
+   changes. Hours are Remi's weekly hours spread over the working days. */
+const SCHED_PLANNED_TEAM = [
+  { key: 'barry', name: 'Barry White', initials: 'BW', role: 'Senior Consultant', bg: '#dbe4f3', fg: '#2c4a7a' },
+  { key: 'emily', name: 'Emily Jackson', initials: 'EJ', role: 'Senior Consultant', bg: '#fbd0e6', fg: '#9d1c5c' },
+  { key: 'jessica', name: 'Jessica Jones', initials: 'JJ', role: 'Senior Consultant', bg: '#f6dcd3', fg: '#8a3a20' },
+  { key: 'hannah', name: 'Hannah Hayes', initials: 'HH', role: 'Junior Consultant', bg: '#a5eef6', fg: '#0f5b66' },
+  { key: 'kim', name: 'Kim Dorset', initials: 'KD', role: 'Junior Consultant', bg: '#9fe0c0', fg: '#185c3c' },
+  { key: 'tom', name: 'Tom Higgins', initials: 'TH', role: 'Junior Consultant', bg: '#d6e4fd', fg: '#1f4f8a' },
+  { key: 'wakaz', name: 'Wakaz Mahad', initials: 'WM', role: 'Engagement Partner', bg: '#e3dcfb', fg: '#4b3aa8' },
+  { key: 'priya', name: 'Priya Shah', initials: 'PS', role: 'Senior Consultant', bg: '#fbe3c4', fg: '#7a4a0a' },
+  { key: 'luis', name: 'Luis Ortega', initials: 'LO', role: 'Senior Consultant', bg: '#d7f0dc', fg: '#1f6b35' },
+  { key: 'olivia', name: 'Olivia Grant', initials: 'OG', role: 'Developer', bg: '#fde4d4', fg: '#9a3f12' },
+  { key: 'fe-placeholder', name: 'Developer placeholder', initials: '', role: 'Developer', placeholder: true },
+  { key: 'ryan', name: 'Ryan Giles', initials: 'RG', role: 'Junior Consultant', bg: '#cffafe', fg: '#155e75' },
+].map(p => ({ ...p, planned: true }));
+const SCHED_PLANNED_ALLOCATIONS = [
+  { person: 'barry', name: 'AI Readiness Assessment: data review', start: '2026-10-05', end: '2026-10-16', perDay: 1.6, color: 'green' },
+  { person: 'barry', name: 'ROI business case', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'barry', name: 'Acceptable-use / governance policy', start: '2026-11-02', end: '2026-11-13', perDay: 2.4, color: 'pink' },
+  { person: 'barry', name: 'Adoption dashboard', start: '2026-11-16', end: '2026-11-20', perDay: 1.6, color: 'yellow' },
+  { person: 'emily', name: 'Prioritised transformation roadmap', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'emily', name: 'Training curriculum & prompt library', start: '2026-11-02', end: '2026-11-13', perDay: 2, color: 'pink' },
+  { person: 'emily', name: 'Curriculum & prompt review', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
+  { person: 'emily', name: 'Adoption dashboard: usage tracking', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
+  { person: 'jessica', name: 'Roadmap analysis support', start: '2026-10-19', end: '2026-10-30', perDay: 1, color: 'blue' },
+  { person: 'hannah', name: 'AI Readiness Assessment', start: '2026-10-05', end: '2026-10-16', perDay: 0.8, color: 'green' },
+  { person: 'hannah', name: 'Acceptable-use / governance policy: controls', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
+  { person: 'kim', name: 'Business case modelling', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'kim', name: 'Dashboard technical review', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
+  { person: 'tom', name: 'AI Readiness Assessment: tooling review', start: '2026-10-05', end: '2026-10-16', perDay: 0.8, color: 'green' },
+  { person: 'tom', name: 'Adoption dashboard: fixes', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
+  { person: 'wakaz', name: 'Stakeholder interviews & workshop synthesis', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
+  { person: 'wakaz', name: 'Stakeholder interviews: workshop sign-off', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
+  { person: 'wakaz', name: 'Launch communication plan', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
+  { person: 'priya', name: 'Use-case discovery', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
+  { person: 'priya', name: 'Use-case discovery: sizing', start: '2026-10-05', end: '2026-10-16', perDay: 0.8, color: 'green' },
+  { person: 'priya', name: 'Stakeholder interviews: operations leads', start: '2026-10-05', end: '2026-10-16', perDay: 1.2, color: 'green' },
+  { person: 'priya', name: 'Training curriculum & prompt library: pilot session', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
+  { person: 'priya', name: 'ROI report', start: '2026-11-16', end: '2026-11-20', perDay: 1.6, color: 'yellow' },
+  { person: 'luis', name: 'Champion programme playbook: champion selection', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
+  { person: 'luis', name: 'Curriculum & prompt review: prompt testing', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
+  { person: 'luis', name: 'Dashboard technical review: data checks', start: '2026-11-16', end: '2026-11-20', perDay: 1.6, color: 'yellow' },
+  { person: 'luis', name: 'Launch communication plan: launch checklist', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
+  { person: 'luis', name: 'Adoption dashboard: user acceptance', start: '2026-11-16', end: '2026-11-20', perDay: 1.2, color: 'yellow' },
+  { person: 'olivia', name: 'Roadmap analysis support: dependency map', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'olivia', name: 'Training curriculum & prompt library: role-based modules', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
+  { person: 'fe-placeholder', name: 'Roadmap analysis support: use-case sequencing', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'fe-placeholder', name: 'Training curriculum & prompt library: prompt templates', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
+  { person: 'ryan', name: 'Business case modelling: benefits model', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'ryan', name: 'Business case modelling: payback model', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
+  { person: 'ryan', name: 'Champion programme playbook', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
+];
+/* Hours a planned row is booked on a day */
+function _schedPlannedHours(key, day) {
+  if (_schedWeekend(day)) return 0;
+  return SCHED_PLANNED_ALLOCATIONS
+    .filter(a => a.person === key && day >= _schedDate(a.start) && day <= _schedDate(a.end))
+    .reduce((t, a) => t + a.perDay, 0);
+}
+/* A planned row shows in the weeks between its first and last booking (the placeholder from the week its work starts) */
+function _schedPlannedInWeek(p, days) {
+  const own = SCHED_PLANNED_ALLOCATIONS.filter(a => a.person === p.key);
+  const first = own.reduce((m, a) => a.start < m ? a.start : m, own[0].start);
+  const last = own.reduce((m, a) => a.end > m ? a.end : m, own[0].end);
+  return days[6] >= _schedDate(first) && days[0] <= _schedDate(last);
+}
+function _schedPlannedRows(days) { return SCHED_PLANNED_TEAM.filter(p => _schedPlannedInWeek(p, days)); }
+function _schedRowKey(p) { return p.planned ? 'plan-' + p.key : p.initials; }
+
 const schedBarColors = {
   purple: 'var(--palette-purple-20)',
   blue:   'var(--palette-blue-20)',
@@ -10687,6 +10766,10 @@ function renderSchedInsights(days) {
     allocated += h;
     revenue   += h * p.rate;
   }));
+  _schedPlannedRows(days).forEach(p => days.forEach(d => {
+    capacity  += _schedWeekend(d) ? 0 : SCHED_DAY_CAPACITY;
+    allocated += _schedPlannedHours(p.key, d);
+  }));
   const available = Math.max(0, capacity - allocated);
   const pct = n => capacity ? Math.round(n / capacity * 100) : 0;
   const info = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>`;
@@ -10772,15 +10855,15 @@ function _allocTasks(a) {
   return null;
 }
 
-function _schedBar(a, days) {
+function _schedBar(a, days, displayOnly = false) {
   const pos = _schedSpan(a, days, true);
   if (!pos) return '';
   let worked = 0;
   days.forEach((d, i) => { if (i >= pos.col - 1 && i < pos.col - 1 + pos.span && !_schedWeekend(d)) worked++; });
   const key = _allocKey(a).replace(/'/g, "\\'");
-  return `<div class="sched-bar" style="grid-column:${pos.col} / span ${pos.span};background:${schedBarColors[a.color]}"
-               onclick="openAllocation('${key}')"
-               onmouseenter="showAllocPop('${key}', this)" onmouseleave="hideAllocPop()">
+  return `<div class="sched-bar${displayOnly ? ' display-only' : ''}" style="grid-column:${pos.col} / span ${pos.span};background:${schedBarColors[a.color]}"
+               ${displayOnly ? `title="${a.name}"` : `onclick="openAllocation('${key}')"
+               onmouseenter="showAllocPop('${key}', this)" onmouseleave="hideAllocPop()"`}>
       <span class="sched-bar-hrs">${_schedHrs(a.perDay * worked)}</span>
       <span class="sched-bar-name">${a.name}</span>
       <span class="sched-bar-rate">${_schedHrs(a.perDay)} /day</span>
@@ -10895,8 +10978,10 @@ function _schedLaneBg(days) {
 
 function _schedPersonRow(p, days) {
   let cap = 0, alloc = 0;
+  const key = _schedRowKey(p);
   const cells = days.map(d => {
-    const c = _schedDayCapacity(p.initials, d), h = _schedDayHours(p.initials, d);
+    const c = p.planned ? (_schedWeekend(d) ? 0 : SCHED_DAY_CAPACITY) : _schedDayCapacity(p.initials, d);
+    const h = p.planned ? _schedPlannedHours(p.key, d) : _schedDayHours(p.initials, d);
     cap += c; alloc += h;
     let cls = '';
     if (_schedWeekend(d))       cls = ' weekend';
@@ -10907,14 +10992,17 @@ function _schedPersonRow(p, days) {
     return `<div class="sched-daycell${cls}">${_schedHrs(h)}</div>`;
   }).join('');
   const avail = cap - alloc;
-  const open  = !!schedExpanded[p.initials];
+  const open  = !!schedExpanded[key];
+  const avatar = p.placeholder
+    ? `<span class="sched-avatar placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>`
+    : `<span class="sched-avatar" style="background:${p.bg}${p.fg ? `;color:${p.fg}` : ''}">${p.initials}</span>`;
   const caret = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
   const kebab = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>`;
 
   return `<div class="sched-person-row">
       <div class="sched-cell-left">
-        <button class="sched-caret${open ? ' open' : ''}" onclick="schedToggleRow('${p.initials}')">${caret}</button>
-        <span class="sched-avatar" style="background:${p.bg}">${p.initials}</span>
+        <button class="sched-caret${open ? ' open' : ''}" onclick="schedToggleRow('${key}')">${caret}</button>
+        ${avatar}
         <div class="sched-person-meta">
           <div class="sched-person-name">${p.name}${p.agent ? ' ' + _aiSparkSvg : ''}</div>
           <div class="sched-person-role">${p.role}</div>
@@ -10933,13 +11021,15 @@ function _schedSubRows(p, days) {
   const folder = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
   const clock  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
 
-  const bars = schedAllocations.filter(a => a.person === p.initials).map(a => _schedBar(a, days)).join('');
-  const offs = schedUnavailable.filter(u => u.person === p.initials).map(u => {
+  const bars = p.planned
+    ? SCHED_PLANNED_ALLOCATIONS.filter(a => a.person === p.key).map(a => _schedBar(a, days, true)).join('')
+    : schedAllocations.filter(a => a.person === p.initials).map(a => _schedBar(a, days)).join('');
+  const offs = p.planned ? '' : schedUnavailable.filter(u => u.person === p.initials).map(u => {
     const pos = _schedSpan(u, days, false);
     return pos ? `<div class="sched-unavail" style="grid-column:${pos.col} / span ${pos.span}">${u.name}</div>` : '';
   }).join('');
 
-  return `<div class="sched-sub${schedExpanded[p.initials] ? ' open' : ''}">
+  return `<div class="sched-sub${schedExpanded[_schedRowKey(p)] ? ' open' : ''}">
       <div class="sched-sub-row">
         <div class="sched-sub-label">${folder} Allocations for this project</div>
         <div class="sched-bars">
@@ -10958,7 +11048,7 @@ function _schedSubRows(p, days) {
 }
 
 function _schedPeopleRows(days) {
-  return schedPeople.map(p => _schedPersonRow(p, days) + _schedSubRows(p, days)).join('');
+  return [...schedPeople, ..._schedPlannedRows(days)].map(p => _schedPersonRow(p, days) + _schedSubRows(p, days)).join('');
 }
 
 /* Projects view — same week, grouped under the project instead. */
@@ -11009,7 +11099,7 @@ function _schedProjectRows(days) {
 /* ── Controls ────────────────────────────────────────────────────── */
 function schedToggleRow(key) { schedExpanded[key] = !schedExpanded[key]; renderSchedule(); }
 function schedToggleAll() {
-  const keys = schedView === 'people' ? schedPeople.map(p => p.initials) : ['PROJECT'];
+  const keys = schedView === 'people' ? [...schedPeople, ..._schedPlannedRows(_schedDays())].map(_schedRowKey) : ['PROJECT'];
   const anyOpen = keys.some(k => schedExpanded[k]);
   keys.forEach(k => schedExpanded[k] = !anyOpen);
   renderSchedule();

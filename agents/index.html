@@ -984,7 +984,6 @@ body {
 .mw-done { margin-top: 10px; font-weight: 600; }
 .act-text .nt-btn.sm { margin-left: 6px; vertical-align: middle; }
 .ag-out-cause { margin-top: 2px; color: var(--color-text-subtle); }
-.job-card-tag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 8px; border-radius: 100px; background: var(--palette-indigo-10); color: var(--palette-indigo-40); white-space: nowrap; }
 
 /* Hero card — spans 2 columns */
 .job-hero {
@@ -17713,12 +17712,11 @@ AB_EVENT_PRESETS.push({ key: 'project.budget_changed', when: 'a project budget c
 const _mwGallery0 = renderJobsGallery;
 // Templates shown again in the Recommended row, left of Margin Watcher. They keep their place in their categories.
 const _MW_RECOMMENDED = ['Missing Time Agent', 'Task Progress Agent', 'Status Report Agent'];
-function _mwCardHTML(tag) {
+function _mwCardHTML() {
   const t = MARGIN_WATCHER_TEMPLATE;
   return `<div class="job-card" data-slug="${t.slug}" onclick="openMarginWatcher()">
       <div class="job-card-top">
         <div class="job-card-icon">${jobIcon(t.name)}</div>
-        ${tag ? '<span class="job-card-tag">Recommended</span>' : ''}
       </div>
       <div class="job-card-title">${t.name}</div>
       <div class="job-card-desc">${t.desc}</div>
@@ -17734,10 +17732,10 @@ renderJobsGallery = function () {
   el.insertAdjacentHTML('afterbegin', `
     <section class="jobs-section jobs-section-recommended" id="job-cat-recommended">
       <div class="jobs-section-label">Recommended for you</div>
-      <div class="jobs-grid">${copies.join('')}${_mwCardHTML(true)}</div>
+      <div class="jobs-grid">${copies.join('')}${_mwCardHTML()}</div>
     </section>`);
   // Margin Watcher also sits first in Budgets & financials, after the hero
-  el.querySelector('#job-cat-budgets .job-hero')?.insertAdjacentHTML('afterend', _mwCardHTML(false));
+  el.querySelector('#job-cat-budgets .job-hero')?.insertAdjacentHTML('afterend', _mwCardHTML());
 };
 // Margin Watcher's own face: one no seeded agent uses (the name hash gave Budget Watch Agent's)
 const _mwAvIndex0 = _tplAvIndex;

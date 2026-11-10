@@ -2807,34 +2807,35 @@
   .tl-track { position: relative; flex: none; width: calc(49 * var(--tl-day));
     background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px var(--tl-day)),
       repeating-linear-gradient(90deg, transparent 0 calc(5 * var(--tl-day)), #f6f7f9 calc(5 * var(--tl-day)) calc(7 * var(--tl-day))); }
-  /* Timeline project header: TSIA's project header (tsia/index.html), scoped to this view. TSIA is the source of truth */
-  #view-timeline {
+  /* Timeline project header: TSIA's project header (tsia/index.html), scoped to this view. TSIA is the source of truth.
+     The breadcrumb is also the Projects page's */
+  #view-timeline, #view-projects {
     --border-width-2: 2px; --color-text-info: #4592df; --palette-yellow-40: #ffc63c; --palette-green-60: #318160;
   }
   /* TSIA's page text, and its buttons on the browser's own font (TSIA doesn't set one on buttons) */
-  #view-timeline :is(.breadcrumb-row, .project-head) {
+  #view-timeline :is(.breadcrumb-row, .project-head), #view-projects .breadcrumb-row {
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
     font-size: 13px; line-height: 1.5; -webkit-font-smoothing: auto; color: var(--color-text-default);
   }
-  #view-timeline :is(.breadcrumb-row, .project-head) button { font-family: revert; line-height: revert; }
-  #view-timeline .breadcrumb-row {
+  #view-timeline :is(.breadcrumb-row, .project-head) button, #view-projects .breadcrumb-row button { font-family: revert; line-height: revert; }
+  :is(#view-timeline, #view-projects) .breadcrumb-row {
     display: flex; align-items: center; flex-shrink: 0;
     padding: 0 var(--spacing-5); height: 36px;
     border-bottom: var(--border-width-1) solid var(--color-border-separator);
     background: var(--color-background-default);
   }
-  #view-timeline .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-subtle); }
-  #view-timeline .breadcrumb a { color: var(--color-text-subtle); text-decoration: none; }
-  #view-timeline .breadcrumb a:hover { color: var(--color-text-default); }
-  #view-timeline .breadcrumb-sep { color: var(--color-text-disabled); font-size: 11px; }
-  #view-timeline .breadcrumb-current { color: var(--color-text-default); font-weight: 500; }
-  #view-timeline .send-feedback-btn {
+  :is(#view-timeline, #view-projects) .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-subtle); }
+  :is(#view-timeline, #view-projects) .breadcrumb a { color: var(--color-text-subtle); text-decoration: none; }
+  :is(#view-timeline, #view-projects) .breadcrumb a:hover { color: var(--color-text-default); }
+  :is(#view-timeline, #view-projects) .breadcrumb-sep { color: var(--color-text-disabled); font-size: 11px; }
+  :is(#view-timeline, #view-projects) .breadcrumb-current { color: var(--color-text-default); font-weight: 500; }
+  :is(#view-timeline, #view-projects) .send-feedback-btn {
     margin-left: auto; font-size: 12px; color: var(--color-text-info);
     background: none; border: none; cursor: pointer; padding: 0;
     display: flex; align-items: center; gap: var(--spacing-1);
   }
-  #view-timeline .send-feedback-btn:hover { text-decoration: underline; }
-  #view-timeline .send-feedback-btn svg { width: 13px; height: 13px; }
+  :is(#view-timeline, #view-projects) .send-feedback-btn:hover { text-decoration: underline; }
+  :is(#view-timeline, #view-projects) .send-feedback-btn svg { width: 13px; height: 13px; }
   #view-timeline .project-head { flex-shrink: 0; padding: var(--spacing-4) var(--spacing-6) 0; }
   #view-timeline .project-title-row { display: flex; align-items: center; gap: var(--spacing-3); }
   #view-timeline .project-avatar {
@@ -3919,21 +3920,27 @@
 
   <!-- Projects › List: where the prototype starts. "Plan with Remi" opens the project picker -->
   <main class="main view" id="view-projects" hidden>
-    <div class="crumbs">
-      <ol>
-        <li><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9H4z"/></svg>Home</li>
-        <li class="sep">›</li>
-        <li>Projects</li>
-        <li class="sep">›</li>
-        <li class="current">List</li>
-      </ol>
-      <div class="crumbs-right">
-        <span><svg class="i i-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c4.7 0 8.5 3.1 8.5 7s-3.8 7-8.5 7c-1 0-2-.1-2.9-.4L4.5 20l1.2-3.6C4.3 15 3.5 13.1 3.5 11c0-3.9 3.8-7 8.5-7z"/></svg>Feedback</span>
+    <div class="breadcrumb-row">
+      <div class="breadcrumb">
+        <svg style="width:12px;height:12px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <a href="#" onclick="return false;">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#projects">Projects</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">List</span>
       </div>
+      <button type="button" class="send-feedback-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+        Send feedback
+      </button>
     </div>
     <div class="pagehead">
       <h1><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2H10l2 2h6.5a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>Projects</h1>
-      <div class="tabs"><span class="tab active">List</span></div>
+      <div class="tabs"><span class="tab active">List</span><span class="tab">Templates</span></div>
     </div>
     <div class="workspace">
     <aside class="drawer" id="remi-drawer-projects" aria-label="Plan with Remi">
@@ -7683,7 +7690,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
   PANEL_ACTIONS.cancelPlanPaste = () => awaitText();
 
   // ══ "I have a statement of work": a file attached with the paperclip. Remi doesn't read the file. What she reads is
-  //    DEMO_SOW (docs/Halcyon Logistics - Enterprise AI Rollout SOW.pdf), so any file tells the same story. Like a pasted plan,
+  //    DEMO_SOW (docs/Halcyon Logistics - AI Adoption Campaign SOW.pdf), so any file tells the same story. Like a pasted plan,
   //    it answers setup questions before they're asked: Remi fills those rows herself and asks only what it can't answer.
   //    Phase 2 adds people, rates and tasks from TSIA's quote to this object ══
   const DEMO_SOW = {

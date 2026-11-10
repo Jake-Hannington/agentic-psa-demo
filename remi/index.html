@@ -659,11 +659,6 @@
   .stop-dialog ul { margin: 16px 0 0; padding-left: 22px; font-size: 14px; line-height: 22px; }
   .stop-dialog li + li { margin-top: 4px; }
   /* Moderator reset: faint in the modal's top-right corner, restarts the section you're in */
-  .proto-reset { position: absolute; top: 6px; right: 6px; z-index: 30; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: none; color: #9aa1ae; opacity: 0.22; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 150ms ease, background-color 150ms ease; }
-  .proto-reset:hover, .proto-reset:focus-visible { opacity: 1; background: #f3f4f6; color: var(--text-2); }
-  .proto-reset:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-  .proto-reset svg { width: 14px; height: 14px; }
-  .proto-reset.proto-sample { right: 34px; }
   .cv-head { position: relative; display: flex; align-items: center; gap: 12px; padding: 0 28px 0 20px; border-bottom: 1px solid var(--line); }
   .cv-head > svg { width: 24px; height: 24px; }
   .cv-head h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 26px; }
@@ -2648,7 +2643,7 @@
   .canvas.is-snapshot .cv-body { grid-template-columns: minmax(0, 1fr); } /* no chat: the plan takes the whole width */
   .canvas.is-snapshot .cv-rail { display: none; }
   .canvas.is-snapshot .cv-main { border-left: 0; }
-  .canvas.is-snapshot :is(#pl-banner, .cv-foot > :not(.pl-snapshot-close), .proto-reset) { display: none !important; }
+  .canvas.is-snapshot :is(#pl-banner, .cv-foot > :not(.pl-snapshot-close)) { display: none !important; }
   .pl-snapshot { flex: none; display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: #dff7ea; font-size: 14px; line-height: 20px; color: #0b0f1f; }
   .pl-snapshot[hidden] { display: none; }
   .pl-snapshot svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -4515,8 +4510,6 @@
   <div class="cv-role-picker" id="cv-role-picker" role="dialog" aria-label="Choose a role" hidden></div>
   <div class="cv-estimate-popover" id="cv-estimate-popover" role="dialog" aria-label="Estimated time" hidden></div>
   <header class="cv-head">
-    <button type="button" class="proto-reset proto-sample" aria-label="Put a sample plan in the chat" title="Put a sample plan in the chat"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 11h6M9 15h4"/></svg></button>
-    <button type="button" class="proto-reset" aria-label="Restart this section" title="Restart this section"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v3.7h3.7"/></svg></button>
     <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="url(#sparkGrad)" d="M12 1.5l2.4 7.1 7.1 2.4-7.1 2.4L12 20.5l-2.4-7.1L2.5 11l7.1-2.4z"/><path fill="url(#sparkGrad)" d="M19.5 1l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>
     <h2 id="cv-title">Resource your project with Remi</h2>
     <span class="cv-feedback">
@@ -12284,28 +12277,6 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     stageMenuBtn.focus();
   }, true);
 
-  // ── Moderator reset: the faint button in the modal's corner restarts the section you're in ──
-  //    Setup → Remi's opening message · Missing details → Remi's untouched suggestions (setup answers kept)
-  //    Plan summary → the plan before any approval or rebalance (setup answers and missing-details choices kept)
-  // The page reloads clean, then rebuilds the earlier sections from what was saved here
-  const RESTART_KEY = 'remiRestart';
-  function restartSection() {
-    const stage = canvas.dataset.stage;
-    const section = stage === 'canvas' ? 'setup' : stage === 'gaps' ? 'gaps' : 'plan';
-    const snapshot = {
-      section, setup: SETUP,
-      budget: PROJECT.budget,
-      people: PEOPLE.map(({ id, status, role }) => ({ id, status, role })),
-      tasks: ALL_TASKS.map(({ id, role, roleStatus, extraRoles, estimate, estimateStatus }) => ({ id, role, roleStatus, extraRoles, estimate, estimateStatus })),
-    };
-    try {
-      sessionStorage.setItem(RESTART_KEY, JSON.stringify(snapshot));
-      if (section === 'setup') sessionStorage.removeItem(ENTRANCE_KEY); // the opening plays again
-    } catch { /* storage unavailable: falls back to a plain reload */ }
-    history.replaceState(null, '', '#projects');
-    location.reload();
-  }
-  canvas.querySelector('.proto-reset:not(.proto-sample)').addEventListener('click', restartSection);
   // A plan to paste that clashes with the project's budget, so the conflict questions come up in every session
   // The planning-info project: the sample plan goes into the chat as soon as it can be typed in, ready to send
   function prefillChat() {
@@ -12320,12 +12291,6 @@ Kick off 2 Nov 2026 and launch by 31 Dec 2026.
 Use up to 80% of people’s capacity.
 Keep Sarah Chen to half her time.
 The client needs to sign off designs before development starts.`;
-  canvas.querySelector('.proto-sample').addEventListener('click', () => {
-    if (chatTextarea.disabled) return;
-    chatTextarea.value = SAMPLE_PLAN;
-    updateSendButton();
-    chatTextarea.focus();
-  });
 
   // ══ 006 gap filling: Abbey's new role also covers a task, and Ryan Giles's rates are suggested from the other developers ══
   if (PROJECT.happyPath) {
@@ -12739,34 +12704,6 @@ The client needs to sign off designs before development starts.`;
     return results;
   };
 
-  function resumeAfterRestart({ section, setup, people, tasks, budget }) {
-    if (section === 'setup') { startFlow(); return; }
-    Object.assign(SETUP, setup);
-    if (budget) { Object.assign(PROJECT.budget, budget); BUDGET = budget.amount; TARGET_MARGIN = budget.targetMargin; }
-    applyProjectDates();
-    if (section === 'plan') {
-      for (const saved of people) Object.assign(PEOPLE.find((p) => p.id === saved.id) ?? {}, { status: saved.status, role: saved.role });
-      for (const saved of tasks) Object.assign(ALL_TASKS.find((t) => t.id === saved.id) ?? {}, saved);
-    }
-    flowStarted = true;
-    flowOrigin = 'projects';
-    openCanvas();
-    gapsStarted = true;
-    setStage('gaps');
-    createPlanButton.disabled = false;
-    if (section === 'gaps') { appendItems(stepItems('gapsOpening')); return; }
-    // The missing-details panel sits behind Back; the chat picks up at the plan
-    appendItems([STEPS.gapsOpening.find((item) => item.type === 'attentionPanel')]);
-    planStarted = true;
-    setStage('plan');
-    showPlan(planFor({}), true);
-    appendItems(stepItems('planOpening'));
-  }
-  try {
-    const saved = sessionStorage.getItem(RESTART_KEY);
-    sessionStorage.removeItem(RESTART_KEY);
-    if (saved) resumeAfterRestart(JSON.parse(saved));
-  } catch { /* storage unavailable: nothing to resume */ }
 
   // Remi's Activity: each job she has run (Create resource plan, once a plan is created). Kept for this visit
   const ACTIVITY_KEY = 'remiActivity';

@@ -11342,7 +11342,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     for (const c of conflicts) if (aftercare.conflicts[c.id]) for (const t of c.tasks) moves[t.id] = aftercare.conflicts[c.id];
     const now = Object.keys(moves).length ? acRebalanced(planFor(committed, acPlanSources(PLAN_SOURCES, agreed.built, { events, moves })), built) : before;
     const openConflicts = conflicts.filter((c) => !aftercare.conflicts[c.id]);
-    return { plan: agreed, now, conflicts, openConflicts, openTasks: [], delay: Math.max(0, ...openConflicts.map((c) => c.delay)), costDelta: now.cost - agreed.cost, revenueDelta: 0 };
+    // SOW route: the conflicts are over capacity, but the work still fits before the end date, so delivery doesn't move
+    return { plan: agreed, now, conflicts, openConflicts, openTasks: [], delay: sowTimeline ? 0 : Math.max(0, ...openConflicts.map((c) => c.delay)), costDelta: now.cost - agreed.cost, revenueDelta: 0 };
   }
   const acMember = (plan, id) => plan.built.team.find((p) => p.id === id) ?? { ...personById(id), hours: WEEKS.map(() => 0) };
   // Someone's hours with the fixes made so far: reassigned tasks move with them, planned tasks add theirs
@@ -11530,6 +11531,7 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     ].filter(Boolean);
     if (!issues.length) return `<p>Your plan for <strong>${PROJECT.name}</strong> is back on track. ${s.delay ? `Delivery is ${acDays(s.delay)} later than agreed` : 'Delivery is on the agreed date'}${s.costDelta > 0 ? ` and costs are ${budgetMoney(Math.round(s.costDelta))} higher, from the choices you made` : ''}.</p>`;
     const cost = s.costDelta > 0 ? ` Forecast costs are up ${budgetMoney(Math.round(s.costDelta))}${BUDGET && TARGET_MARGIN > Math.round(((BUDGET - s.plan.cost - s.costDelta) / BUDGET) * 100) ? ', reducing margin below its target' : ''}.` : '';
+    if (sowTimeline && s.openConflicts.length && !s.openTasks.length) return `<p>Here’s the project health for <strong>${PROJECT.name}</strong>. I’ve checked your resource plan against the latest project information. ${s.openConflicts.length} ${plural(s.openConflicts.length, 'person is', 'people are')} over capacity in the coming weeks.${cost}</p>`;
     return `<p>Here’s the project health for <strong>${PROJECT.name}</strong>. I’ve checked your resource plan against the latest project information. ${listOf(issues).replace(/^./, (c) => c.toUpperCase())} ${s.openConflicts.length + s.openTasks.length > 1 ? 'are' : 'is'} ${s.delay ? `contributing to a ${acDays(s.delay).replace(' ', '-').replace('days', 'day')} delay` : 'still to sort out'}.${cost}</p>`;
   }
 
@@ -11574,8 +11576,8 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     askAiInput.placeholder = placeholder;
     askAiInput.focus();
   }
-  function acTable(head, rows) {
-    return `<div class="ac-table-scroll"><table class="ac-table${PROJECT.happyPath ? ' is-fit' : ''}"><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  function acTable(head, rows, fit = PROJECT.happyPath) {
+    return `<div class="ac-table-scroll"><table class="ac-table${fit ? ' is-fit' : ''}"><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
   const acWho = (person) => (!person ? '<span class="ac-who ac-dim">Unassigned</span>'
     : PROJECT.happyPath ? `<span class="ac-who">${personAvatar(person)}<span class="pl-option-who"><span>${person.name}</span><span class="pl-option-role">${acRoleLabel(person.role)}</span></span></span>`
@@ -11623,8 +11625,33 @@ Use up to 80% of people’s capacity, and use 80% as the billable target for any
     const picks = openConflicts.map((c) => ({ c, best: acOptions006(now.built, SETUP, c)[0] })).filter((x) => x.best);
     const both = picks.length === 2 ? 'both conflicts' : picks.length === 1 ? 'the conflict' : `all ${picks.length} conflicts`;
     const rows = picks.map(({ c, best }) => [acWho(c.person), acWho(best.person), `${best.cost >= 0 ? '+' : '−'}$${Math.abs(best.cost).toLocaleString('en-US')}`, best.slip ? `<span class="ac-late">+ ${acDays(best.slip)}</span>` : 'Unchanged']);
-    acSay(`<p>Here’s how I’d resolve ${both}:</p>${acTable(['Conflict', 'Reassign to', 'Cost', 'Delivery'], rows)}`,
+    acSay(sowTimeline ? acResolveSow(picks, both) : `<p>Here’s how I’d resolve ${both}:</p>${acTable(['Conflict', 'Reassign to', 'Cost', 'Delivery'], rows)}`,
       (reply) => acChips(reply, [[picks.length === 2 ? 'Accept both' : 'Accept', () => acAcceptAll(picks)], ['Change something', acConflictsOneByOne]]));
+  }
+  // SOW route: why each person, read off the plan for the conflict's week, then what it does to the margin
+  function acResolveSow(picks, both) {
+    const { plan, now, costDelta } = acState();
+    const first = (p) => p.name.split(' ')[0];
+    const load = (p, w) => { const m = now.built.team.find((x) => x.id === p.id) ?? p; return Math.round(((m.other[w] + m.hours[w]) / HOURS_PER_WEEK) * 100); };
+    const money = (n) => `$${Math.abs(n).toLocaleString('en-US')}`;
+    const rows = picks.map(({ c, best }) => [acWho(c.person), acWho(best.person), `${best.cost >= 0 ? '+' : '−'}${money(best.cost)}`]);
+    const lines = picks.map(({ c, best }) => {
+      const to = best.person, w = c.week;
+      const phase = PHASES.find((ph) => ph.id === c.tasks[0].phase);
+      const before = phase && now.built.tasks.some((t) => t.assignee === to.id && t.phase === phase.id && t.weeks.findIndex((h) => h > 0) < w);
+      const rate = best.cost === 0 ? 'and on the same rate, so it costs nothing extra'
+        : best.cost > 0 ? `${first(to)}’s rate is a little higher, so it adds ${money(best.cost)}` : `${first(to)}’s rate is lower, so it saves ${money(best.cost)}`;
+      return best.cost === 0
+        ? `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% in ${acWeekRange([w])}. ${first(to)}’s at ${load(to, w)}% ${rate}.`
+        : `<strong>${first(c.person)} → ${first(to)}:</strong> ${first(c.person)}’s at ${load(c.person, w)}% that week. ${first(to)} has the hours${before ? ` and has worked on ${phase.name} before` : ''}. ${rate}.`;
+    });
+    const cost = plan.cost + costDelta, added = picks.reduce((sum, { best }) => sum + best.cost, 0);
+    const from = ((BUDGET - cost) / BUDGET) * 100, to = ((BUDGET - cost - added) / BUDGET) * 100;
+    const delivers = atNoon(SETUP.dates?.end ?? DEMO_SOW.end);
+    return `<p>Here’s how I’d resolve ${both}. Each moves the work to someone in the same role who has room that week, so nobody’s overbooked and delivery stays on ${formatDate(delivers)}.</p>
+      ${acTable(['Conflict', 'Reassign to', 'Cost'], rows, false)}
+      ${lines.map((l) => `<p>${l}</p>`).join('')}
+      <p>Margin moves from <strong>${from.toFixed(1)}%</strong> to <strong>${to.toFixed(1)}%</strong>${to > TARGET_MARGIN ? `, still well above your ${TARGET_MARGIN}% target` : ''}.</p>`;
   }
   function acAcceptAll(picks) {
     for (const { c, best } of picks) {

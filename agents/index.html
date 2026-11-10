@@ -17884,8 +17884,13 @@ const _mwWithChange0 = _withChange;
 _withChange = function (a, p, task) {
   if (_agentKind(a) !== 'margin') return _mwWithChange0(a, p, task);
   const flagged = _agentScopeFor(a).shown.some(x => x.fee && _mwMargin(x).state !== 'ok');
-  if (flagged && typeof _mwRaiseAlert === 'function') _mwRaiseAlert(a);
-  return flagged ? `<p>I’ll alert ${PEOPLE.dana.short} and the PM with fixes that recover the margin, ready for approval.</p>` : '';
+  const raised = flagged && typeof _mwRaiseAlert === 'function' && _mwRaiseAlert(a);
+  if (!flagged) return '';
+  // The same three modes as other agents: report, approve first, or apply straight away
+  const mode = _MW.raised && _MW.agentId === a.id ? _MW.agentMode : _abMode(a);
+  if (mode === 'read') return `<p>I’m read only, so I haven’t changed anything. I’ve sent ${PEOPLE.dana.short} and the PM the fixes I’d recommend.</p>`;
+  if (mode === 'act') return raised ? `<p>I’ve applied ${_MW.fixes.length} fixes to ${_ntEsc(_mwP6().name)}. They can’t be undone.</p>` : '';
+  return `<p>I’ll alert ${PEOPLE.dana.short} and the PM with fixes that recover the margin, ready for approval.</p>`;
 };
 /* ══ Margin Watcher, phase 3: the alert (bell, Updates, Activity), three fixes
    with the margin each recovers, Accept, and EAC before → after ════════════ */
@@ -17939,37 +17944,54 @@ function _mwFixList(fixes) {
   return `<ol class="mw-fixes">${fixes.map(f => `<li>${_ntEsc(f.text)}<span class="mw-gain">${_ntEsc(f.gain)}</span></li>`).join('')}</ol>`;
 }
 // The alert's state: one per session, raised by the first run that flags Depot
-const _MW = { raised: false, agentId: null, before: null, fixes: [], ids: [], mode: null, msg: null, done: false };
+const _MW = { raised: false, agentId: null, agentMode: 'draft', before: null, fixes: [], ids: [], mode: null, msg: null, done: false };
 function _mwRaiseAlert(a) {
-  if (_MW.raised || !AGENTS.includes(a) || a.status !== 'active') return;
+  if (_MW.raised || !AGENTS.includes(a) || a.status !== 'active') return false;
   const p = _mwP6();
-  if (!_agentScopeFor(a).shown.includes(p) || _mwMargin(p).state === 'ok') return;
-  const s = _mwSnap(p);
-  Object.assign(_MW, { raised: true, agentId: a.id, before: s, fixes: _mwFixes(p) });
+  if (!_agentScopeFor(a).shown.includes(p) || _mwMargin(p).state === 'ok') return false;
+  const s = _mwSnap(p), mode = _abMode(a), n = _mwFixes(p).length;
+  Object.assign(_MW, { raised: true, agentId: a.id, agentMode: mode, before: s, fixes: _mwFixes(p) });
   _MW.ids = _MW.fixes.map(f => {
     const id = 'dc' + Math.random().toString(36).slice(2, 8);
-    _DC[id] = { a, ch: { type: 'margin', project: p, fix: f, title: f.text }, mode: 'draft', status: 'pending' };
+    _DC[id] = { a, ch: { type: 'margin', project: p, fix: f, title: f.text }, mode, status: 'pending' };
     return id;
   });
-  (NOTIFS.dana = NOTIFS.dana || []).unshift({ type: 'approval', agent: a.id, title: `${p.name} is over budget`, line: `Margin at risk: EAC ${_eur(s.eac)} against a ${_eur(s.budget)} cost budget`,
-    meta: `${_MW_STATE[s.state]} · ${_MW.fixes.length} fixes ready for approval`, time: 'Just now', unread: true, open: 'marginAlert', project: p.name });
+  // Take actions applies every fix now, the same way Accept all does
+  if (mode === 'act') { _MW.ids.forEach(id => _applyChange(_DC[id], '')); _MW.done = true; }
+  const after = _mwSnap(p);
+  const notif = mode === 'act'
+    ? { type: 'output', title: `${p.name} is back on track`, line: `Margin recovered: EAC ${_eur(after.eac)} against a ${_eur(after.budget)} cost budget`, meta: `${n} fixes applied` }
+    : mode === 'read'
+      ? { type: 'output', title: `${p.name} is over budget`, line: `Margin at risk: EAC ${_eur(s.eac)} against a ${_eur(s.budget)} cost budget`, meta: `${_MW_STATE[s.state]} · ${n} fixes recommended` }
+      : { type: 'approval', title: `${p.name} is over budget`, line: `Margin at risk: EAC ${_eur(s.eac)} against a ${_eur(s.budget)} cost budget`, meta: `${_MW_STATE[s.state]} · ${n} fixes ready for approval` };
+  (NOTIFS.dana = NOTIFS.dana || []).unshift({ ...notif, agent: a.id, time: 'Just now', unread: true, open: 'marginAlert', project: p.name });
   _renderBellBadge();
-  scoutUpdates.unshift({ id: 109, type: 'health', agentName: a.name, title: `${p.name}: margin at risk`, preview: a.name, time: 'Just now', content: { time: 'Just now', intro: '', body: '' } });
+  scoutUpdates.unshift({ id: 109, type: 'health', agentName: a.name, title: mode === 'act' ? `${p.name}: margin fixes applied` : `${p.name}: margin at risk`, preview: a.name, time: 'Just now', content: { time: 'Just now', intro: '', body: '' } });
   _mwSyncUpdate();
-  logActivity({ type: 'approval', agent: a.id, verb: `flagged margin at risk and drafted ${_MW.fixes.length} fixes for approval`, title: `${p.name} is over budget`, ctx: `Project: ${p.name}`, project: p.name, waitingOn: ME, pending: true, _dc: true, open: 'marginAlert' });
+  logActivity(mode === 'act'
+    ? { type: 'output', agent: a.id, verb: `applied ${n} margin fixes`, title: `${p.name} is back on track`, ctx: `Project: ${p.name}`, project: p.name, open: 'marginAlert' }
+    : mode === 'read'
+      ? { type: 'output', agent: a.id, verb: `flagged margin at risk and recommended ${n} fixes`, title: `${p.name} is over budget`, ctx: `Project: ${p.name}`, project: p.name, open: 'marginAlert' }
+      : { type: 'approval', agent: a.id, verb: `flagged margin at risk and drafted ${n} fixes for approval`, title: `${p.name} is over budget`, ctx: `Project: ${p.name}`, project: p.name, waitingOn: ME, pending: true, _dc: true, open: 'marginAlert' });
+  if (mode === 'act') setTimeout(() => showSuccessToast(a.name, `Applied ${n} fixes to ${p.name}`), 0);
+  return true;
 }
 // The Updates item: the same signal, cause and fixes, with a way into the card
 function _mwSyncUpdate() {
   const u = scoutUpdates.find(x => x.id === 109); if (!u) return;
   const p = _mwP6(), now = _mwSnap(p);
-  u.content.intro = _MW.done ? `<strong>${_ntEsc(p.name)}</strong>: the margin fixes have been decided.` : `<strong>${_ntEsc(p.name)}</strong> is over its cost budget. I’ve drafted fixes that recover the margin.`;
+  u.content.intro = _MW.agentMode === 'act' ? `<strong>${_ntEsc(p.name)}</strong> went over its cost budget. I applied fixes that recover the margin.`
+    : _MW.agentMode === 'read' ? `<strong>${_ntEsc(p.name)}</strong> is over its cost budget. Here are the fixes I’d recommend.`
+    : _MW.done ? `<strong>${_ntEsc(p.name)}</strong>: the margin fixes have been decided.` : `<strong>${_ntEsc(p.name)}</strong> is over its cost budget. I’ve drafted fixes that recover the margin.`;
   u.content.body = `<div class="mw-card"><div class="mw-sec">${_mwSignal(p, _MW.done ? now : _MW.before)}</div>
     <div class="mw-sec"><div class="mw-sec-label">Cause</div>${_ntEsc(p.marginCause)}</div>
     <div class="mw-sec"><div class="mw-sec-label">Recommended fixes</div>${_mwFixList(_MW.fixes)}</div></div>
-    <p style="margin-top:12px">${_MW.done ? `Resolved. ${_mwDecidedLine()}` : ''}</p>
-    <button class="nt-btn primary sm" onclick="openMarginAlert()">${_MW.done ? 'View fixes' : 'Review fixes'}</button>`;
+    <p style="margin-top:12px">${_MW.agentMode === 'act' ? `Applied. ${_mwDecidedLine()}` : _MW.done ? `Resolved. ${_mwDecidedLine()}` : ''}</p>
+    <button class="nt-btn primary sm" onclick="openMarginAlert()">${_mwNeedsReview() ? 'Review fixes' : 'View fixes'}</button>`;
 }
 // Open the alert's card from anywhere: the notification if there is one, else straight to the chat
+// Only Draft changes leaves fixes waiting on a person
+function _mwNeedsReview() { return _MW.agentMode === 'draft' && !_MW.done; }
 function openMarginAlert() {
   const list = NOTIFS[ME] || [], i = list.findIndex(n => n.open === 'marginAlert');
   if (i > -1) return openNotif(i);
@@ -17995,22 +18017,22 @@ const _mwAgentName0 = updateAgentName;
 updateAgentName = function (u) { return (u && u.agentName) || _mwAgentName0(u); };
 // The Activity entry opens the same card
 const _mwActText0 = _actText;
-_actText = function (e) { return _mwActText0(e) + (e.open === 'marginAlert' ? ` <button class="nt-btn sm" onclick="openMarginAlert()">${_MW.done ? 'View fixes' : 'Review fixes'}</button>` : ''); };
+_actText = function (e) { return _mwActText0(e) + (e.open === 'marginAlert' && _MW.agentMode !== 'act' ? ` <button class="nt-btn sm" onclick="openMarginAlert()">${_mwNeedsReview() ? 'Review fixes' : 'View fixes'}</button>` : ''); };
 
 /* The card in the agent's chat */
 function _mwFixCard(id, f) {
   const d = _DC[id], p = d.ch.project;
   const foot = d.status === 'pending'
     ? `<div class="dc-actions"><button class="nt-btn primary sm" onclick="mwDecide('${id}', true)">Approve</button><button class="nt-btn ghost sm" onclick="mwDecide('${id}', false)">Discard</button></div>`
-    : `<div class="dc-status ${d.status === 'done' ? '' : 'dc-fail'}">${d.status === 'done' ? `${_shIcon.check} Approved — ${_ntEsc(f.gain.split(' · ')[0])}` : 'Discarded — nothing was changed'}</div>`;
+    : `<div class="dc-status ${d.status === 'done' ? '' : 'dc-fail'}">${d.status === 'done' ? `${_shIcon.check} ${d.mode === 'act' ? 'Done' : 'Approved'} — ${_ntEsc(f.gain.split(' · ')[0])}` : 'Discarded — nothing was changed'}</div>`;
   return `<div class="dc-card" data-dc="${id}">
-    <div class="dc-head"><span class="dc-kind">Draft · Margin fix ${f.i + 1} of ${_MW.fixes.length}</span>${d.status === 'pending' ? '<span class="dc-need">Needs your approval</span>' : ''}<span class="dc-where">${_ntEsc(p.name)}</span></div>
+    <div class="dc-head"><span class="dc-kind">${d.mode === 'act' ? 'Done' : 'Draft'} · Margin fix ${f.i + 1} of ${_MW.fixes.length}</span>${d.status === 'pending' ? '<span class="dc-need">Needs your approval</span>' : ''}<span class="dc-where">${_ntEsc(p.name)}</span></div>
     <div class="dc-body"><div class="dc-title">${_ntEsc(f.text)}</div><div class="mw-gain">${_ntEsc(f.gain)}</div></div>
     ${foot}</div>`;
 }
 function _mwDecidedLine() {
   const ok = _MW.ids.filter(id => _DC[id].status === 'done').length;
-  return ok ? `${ok} of ${_MW.ids.length} fixes accepted.` : 'No fixes accepted, so nothing changed.';
+  return ok ? `${ok} of ${_MW.ids.length} fixes ${_MW.agentMode === 'act' ? 'applied' : 'accepted'}.` : 'No fixes accepted, so nothing changed.';
 }
 function _mwCard() {
   const p = _mwP6(), b = _MW.before, pending = _MW.ids.filter(id => _DC[id].status === 'pending');
@@ -18020,7 +18042,7 @@ function _mwCard() {
       <button class="nt-btn sm" onclick="mwOneAtATime()">One at a time</button>
       <button class="nt-btn ghost sm" onclick="mwDismiss()">Dismiss</button></div>` : '';
   let closing = '';
-  if (!pending.length) {
+  if (!pending.length && _MW.agentMode !== 'read') {
     const a = _mwSnap(p);
     const col = (label, s) => `<div class="mw-ba-col"><div class="mw-sec-label">${label}<span class="mw-pill ${s.state}">${_MW_STATE[s.state]}</span></div>
       <div class="mw-ba-eac">${_eur(s.eac)}</div><div>EAC against a ${_eur(s.budget)} budget</div>${_mwBar(s)}<div>Forecast margin <b>${_mwPct(s.margin)}</b></div></div>`;
@@ -18032,10 +18054,18 @@ function _mwCard() {
     <div class="mw-sec">${_mwSignal(p, b)}</div>
     <div class="mw-sec"><div class="mw-sec-label">Cause</div>${_ntEsc(p.marginCause)}</div>
     <div class="mw-sec"><div class="mw-sec-label">Recommended fixes</div>${_mwFixList(_MW.fixes)}</div>
-    <div class="mw-sec"><div class="mw-sec-label">Proposed changes</div>${group}${cards.map(id => _mwFixCard(id, _DC[id].ch.fix)).join('')}</div>
-    ${closing}</div>`;
+    ${_MW.agentMode === 'read'
+      ? '<div class="mw-sec">Switch me to Draft changes to approve fixes here.</div>'
+      : `<div class="mw-sec"><div class="mw-sec-label">${_MW.agentMode === 'act' ? 'Changes made' : 'Proposed changes'}</div>${group}${cards.map(id => _mwFixCard(id, _DC[id].ch.fix)).join('')}</div>
+    ${closing}`}</div>`;
 }
-function _mwMessage() { return `<p>${_ntEsc(_mwP6().name)} has gone over its cost budget. Here’s why, and three fixes that recover the margin. Nothing changes until you approve.</p>` + _mwCard(); }
+function _mwMessage() {
+  const name = _ntEsc(_mwP6().name), n = _MW.fixes.length;
+  const intro = _MW.agentMode === 'act' ? `${name} went over its cost budget. Here’s why, and the ${n} fixes I applied to recover the margin.`
+    : _MW.agentMode === 'read' ? `${name} has gone over its cost budget. Here’s why, and ${n} fixes I’d recommend. I’m read only, so nothing has changed.`
+    : `${name} has gone over its cost budget. Here’s why, and three fixes that recover the margin. Nothing changes until you approve.`;
+  return `<p>${intro}</p>` + _mwCard();
+}
 function _mwRefresh() {
   const html = _mwMessage();
   if (_MW.msg) _MW.msg.html = html;
@@ -18056,7 +18086,9 @@ _applyChange = function (d, text) {
   p.budget = Math.round(p.fee * (1 - p.targetMargin / 100));   // a change request raises the cost budget with the fee
   p.marginFixed = true;
   d.status = 'done';
-  if (AGENTS.includes(a)) logActivity({ type: 'approval', person: ME, agent: a.id, verb: `approved a margin fix from ${a.name}`, title: f.text, ctx: `Project: ${p.name}`, project: p.name });
+  if (AGENTS.includes(a)) logActivity(d.mode === 'act'
+    ? { type: 'output', agent: a.id, verb: 'applied a margin fix', title: f.text, ctx: `Project: ${p.name}`, project: p.name }
+    : { type: 'approval', person: ME, agent: a.id, verb: `approved a margin fix from ${a.name}`, title: f.text, ctx: `Project: ${p.name}`, project: p.name });
   return `${f.gain.split(' · ')[0]} on ${p.name}`;
 };
 function mwDecide(id, ok) {

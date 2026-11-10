@@ -10595,7 +10595,7 @@ const schedUnavailable = [
 
 /* The rest of the team Remi's SOW plan books (remi/index.html, AI Adoption Campaign, after the Developer placeholder
    is approved), snapshotted with the consulting roles Remi's summary shows. Priya, Tom, Elena and Sam keep their own
-   rows above (Remi's Priya Shah and Tom Higgins are other people). Display only: these rows draw on the People view
+   rows above. Remi's Priya Shah and Tom Higgins are left out: their names clash with TSIA's Priya and Tom. Display only: these rows draw on the People view
    and count in the Insights' hours, and nothing else reads them, so no rate, budget, invoice, report or Ask AI answer
    changes. Hours are Remi's weekly hours spread over the working days. */
 const SCHED_PLANNED_TEAM = [
@@ -10604,9 +10604,7 @@ const SCHED_PLANNED_TEAM = [
   { key: 'jessica', name: 'Jessica Jones', initials: 'JJ', role: 'Senior Consultant', bg: '#f6dcd3', fg: '#8a3a20' },
   { key: 'hannah', name: 'Hannah Hayes', initials: 'HH', role: 'Junior Consultant', bg: '#a5eef6', fg: '#0f5b66' },
   { key: 'kim', name: 'Kim Dorset', initials: 'KD', role: 'Junior Consultant', bg: '#9fe0c0', fg: '#185c3c' },
-  { key: 'tom', name: 'Tom Higgins', initials: 'TH', role: 'Junior Consultant', bg: '#d6e4fd', fg: '#1f4f8a' },
   { key: 'wakaz', name: 'Wakaz Mahad', initials: 'WM', role: 'Engagement Partner', bg: '#e3dcfb', fg: '#4b3aa8' },
-  { key: 'priya', name: 'Priya Shah', initials: 'PS', role: 'Senior Consultant', bg: '#fbe3c4', fg: '#7a4a0a' },
   { key: 'luis', name: 'Luis Ortega', initials: 'LO', role: 'Senior Consultant', bg: '#d7f0dc', fg: '#1f6b35' },
   { key: 'olivia', name: 'Olivia Grant', initials: 'OG', role: 'Developer', bg: '#fde4d4', fg: '#9a3f12' },
   { key: 'fe-placeholder', name: 'Developer placeholder', initials: '', role: 'Developer', placeholder: true },
@@ -10626,16 +10624,9 @@ const SCHED_PLANNED_ALLOCATIONS = [
   { person: 'hannah', name: 'Acceptable-use / governance policy: controls', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
   { person: 'kim', name: 'Business case modelling', start: '2026-10-19', end: '2026-10-30', perDay: 0.8, color: 'blue' },
   { person: 'kim', name: 'Dashboard technical review', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
-  { person: 'tom', name: 'AI Readiness Assessment: tooling review', start: '2026-10-05', end: '2026-10-16', perDay: 0.8, color: 'green' },
-  { person: 'tom', name: 'Adoption dashboard: fixes', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
   { person: 'wakaz', name: 'Stakeholder interviews & workshop synthesis', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
   { person: 'wakaz', name: 'Stakeholder interviews: workshop sign-off', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
   { person: 'wakaz', name: 'Launch communication plan', start: '2026-11-16', end: '2026-11-20', perDay: 0.8, color: 'yellow' },
-  { person: 'priya', name: 'Use-case discovery', start: '2026-10-05', end: '2026-10-16', perDay: 0.4, color: 'green' },
-  { person: 'priya', name: 'Use-case discovery: sizing', start: '2026-10-05', end: '2026-10-16', perDay: 0.8, color: 'green' },
-  { person: 'priya', name: 'Stakeholder interviews: operations leads', start: '2026-10-05', end: '2026-10-16', perDay: 1.2, color: 'green' },
-  { person: 'priya', name: 'Training curriculum & prompt library: pilot session', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
-  { person: 'priya', name: 'ROI report', start: '2026-11-16', end: '2026-11-20', perDay: 1.6, color: 'yellow' },
   { person: 'luis', name: 'Champion programme playbook: champion selection', start: '2026-11-02', end: '2026-11-13', perDay: 0.6, color: 'pink' },
   { person: 'luis', name: 'Curriculum & prompt review: prompt testing', start: '2026-11-02', end: '2026-11-13', perDay: 0.8, color: 'pink' },
   { person: 'luis', name: 'Dashboard technical review: data checks', start: '2026-11-16', end: '2026-11-20', perDay: 1.6, color: 'yellow' },
